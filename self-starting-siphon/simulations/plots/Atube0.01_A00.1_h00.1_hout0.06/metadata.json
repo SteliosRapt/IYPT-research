@@ -1,0 +1,84 @@
+{
+  "timestamp": "2025-10-20 19:15:03",
+  "initial_conditions": {
+    "A_tube": {
+      "value": 0.01,
+      "unit": "m\u00b2",
+      "description": "Tube cross-sectional area"
+    },
+    "A_0": {
+      "value": 0.1,
+      "unit": "m\u00b2",
+      "description": "Reservoir cross-sectional area"
+    },
+    "k": {
+      "value": 0.09999999999999999,
+      "unit": "dimensionless",
+      "description": "Area ratio (A_tube/A_0)"
+    },
+    "h_0_initial": {
+      "value": 0.1,
+      "unit": "m",
+      "description": "Initial reservoir height"
+    },
+    "h_out": {
+      "value": 0.06,
+      "unit": "m",
+      "description": "Outlet height"
+    },
+    "head": {
+      "value": 0.04000000000000001,
+      "unit": "m",
+      "description": "Initial head (h_0 - h_out)"
+    }
+  },
+  "physical_constants": {
+    "P_atm": {
+      "value": 101300,
+      "unit": "Pa",
+      "description": "Atmospheric pressure"
+    },
+    "P_vapor": {
+      "value": 2300,
+      "unit": "Pa",
+      "description": "Vapor pressure at 20\u00b0C"
+    },
+    "rho": {
+      "value": 998,
+      "unit": "kg/m\u00b3",
+      "description": "Water density"
+    },
+    "g": {
+      "value": 9.81,
+      "unit": "m/s\u00b2",
+      "description": "Gravitational acceleration"
+    }
+  },
+  "calculated_results": {
+    "v_initial": {
+      "value": 0.8903523306687487,
+      "unit": "m/s",
+      "description": "Initial velocity"
+    },
+    "Q_initial": {
+      "value": 0.008903523306687488,
+      "unit": "m\u00b3/s",
+      "description": "Initial volumetric flow rate"
+    },
+    "Q_initial_L_per_s": {
+      "value": 8.903523306687488,
+      "unit": "L/s",
+      "description": "Initial volumetric flow rate"
+    },
+    "Q_mass_initial": {
+      "value": 8.885716260074114,
+      "unit": "kg/s",
+      "description": "Initial mass flow rate"
+    },
+    "t_empty": {
+      "value": 0.8985207006748839,
+      "unit": "s",
+      "description": "Time to empty reservoir"
+    }
+  }
+}

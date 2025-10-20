@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(py syphon2.py:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
