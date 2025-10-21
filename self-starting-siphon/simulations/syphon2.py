@@ -13,34 +13,70 @@ rho = 998        # kg/m³ (water density at 20°C)
 g = 9.81         # m/s²
 mu = 0.001       # Pa·s (dynamic viscosity of water at 20°C)
 
+def _validate_area_ratio(A_tube, A_0):
+    """Validate geometry inputs and return the area ratio k."""
+    if A_tube <= 0 or A_0 <= 0:
+        raise ValueError("Cross-sectional areas must be positive.")
+
+    k = A_tube / A_0
+    if not 0 < k < 1:
+        raise ValueError(
+            "Area ratio k = A_tube/A_0 must lie between 0 and 1 for the inviscid siphon model."
+        )
+    return k
+
+
+def _validate_head(head):
+    """Ensure the hydraulic head difference is positive."""
+    if head <= 0:
+        raise ValueError("Reservoir surface must be above the outlet (h_0 > h_out).")
+
+
 def find_velocity(A_tube, A_0, h_0, h_out):
-    """Calculate instantaneous velocity at height h_0"""
-    k = A_tube/A_0
+    """Calculate instantaneous velocity at height h_0."""
+    k = _validate_area_ratio(A_tube, A_0)
     head = h_0 - h_out
-    v = sqrt(2*g*head/(1 - k**2))
+    _validate_head(head)
+    v = sqrt(2 * g * head / (1 - k**2))
     return v
 
 def find_velocity_at_time(A_tube, A_0, h_0_initial, h_out, t):
-    """Calculate velocity as a function of time"""
-    k = A_tube/A_0
-    v_initial = sqrt(2*g/(1-k**2)) * sqrt(h_0_initial - h_out)
-    v_t = v_initial - k*g*t
-    return max(0, v_t)  # velocity cannot be negative
+    """Calculate velocity as a function of time."""
+    if t < 0:
+        raise ValueError("Time must be non-negative.")
+
+    k = _validate_area_ratio(A_tube, A_0)
+    head_initial = h_0_initial - h_out
+    _validate_head(head_initial)
+
+    v_initial = sqrt(2 * g / (1 - k**2)) * sqrt(head_initial)
+    decay_rate = k * g / (1 - k**2)
+    v_t = v_initial - decay_rate * t
+    return max(0.0, v_t)  # velocity cannot be negative
 
 def find_height_at_time(A_tube, A_0, h_0_initial, h_out, t):
-    """Calculate reservoir height as a function of time"""
-    k = A_tube/A_0
-    alpha = (k/2) * sqrt(2*g/(1-k**2))
-    term = sqrt(h_0_initial - h_out) - alpha*t
+    """Calculate reservoir height as a function of time."""
+    if t < 0:
+        raise ValueError("Time must be non-negative.")
+
+    k = _validate_area_ratio(A_tube, A_0)
+    head_initial = h_0_initial - h_out
+    _validate_head(head_initial)
+
+    alpha = (k / 2) * sqrt(2 * g / (1 - k**2))
+    term = sqrt(head_initial) - alpha * t
     if term <= 0:
         return h_out
     h_t = h_out + term**2
     return h_t
 
 def find_time_to_empty(A_tube, A_0, h_0_initial, h_out):
-    """Calculate total time to empty reservoir"""
-    k = A_tube/A_0
-    t_empty = (2*sqrt(1 - k**2))/(k*sqrt(2*g)) * sqrt(h_0_initial - h_out)
+    """Calculate total time to empty reservoir."""
+    k = _validate_area_ratio(A_tube, A_0)
+    head_initial = h_0_initial - h_out
+    _validate_head(head_initial)
+
+    t_empty = (2 * sqrt(1 - k**2)) / (k * sqrt(2 * g)) * sqrt(head_initial)
     return t_empty
 
 def find_pressure_at_height(h, h_out):
