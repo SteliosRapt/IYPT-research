@@ -26,7 +26,7 @@ Let the loss term be represented with a dimensionless coefficient \(\Lambda\) mu
 h_L = \Lambda \frac{v^2}{2g}, \qquad \Lambda = f \frac{L}{D} + \sum_i K_i,
 \]
 
-where \(f\) is the Darcy friction factor, \(L\) the tube length, \(D\) the hydraulic diameter, and each \(K_i\) a minor-loss coefficient (bends, entrances, exits, etc.). Substituting gives
+where \(f\) is the **Darcy friction factor** (also called Darcy–Weisbach friction factor, not the Fanning factor which is 1/4 of the Darcy value), \(L\) the tube length, \(D\) the hydraulic diameter, and each \(K_i\) a minor-loss coefficient (bends, entrances, exits, etc.). For fully developed laminar flow in circular pipes, \(f = 64/\text{Re}\); for turbulent flow, use empirical correlations such as Colebrook–White or Swamee–Jain (see `variable_losses.md` for details). Substituting gives
 
 \[
 \left(1 - k^2 + \Lambda\right) \frac{v^2}{2g} = h_0 - h_{out}.

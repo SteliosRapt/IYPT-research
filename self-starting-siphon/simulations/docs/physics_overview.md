@@ -7,7 +7,7 @@ This guide summarises the modelling approach behind the three siphon simulations
 * A siphon drains because gravity pulls water down the outlet leg faster than the inlet leg can refill, creating a pressure drop at the crest that drags the liquid over the top.
 * The wider the tube compared with the reservoir, the faster the water level falls. We encode this ratio as \(k = A_{tube} / A_{reservoir}\).
 * Real tubes waste energy on friction (rubbed walls, bends, valves). Engineers summarise those effects with a **loss coefficient** \(\Lambda\). Bigger \(\Lambda\) means more energy wasted and a slower siphon.
-* Cavitation (boiling due to low pressure) and air entrainment (vortex at the inlet) can break the siphon even if water remains above the outlet. Keep the crest below roughly 10 m above the outlet and submerge the inlet deeply to stay safe.
+* Cavitation (vaporization due to low pressure) and air entrainment (vortex at the inlet) can break the siphon even if water remains above the outlet. Keep the crest below roughly 10 m above the outlet and submerge the inlet deeply to stay safe.
 
 **Suggested reading order:**
 
