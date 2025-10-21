@@ -1,6 +1,6 @@
 # Complete Syphon Analysis: Velocity, Pressure, and Time
 
-This document provides a comprehensive mathematical analysis of syphon drainage, including derivations for velocity, height as functions of time, drainage time, and pressure distribution.
+This document provides a comprehensive mathematical analysis of siphon drainage, including derivations for velocity, height as functions of time, drainage time, and pressure distribution. The numerical implementation that mirrors these equations lives in `simulations/ideal.py`, which exposes the ideal (lossless) scenario.
 
 ---
 

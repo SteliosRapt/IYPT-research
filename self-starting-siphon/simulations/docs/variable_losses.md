@@ -1,6 +1,6 @@
 # Siphon Dynamics with Dynamic Losses, Regime Transitions, and Cavitation Limits
 
-This document extends the classical inviscid siphon derivation to cover friction that evolves with the instantaneous flow, regime transitions between laminar and turbulent states, geometric minor losses, and limits imposed by vapor pressure and air entrainment. The goal is to give both the governing mathematics **and** the intuition required to implement a high-fidelity simulation.
+This document extends the classical inviscid siphon derivation to cover friction that evolves with the instantaneous flow, regime transitions between laminar and turbulent states, geometric minor losses, and limits imposed by vapor pressure and air entrainment. The goal is to give both the governing mathematics **and** the intuition required to implement a high-fidelity simulation. The corresponding numerical model is implemented in `simulations/variable_losses.py`.
 
 ---
 
