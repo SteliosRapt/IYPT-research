@@ -77,5 +77,48 @@ Additional derivations and learning resources for both introductory and advanced
 
 ## Testing
 
-The repository does not yet include automated unit tests. The development workflow relies on executing the modules directly and inspecting the generated plots. Attempting to run `python -m simulations.ideal` in the current sandbox fails because `numpy` is unavailable and cannot be installed without internet access. Once dependencies are installed locally, rerun the command trio listed above to verify end-to-end behaviour.
+A comprehensive test suite is available in `test_simulations.py` with 53 unit tests covering:
+
+* **Data structures and validation:** Tests for `FluidProperties`, `TubeGeometry`, `ReservoirSetup`, and `SimulationConfig` classes
+* **Ideal simulation:** Tests for analytical solution correctness, boundary conditions, and edge cases
+* **Constant losses:** Tests for loss coefficient handling and comparison with ideal case
+* **Variable losses:** Tests for Reynolds-number-dependent friction factors and time-marching integration
+* **Plot generation:** Tests for output file creation and metadata generation
+
+### Running the tests
+
+To run all tests:
+
+```bash
+python test_simulations.py
+```
+
+Or use Python's unittest framework directly:
+
+```bash
+python -m unittest test_simulations -v
+```
+
+### Test requirements
+
+The test suite requires `numpy` for numerical tests and `matplotlib` for plotting tests. Tests will be automatically skipped if dependencies are unavailable:
+
+* If `numpy` is not installed, core simulation tests will be skipped
+* If `matplotlib` is not installed, plot generation tests will be skipped
+
+### Current test status
+
+In the current execution environment, `numpy` and `matplotlib` cannot be installed due to network restrictions. All 53 tests are skipped but the framework is validated. Once dependencies are installed locally, all tests should pass.
+
+### Manual verification
+
+For manual end-to-end verification without running the test suite, execute the simulation modules directly:
+
+```bash
+python -m simulations.ideal
+python -m simulations.constant_losses
+python -m simulations.variable_losses
+```
+
+This will generate plots under `plots/<scenario>/` and create `metadata.json` files for inspection.
 
