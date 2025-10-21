@@ -179,6 +179,14 @@ $$\boxed{P(h) = P_{atm} + \rho g(h_{out} - h)}$$
 - At $h > h_{out}$: $P < P_{atm}$ (sub-atmospheric pressure in the upper part of siphon)
 - At $h < h_{out}$: $P > P_{atm}$ (above atmospheric in lower part)
 
+For crest diagnostics the implementation now references the explicit crest elevation $h_c$. It is configurable through `TubeGeometry.entry_height` (defaulting to the initial reservoir height so existing scripts remain valid). The plotted crest pressure therefore becomes
+
+$$
+P_{crest}(t) = P_{atm} + \rho g (h_0(t) - h_c) - \tfrac{1}{2}\rho v^2(t),
+$$
+
+which makes the dynamic head subtraction explicit and clarifies that the reported pressure is relative to the crest rather than the outlet gauge.
+
 ### Step 5.5: Maximum Siphon Height (Cavitation Limit)
 
 The **minimum pressure** occurs at the highest point of the siphon tube. If this pressure drops below water's vapor pressure (~2.3 kPa at 20°C), cavitation occurs and the siphon breaks.

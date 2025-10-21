@@ -13,6 +13,7 @@ from .common import (
     ReservoirSetup,
     SimulationConfig,
     SimulationResult,
+    TerminationStatus,
     TubeGeometry,
     ensure_output_dir,
     format_summary_box,
@@ -21,7 +22,7 @@ from .common import (
 
 
 def _validate_area_ratio(k: float) -> None:
-    if k <= 0 or k >= 1:
+    if k <= 0 or np.isclose(k, 0.0) or k >= 1 or np.isclose(k, 1.0):
         raise ValueError("The tube-to-reservoir area ratio must lie between 0 and 1.")
 
 
@@ -91,6 +92,8 @@ def simulate(
 
     time = 0.0
     height = config.reservoir.initial_height
+    outlet_height = config.reservoir.outlet_height
+    min_dt = np.nextafter(0.0, 1.0)
 
     times = [time]
     heights = [height]
@@ -98,20 +101,23 @@ def simulate(
     flows = [0.0]
     loss_coeffs = [config.tube.minor_losses]
 
-    while height > config.reservoir.outlet_height and time < max_time:
-        head = height - config.reservoir.outlet_height
+    while height > outlet_height and time < max_time:
+        head = height - outlet_height
         velocity, loss_coeff = _solve_velocity(config, head)
         flow = velocity * config.area
 
         if velocity <= 0:
-            dt = time_step
+            dt = min(time_step, max(max_time - time, min_dt))
         else:
-            dt_limit = (height - config.reservoir.outlet_height) / (k * velocity)
+            remaining_head = max(head, 0.0)
+            dt_limit = remaining_head / (k * max(velocity, min_dt))
             dt = min(time_step, 0.5 * dt_limit)
-            dt = max(dt, time_step / 10)
+            dt = max(dt, min_dt)
+            if time + dt > max_time:
+                dt = max(max_time - time, min_dt)
 
         height = max(
-            config.reservoir.outlet_height,
+            outlet_height,
             height - k * velocity * dt,
         )
         time += dt
@@ -122,11 +128,15 @@ def simulate(
         flows.append(flow)
         loss_coeffs.append(loss_coeff)
 
-        if np.isclose(height, config.reservoir.outlet_height, atol=1e-6):
+        if np.isclose(height, outlet_height, atol=1e-6):
             break
 
-    velocities[-1] = 0.0
-    flows[-1] = 0.0
+    drained = height <= outlet_height or np.isclose(height, outlet_height, atol=1e-6)
+    status = TerminationStatus.COMPLETED if drained else TerminationStatus.MAX_TIME_REACHED
+
+    if status is TerminationStatus.COMPLETED:
+        velocities[-1] = 0.0
+        flows[-1] = 0.0
     if len(velocities) > 1:
         velocities[0] = velocities[1]
         flows[0] = flows[1]
@@ -151,7 +161,9 @@ def simulate(
             "loss_coefficient_min": float(np.min(loss_array)),
             "loss_coefficient_max": float(np.max(loss_array)),
             "loss_coefficient_mean": float(np.mean(loss_array)),
+            "termination_status": status.name,
         },
+        termination_status=status,
     )
     return result, loss_array
 

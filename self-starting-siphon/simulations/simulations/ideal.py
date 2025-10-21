@@ -13,6 +13,7 @@ from .common import (
     ReservoirSetup,
     SimulationConfig,
     SimulationResult,
+    TerminationStatus,
     TubeGeometry,
     ensure_output_dir,
     format_summary_box,
@@ -22,7 +23,7 @@ from .common import (
 
 
 def _validate_area_ratio(k: float) -> None:
-    if k <= 0 or k >= 1:
+    if k <= 0 or np.isclose(k, 0.0) or k >= 1 or np.isclose(k, 1.0):
         raise ValueError("The tube-to-reservoir area ratio must lie between 0 and 1.")
 
 
@@ -40,9 +41,11 @@ def simulate(config: SimulationConfig, num_points: int = 400) -> SimulationResul
 
     v0 = np.sqrt(2 * g / (1 - k**2)) * np.sqrt(head0)
     velocity = np.maximum(0.0, v0 - k * g * times)
+    velocity[-1] = 0.0
 
     alpha = (k / 2) * np.sqrt(2 * g / (1 - k**2))
     height = config.reservoir.outlet_height + np.maximum(0.0, np.sqrt(head0) - alpha * times) ** 2
+    height[-1] = config.reservoir.outlet_height
 
     flow = velocity * config.area
     mass_flow = mass_flow_rate(flow, config.fluid)
@@ -56,7 +59,8 @@ def simulate(config: SimulationConfig, num_points: int = 400) -> SimulationResul
         mass_flow_rate=mass_flow,
         drain_time=float(t_empty),
         label="Ideal (no losses)",
-        summary={"loss_coefficient": 0.0},
+        summary={"loss_coefficient": 0.0, "termination_status": TerminationStatus.COMPLETED.name},
+        termination_status=TerminationStatus.COMPLETED,
     )
 
 
@@ -138,19 +142,25 @@ def create_plots(config: SimulationConfig, output_dir: str | Path) -> Simulation
         color="tab:green",
     )
 
-    pressure = config.fluid.atmospheric_pressure + config.fluid.density * config.fluid.gravity * (
-        config.reservoir.outlet_height - result.height
+    crest_height = config.tube.crest_height(config.reservoir)
+    crest_head = np.maximum(result.height - crest_height, 0.0)
+    crest_pressure = (
+        config.fluid.atmospheric_pressure
+        + config.fluid.density * config.fluid.gravity * crest_head
+        - 0.5 * config.fluid.density * np.square(result.velocity)
     )
     pressure_annotation = (
         summary_box
-        + f"\nMin pressure: {pressure.min() / 1000:.1f} kPa\nVapour limit: {config.fluid.vapor_pressure / 1000:.1f} kPa"
+        + "\nReference: crest pressure relative to atmosphere"
+        + f"\nMin crest pressure: {crest_pressure.min() / 1000:.1f} kPa"
+        + f"\nVapour limit: {config.fluid.vapor_pressure / 1000:.1f} kPa"
     )
     _plot_series(
-        pressure / 1000.0,
+        crest_pressure / 1000.0,
         result.height,
         "Pressure (kPa)",
         "Height (m)",
-        "Pressure distribution along the tube",
+        "Crest pressure relative to reservoir height",
         pressure_annotation,
         directory / "pressure_vs_height.png",
         color="tab:purple",
