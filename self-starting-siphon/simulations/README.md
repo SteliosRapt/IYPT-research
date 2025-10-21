@@ -1,10 +1,11 @@
 # Siphon Drainage Simulations
 
-This repository contains analytical and numerical models for the International Young Physicists' Tournament (IYPT) siphon problem. The code predicts the transient behaviour of a reservoir draining through a siphon tube under three modelling assumptions:
+This repository contains analytical and numerical models for the International Young Physicists' Tournament (IYPT) siphon problem. The code predicts the transient behaviour of a reservoir draining through a siphon tube under three modelling assumptions, plus a design-stage analyser for complex geometries:
 
 * **Ideal (no losses):** closed-form solution with purely gravitational driving head.
 * **Constant losses:** analytical solution including a constant Darcy–Weisbach plus minor-loss head-loss coefficient.
 * **Velocity-dependent losses:** time-marching solution that recomputes friction and loss coefficients from the instantaneous Reynolds number.
+* **Multi-segment primed state:** a geometry-aware solver that reports the initial discharge and crest pressures once a multi-crest siphon is fully primed.
 
 Each simulation can generate diagnostic plots and machine-readable metadata to support comparison with experiments.
 
@@ -12,7 +13,7 @@ Each simulation can generate diagnostic plots and machine-readable metadata to s
 
 | Path | Description |
 | --- | --- |
-| `simulations/` | Python modules implementing the three siphon models and the comparison utility. |
+| `simulations/` | Python modules implementing the siphon models and the comparison/analysis utilities. |
 | `docs/` | Physics derivations and background notes at a range of technical depths. |
 | `plots/` | Example figures produced by the scripts (created when you run them). |
 | `backup/` | Archived materials preserved from earlier iterations of the project. |
@@ -49,6 +50,9 @@ python -m simulations.constant_losses
 
 # Velocity-dependent losses with iterative friction updates
 python -m simulations.variable_losses
+
+# Primed multi-crest geometry analyser
+python -m simulations.multi_segment
 ```
 
 To run all three scenarios side-by-side and produce comparison figures, create a short driver script that imports `simulations.comparison.run_all`, constructs a shared `SimulationConfig`, and calls `run_all` with your output directory of choice.
