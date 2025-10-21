@@ -13,6 +13,7 @@ from .common import (
     ReservoirSetup,
     SimulationConfig,
     SimulationResult,
+    TerminationStatus,
     TubeGeometry,
     ensure_output_dir,
     format_summary_box,
@@ -22,7 +23,7 @@ from .common import (
 
 
 def _validate_area_ratio(k: float) -> None:
-    if k <= 0 or k >= 1:
+    if k <= 0 or np.isclose(k, 0.0) or k >= 1 or np.isclose(k, 1.0):
         raise ValueError("The tube-to-reservoir area ratio must lie between 0 and 1.")
 
 
@@ -75,7 +76,11 @@ def simulate(
         mass_flow_rate=mass_flow,
         drain_time=float(t_empty),
         label=label,
-        summary={"loss_coefficient": float(loss_coefficient)},
+        summary={
+            "loss_coefficient": float(loss_coefficient),
+            "termination_status": TerminationStatus.COMPLETED.name,
+        },
+        termination_status=TerminationStatus.COMPLETED,
     )
 
 

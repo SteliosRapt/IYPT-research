@@ -4,11 +4,13 @@
 This document consolidates recent findings about the siphon simulators and outlines a set of corrective actions and refactoring steps. The focus is on eliminating the two critical bugs uncovered during the code review, strengthening the architecture shared by the physics modules, and expanding automated coverage so regressions are caught early.
 
 ## Bug Fix Priorities
-1. **Variable-loss integrator step floor**  
+1. **Variable-loss integrator step floor**
    The adaptive integrator in the variable-loss solver enforces a minimum step equal to one tenth of the nominal step size. When the reservoir is nearly empty this lower bound overshoots the remaining head, which in turn inflates the predicted drain time. Removing the hard floor (or switching to a logarithmic step contraction capped only by the tolerance) will let the final integration step shrink to the physically correct scale.
+   *Update:* The production solver now drives the step size down to machine precision when required, eliminating the spurious tail in the drainage curve.
 
-2. **Premature termination reporting**  
+2. **Premature termination reporting**
    If the solver exits because `max_time` is reached while the fluid level is still above the outlet, the routine still zeros the terminal velocity and flow. That masks incomplete drains as if they finished successfully. Preserve the last computed velocity/head pair in this branch and expose a status flag so callers can tell when a run hit the cap.
+   *Update:* Runs that hit `max_time` now keep their terminal kinematics and surface a `MAX_TIME_REACHED` status flag in the metadata.
 
 ## Refactoring Opportunities
 - **Unify plot formatting helpers**  

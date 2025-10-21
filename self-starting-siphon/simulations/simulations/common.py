@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from enum import Enum, auto
 from pathlib import Path
 from typing import Sequence
 
@@ -21,6 +22,16 @@ class FluidProperties:
     vapor_pressure: float = 2300.0  # Pa
 
 
+class TerminationStatus(Enum):
+    """Enumerate the possible termination modes for a simulation."""
+
+    COMPLETED = auto()
+    MAX_TIME_REACHED = auto()
+
+    def __str__(self) -> str:  # pragma: no cover - trivial wrapper
+        return self.name
+
+
 @dataclass(frozen=True)
 class TubeGeometry:
     """Geometric description of the siphon tube."""
@@ -30,6 +41,7 @@ class TubeGeometry:
     minor_loss_coefficients: Sequence[float] = field(default_factory=tuple)
     friction_factor: float | None = None
     roughness: float | None = None  # m, absolute roughness for turbulent models
+    entry_height: float | None = None  # m, crest height relative to datum
 
     @property
     def area(self) -> float:
@@ -45,6 +57,13 @@ class TubeGeometry:
     @property
     def minor_losses(self) -> float:
         return float(np.sum(self.minor_loss_coefficients)) if self.minor_loss_coefficients else 0.0
+
+    def crest_height(self, reservoir: ReservoirSetup) -> float:
+        """Return the tube crest/entry elevation used for pressure references."""
+
+        if self.entry_height is not None:
+            return self.entry_height
+        return reservoir.initial_height
 
     def constant_loss_coefficient(self, friction_factor: float | None = None) -> float:
         """Return Λ = f L/D + ΣK for a supplied or stored friction factor."""
@@ -111,7 +130,8 @@ class SimulationResult:
     mass_flow_rate: np.ndarray
     drain_time: float
     label: str
-    summary: dict[str, float] | None = None
+    summary: dict[str, object] | None = None
+    termination_status: TerminationStatus = TerminationStatus.COMPLETED
 
     def to_metadata(self) -> dict:
         """Return a JSON-serialisable payload describing the simulation."""
@@ -122,6 +142,7 @@ class SimulationResult:
             "timestamp": timestamp,
             "label": self.label,
             "drain_time_s": float(self.drain_time),
+            "termination_status": self.termination_status.name,
             "config": {
                 "tube": {
                     "length_m": cfg.tube.length,
@@ -165,12 +186,14 @@ def mass_flow_rate(flow_rate: np.ndarray, fluid: FluidProperties) -> np.ndarray:
 def format_summary_box(result: SimulationResult) -> str:
     cfg = result.config
     head = cfg.reservoir.initial_head
+    status = "Completed" if result.termination_status is TerminationStatus.COMPLETED else "Max time reached"
     return (
         f"Scenario: {result.label}\n"
         f"Drain time: {result.drain_time:.2f} s\n"
         f"Initial head: {head:.3f} m\n"
         f"Tube L/D: {cfg.tube.length / cfg.tube.diameter:.1f}\n"
-        f"Area ratio k: {cfg.area_ratio:.4f}"
+        f"Area ratio k: {cfg.area_ratio:.4f}\n"
+        f"Termination: {status}"
     )
 
 

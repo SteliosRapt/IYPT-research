@@ -63,6 +63,8 @@ Once $Q$ is found, the ODE $dh_0/dt = -Q/A_0$ advances the free surface.
 
 **Algorithmic intuition:** Every time step is a negotiation between inertia and friction. Guess $Q$, compute losses, check whether the total head drop matches the elevation difference, and iterate until balance is achieved.
 
+**Implementation note:** The numerical integrator now allows the time step to contract all the way down to machine precision (via `np.nextafter`) instead of imposing a hard `Δt` floor. This prevents the final updates from overshooting the remaining head when the reservoir is almost empty, keeping the predicted drain time and terminal height consistent with the physics.
+
 ---
 
 ## 4. Reynolds Number and Friction Factor Models
@@ -158,6 +160,8 @@ The minimum pressure usually occurs at the crest $s_c$. Ensuring $P(s_c,t) > P_v
  h_0(t) - z(s_c) > \frac{Q^2}{2 g A_{out}^2} \left[ 1 + f \frac{s_c}{D} + \sum_{j \in [0,s_c]} K_j(Q) \frac{A_{out}^2}{A_j^2} \right] + \frac{P_v - P_{atm}}{\rho g}.
 \]
 **Intuition:** As the reservoir drains, both $h_0$ and $Q$ fall. Friction suppresses velocity, which relaxes the dynamic pressure drop, but the hydrostatic head shrinks faster. Once the hydrostatic head can no longer offset the kinetic and frictional losses plus the vapor margin, the siphon pulls a vapor core and breaks.
+
+To assist post-processing, the solver records a `termination_status` flag alongside the time histories. It reports whether the run naturally completed (`COMPLETED`) or whether it terminated after reaching the configured `max_time` cap, preserving the terminal velocity and loss coefficient in the latter case for diagnostics.
 
 ---
 

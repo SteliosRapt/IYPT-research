@@ -92,8 +92,9 @@ class TestTubeGeometry(unittest.TestCase):
     """Test TubeGeometry dataclass."""
 
     def setUp(self):
-        from simulations.common import TubeGeometry
+        from simulations.common import ReservoirSetup, TubeGeometry
         self.TubeGeometry = TubeGeometry
+        self.ReservoirSetup = ReservoirSetup
 
     def test_basic_construction(self):
         """Test basic tube geometry construction."""
@@ -131,6 +132,17 @@ class TestTubeGeometry(unittest.TestCase):
         """Test minor loss coefficient when none specified."""
         tube = self.TubeGeometry(length=1.0, diameter=0.02)
         self.assertEqual(tube.minor_losses, 0.0)
+
+    def test_crest_height_default(self):
+        """Entry height defaults to the reservoir initial height when unset."""
+
+        tube = self.TubeGeometry(length=1.0, diameter=0.02)
+        reservoir = self.ReservoirSetup(
+            surface_area=0.5,
+            initial_height=0.8,
+            outlet_height=0.2,
+        )
+        self.assertAlmostEqual(tube.crest_height(reservoir), reservoir.initial_height)
 
     def test_constant_loss_coefficient(self):
         """Test constant loss coefficient calculation."""
@@ -539,11 +551,17 @@ class TestVariableLossesSimulation(unittest.TestCase):
 
     def setUp(self):
         from simulations import variable_losses
-        from simulations.common import SimulationConfig, TubeGeometry, ReservoirSetup
+        from simulations.common import (
+            SimulationConfig,
+            TerminationStatus,
+            TubeGeometry,
+            ReservoirSetup,
+        )
         self.variable_losses = variable_losses
         self.SimulationConfig = SimulationConfig
         self.TubeGeometry = TubeGeometry
         self.ReservoirSetup = ReservoirSetup
+        self.TerminationStatus = TerminationStatus
 
     def get_example_config(self):
         """Create example configuration."""
@@ -570,6 +588,8 @@ class TestVariableLossesSimulation(unittest.TestCase):
         self.assertGreater(len(result.time), 0)
         self.assertEqual(len(result.time), len(result.height))
         self.assertEqual(len(result.time), len(loss_array))
+        self.assertIn("termination_status", result.summary)
+        self.assertEqual(result.termination_status, self.TerminationStatus.COMPLETED)
 
     def test_simulate_initial_conditions(self):
         """Test initial conditions."""
@@ -584,6 +604,7 @@ class TestVariableLossesSimulation(unittest.TestCase):
         config = self.get_example_config()
         result, _ = self.variable_losses.simulate(config)
 
+        self.assertEqual(result.termination_status, self.TerminationStatus.COMPLETED)
         self.assertAlmostEqual(result.velocity[-1], 0.0, places=10)
 
     def test_darcy_friction_factor_laminar(self):
@@ -617,12 +638,47 @@ class TestVariableLossesSimulation(unittest.TestCase):
         self.assertIn("loss_coefficient_min", result.summary)
         self.assertIn("loss_coefficient_max", result.summary)
         self.assertIn("loss_coefficient_mean", result.summary)
+        self.assertIn("termination_status", result.summary)
 
         # Min should be less than or equal to mean
         self.assertLessEqual(
             result.summary["loss_coefficient_min"],
             result.summary["loss_coefficient_mean"]
         )
+
+    def test_small_head_converges_to_outlet(self):
+        """Ensure adaptive step shrinks enough to drain a shallow reservoir."""
+
+        config = self.SimulationConfig(
+            tube=self.TubeGeometry(
+                length=1.0,
+                diameter=0.02,
+                roughness=1.0e-4,
+                minor_loss_coefficients=(0.2,),
+            ),
+            reservoir=self.ReservoirSetup(
+                surface_area=0.3,
+                initial_height=0.205,
+                outlet_height=0.2,
+            ),
+            label="Shallow drain",
+        )
+        result, _ = self.variable_losses.simulate(config, time_step=0.5, max_time=200.0)
+
+        self.assertEqual(result.termination_status, self.TerminationStatus.COMPLETED)
+        self.assertLessEqual(
+            abs(result.height[-1] - config.reservoir.outlet_height),
+            5e-6,
+        )
+
+    def test_max_time_status_preserves_velocity(self):
+        """Runs hitting max_time should report status and retain terminal velocity."""
+
+        config = self.get_example_config()
+        result, _ = self.variable_losses.simulate(config, time_step=0.5, max_time=0.5)
+
+        self.assertEqual(result.termination_status, self.TerminationStatus.MAX_TIME_REACHED)
+        self.assertGreater(result.velocity[-1], 0.0)
 
 
 @unittest.skipUnless(NUMPY_AVAILABLE and MATPLOTLIB_AVAILABLE, "requires numpy and matplotlib")
