@@ -1,6 +1,6 @@
 # Siphon Dynamics with Head Losses
 
-This note extends the inviscid siphon derivation to include distributed and minor losses. It also outlines how to push the model toward higher-fidelity predictions.
+This note extends the inviscid siphon derivation to include distributed and minor losses. It also outlines how to push the model toward higher-fidelity predictions. The accompanying simulation is implemented in `simulations/constant_losses.py`.
 
 ---
 
