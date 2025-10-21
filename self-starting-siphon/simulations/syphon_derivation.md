@@ -34,6 +34,8 @@ $$\boxed{v(h_0) = \sqrt{\frac{2g(h_0 - h_{out})}{1 - k^2}}}$$
 
 This gives the instantaneous velocity when the reservoir height is $h_0$.
 
+> **Validity requirements:** the derivation assumes a positive head difference $(h_0 > h_{out})$ and an area ratio $0 < k < 1$. Values of $k$ at or above unity invalidate the inviscid siphon model because the velocity at the reservoir surface would exceed that in the tube.
+
 ---
 
 ## 2. Time to Empty the Reservoir
@@ -122,13 +124,13 @@ Expanding:
 
 $$v(t) = \sqrt{\frac{2g}{1-k^2}} \cdot \sqrt{h_{0,initial} - h_{out}} - \sqrt{\frac{2g}{1-k^2}} \cdot \frac{k}{2}\sqrt{\frac{2g}{1-k^2}} \cdot t$$
 
-$$v(t) = \sqrt{\frac{2g}{1-k^2}} \cdot \sqrt{h_{0,initial} - h_{out}} - \frac{k}{2} \cdot \frac{2g}{1-k^2} \cdot t$$
+$$v(t) = \sqrt{\frac{2g}{1-k^2}} \cdot \sqrt{h_{0,initial} - h_{out}} - \frac{k g}{1-k^2} \cdot t$$
 
-$$\boxed{v(t) = v_0 - kg \cdot t}$$
+$$\boxed{v(t) = v_0 - \frac{k g}{1-k^2} \cdot t}$$
 
 where $v_0 = \sqrt{\frac{2g(h_{0,initial} - h_{out})}{1-k^2}}$ is the initial velocity.
 
-**Key insight**: Velocity decreases **linearly** with time!
+**Key insight**: Velocity decreases **linearly** with time, with slope $\frac{k g}{1-k^2}$.
 
 ---
 
