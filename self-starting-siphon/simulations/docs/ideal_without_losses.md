@@ -1,4 +1,4 @@
-# Complete Syphon Analysis: Velocity, Pressure, and Time
+# Complete Siphon Analysis: Velocity, Pressure, and Time
 
 This document provides a comprehensive mathematical analysis of siphon drainage, including derivations for velocity, height as functions of time, drainage time, and pressure distribution. The numerical implementation that mirrors these equations lives in `simulations/ideal.py`, which exposes the ideal (lossless) scenario.
 
@@ -35,6 +35,8 @@ $$\boxed{v(h_0) = \sqrt{\frac{2g(h_0 - h_{out})}{1 - k^2}}}$$
 This gives the instantaneous velocity when the reservoir height is $h_0$.
 
 > **Validity requirements:** the derivation assumes a positive head difference $(h_0 > h_{out})$ and an area ratio $0 < k < 1$. Values of $k$ at or above unity invalidate the inviscid siphon model because the velocity at the reservoir surface would exceed that in the tube.
+>
+> **⚠️ CRITICAL:** As $k \to 1$, the denominator $(1 - k^2) \to 0$, causing velocity, acceleration, and drain time to diverge. In practice, $k > 0.3$ already produces significant errors because the assumption of negligible reservoir surface velocity breaks down. Always verify $k \ll 1$ before applying these formulas.
 
 ---
 
@@ -161,6 +163,10 @@ Since $v^2 = \frac{2g(h_0 - h_{out})}{1 - k^2}$:
 
 $$P(h) = P_{atm} + \frac{1}{2}\rho \cdot \frac{2g(h_0 - h_{out})}{1 - k^2} \cdot (k^2 - 1) + \rho g(h_0 - h)$$
 
+Note that $(k^2 - 1) = -(1 - k^2)$, so the dynamic pressure term simplifies:
+
+$$P(h) = P_{atm} + \frac{1}{2}\rho \cdot \frac{2g(h_0 - h_{out})}{1 - k^2} \cdot [-(1 - k^2)] + \rho g(h_0 - h)$$
+
 $$P(h) = P_{atm} - \rho g(h_0 - h_{out}) + \rho g(h_0 - h)$$
 
 $$\boxed{P(h) = P_{atm} + \rho g(h_{out} - h)}$$
@@ -170,14 +176,14 @@ $$\boxed{P(h) = P_{atm} + \rho g(h_{out} - h)}$$
 **Key insight**: The pressure at height $h$ depends only on the vertical distance below the outlet!
 
 - At $h = h_{out}$: $P = P_{atm}$ ✓ (atmospheric pressure at outlet)
-- At $h > h_{out}$: $P < P_{atm}$ (sub-atmospheric pressure in the upper part of syphon)
+- At $h > h_{out}$: $P < P_{atm}$ (sub-atmospheric pressure in the upper part of siphon)
 - At $h < h_{out}$: $P > P_{atm}$ (above atmospheric in lower part)
 
-### Step 5.5: Maximum Syphon Height (Cavitation Limit)
+### Step 5.5: Maximum Siphon Height (Cavitation Limit)
 
-The **minimum pressure** occurs at the highest point of the syphon tube. If this pressure drops below water's vapor pressure (~2.3 kPa at 20°C), cavitation occurs and the syphon breaks.
+The **minimum pressure** occurs at the highest point of the siphon tube. If this pressure drops below water's vapor pressure (~2.3 kPa at 20°C), cavitation occurs and the siphon breaks.
 
-For the syphon to work without cavitation:
+For the siphon to work without cavitation:
 $$P_{min} = P_{atm} + \rho g(h_{out} - h_{max}) > P_{vapor}$$
 
 $$h_{max} < h_{out} + \frac{P_{atm} - P_{vapor}}{\rho g}$$
@@ -190,10 +196,10 @@ $$h_{max} < h_{out} + \frac{101300 - 2300}{998 \cdot 9.81} \approx h_{out} + 10.
 ## 6. Flow Rates
 
 ### Volumetric Flow Rate
-$$Q(t) = A_{tube} \cdot v(t) = A_{tube}(v_0 - kg \cdot t)$$
+$$Q(t) = A_{tube} \cdot v(t) = A_{tube}\left(v_0 - \frac{kg}{1-k^2} \cdot t\right)$$
 
 ### Mass Flow Rate
-$$\dot{m}(t) = \rho A_{tube} \cdot v(t) = \rho A_{tube}(v_0 - kg \cdot t)$$
+$$\dot{m}(t) = \rho A_{tube} \cdot v(t) = \rho A_{tube}\left(v_0 - \frac{kg}{1-k^2} \cdot t\right)$$
 
 ---
 

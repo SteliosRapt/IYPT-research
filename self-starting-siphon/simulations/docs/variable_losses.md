@@ -24,7 +24,12 @@ Apply the extended Bernoulli equation between the reservoir surface (state 0) an
 \[
 \frac{P_{atm}}{\rho g} + h_0(t) + \frac{\alpha_0 Q^2}{2 g A_0^2} = \frac{P_{atm}}{\rho g} + h_{out} + \frac{\alpha_{out} Q^2}{2 g A_{out}^2} + h_{L,\text{dist}}(Q) + h_{L,\text{minor}}(Q).
 \]
-Here $\alpha$ are kinetic-energy correction factors ($\alpha = 1$ for plug flow, $\alpha = 2$ for laminar in a pipe). For a reservoir, $\alpha_0 \approx 1$ and $A_0 \gg A_{out}$, so the surface kinetic term is negligible. Rearranging gives
+Here $\alpha$ are kinetic-energy correction factors that account for non-uniform velocity profiles. Typical values:
+- $\alpha = 1.0$ for uniform (plug) flow or fully turbulent pipe flow
+- $\alpha = 2.0$ for fully developed laminar flow in circular pipes
+- $\alpha \approx 1.05-1.15$ for turbulent flow in practice due to boundary layer effects
+
+For a reservoir, $\alpha_0 \approx 1$ and $A_0 \gg A_{out}$, so the surface kinetic term is negligible. Rearranging gives
 \[
 \frac{Q^2}{2g A_{out}^2} = h_0(t) - h_{out} - h_{L,\text{dist}}(Q) - h_{L,\text{minor}}(Q).
 \]
@@ -76,7 +81,16 @@ f = \frac{64}{\mathrm{Re}}.
 \]
 Substituting this into the distributed loss integral maintains the correct $f \propto 1/Q$ scaling, leading to a linear dependence of $h_{L,\text{dist}}$ on $Q$ rather than quadratic. The implicit equation $\Phi(Q,h_0)=0$ remains nonlinear because $f$ still multiplies $Q^2$ inside the integral, but the effective exponent drops to unity.
 
-### 4.3 Transitional and Turbulent Regimes
+### 4.3 Transition Zone
+For $2100 < \mathrm{Re} < 4000$, the flow is in a **transition zone** where neither laminar nor fully turbulent correlations are strictly valid. Flow becomes intermittently turbulent with unpredictable friction factors that can vary significantly with pipe roughness, entrance conditions, and vibrations. Practical approaches include:
+
+* **Conservative estimate:** Use the higher of the laminar and turbulent predictions to bound the uncertainty.
+* **Interpolation:** Linearly blend $f_{\text{lam}} = 64/\mathrm{Re}$ and $f_{\text{turb}}$ based on position within the transition band.
+* **Avoid steady operation:** In experimental setups, design to keep $\mathrm{Re}$ either below 2100 or above 4000 throughout the drain to maintain predictable behavior.
+
+During siphon drainage, the Reynolds number typically decreases monotonically, so the flow may start turbulent and transition to laminar. The simulation should detect and handle this regime change automatically.
+
+### 4.4 Fully Turbulent Regime
 For $\mathrm{Re} \gtrsim 4000$, turbulent correlations are required. Two common choices are:
 
 * **Blasius correlation (smooth pipe, $\mathrm{Re} < 10^5$):**
@@ -89,7 +103,11 @@ For $\mathrm{Re} \gtrsim 4000$, turbulent correlations are required. Two common 
   \[
   \frac{1}{\sqrt{f}} = -2 \log_{10} \left( \frac{\varepsilon/D}{3.7} + \frac{2.51}{\mathrm{Re} \sqrt{f}} \right).
   \]
-  Because $f$ appears on both sides, solve using Newton iteration or the explicit Swamee–Jain approximation
+  Because $f$ appears on both sides, solve using Newton iteration. Define $\phi(f) = \frac{1}{\sqrt{f}} + 2 \log_{10} \left( \frac{\varepsilon/D}{3.7} + \frac{2.51}{\mathrm{Re} \sqrt{f}} \right) = 0$. The derivative is
+  \[
+  \frac{d\phi}{df} = -\frac{1}{2f^{3/2}} - \frac{2}{\ln(10)} \cdot \frac{2.51/(2\mathrm{Re} f^{3/2})}{\varepsilon/D/3.7 + 2.51/(\mathrm{Re}\sqrt{f})}.
+  \]
+  Alternatively, use the explicit Swamee–Jain approximation (accurate to ±1% for $10^{-6} < \varepsilon/D < 10^{-2}$ and $5 \times 10^3 < \mathrm{Re} < 10^8$):
   \[
   f \approx \frac{0.25}{\left[ \log_{10}\left( \frac{\varepsilon/D}{3.7} + \frac{5.74}{\mathrm{Re}^{0.9}} \right) \right]^2}.
   \]
