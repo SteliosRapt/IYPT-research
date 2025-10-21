@@ -1,0 +1,11 @@
+# Flow Physics Enhancements
+
+## Flow regimes captured today
+- The core model treats the siphon as an inviscid, incompressible flow: velocity, reservoir drawdown, drain time, pressure, and flow rate all come directly from Bernoulli’s equation with a continuity-based area ratio \(k = A_{\text{tube}}/A_0\). This gives a single-phase, fully filled stream with linear velocity decay and purely hydrostatic pressure recovery; viscosity only appears through an optional Reynolds-number helper and never feeds back into the solution.
+- A second module adds a **constant** lumped head-loss term \(\Lambda = fL/D + \sum K\) to mimic distributed friction and minor losses. The loss coefficient simply shifts the Bernoulli denominator, so the flow is still solved analytically with the same linear decay form—no distinction is made between laminar/turbulent regimes or changing Reynolds number during the drain.
+
+## Opportunities to strengthen the physics
+- Replace the fixed loss coefficient with a Darcy–Weisbach treatment that updates \(f\) from the instantaneous Reynolds number (using Colebrook/Swamee-Jain or laminar \(64/\mathrm{Re}\)), and add separate minor-loss terms that depend on local velocity. This would couple your existing Reynolds helper into the drain-time ODE and capture laminar→turbulent transitions over a run.
+- Let the loss budget evolve as the reservoir level drops: the tube length above/below the crest and the wetted perimeter stay fixed, but the driving head changes, so solving the unsteady Bernoulli equation numerically (rather than enforcing the linear analytic decay) would handle cavitation margins, compressibility of trapped air pockets, or intermittent filling more realistically.
+- Account for multi-phase and free-surface effects—e.g., modeling the inflow region with an entrance-loss coefficient tied to Froude number, or simulating the onset of air entrainment once pressure approaches vapor pressure—to predict siphon breakage or slug flow instead of assuming a perfectly sealed column.
+- Introduce geometric fidelity: variable tube diameter/roughness along the run, elbows or valves with individual \(K\) values, and an explicit crest height check linked to atmospheric/vapor pressure margins before cavitation occurs.
