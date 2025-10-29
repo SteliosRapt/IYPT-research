@@ -13,7 +13,7 @@ This guide summarises the modelling approach behind the three siphon simulations
 
 1. `docs/ideal_without_losses.md` — shows how height and velocity change with time when losses are zero.
 2. `docs/constant_losses.md` — introduces the idea of a fixed \(\Lambda\) that slows everything down uniformly.
-3. Skim the plots produced by `simulations/ideal.py` and `simulations/constant_losses.py` to see the theory in action.
+3. Run the sample script in a notebook or shell to call `simulate_ideal` and `simulate_constant_losses`, then compare the resulting height and velocity curves.
 
 ## 2. Intermediate depth (for undergraduates)
 
@@ -25,8 +25,8 @@ This guide summarises the modelling approach behind the three siphon simulations
 **Suggested reading order:**
 
 1. Review Sections 1–2 of `docs/constant_losses.md` for the analytical solution with \(\Lambda\).
-2. Study Sections 3–6 of `docs/variable_losses.md` to understand how losses evolve with Reynolds number and how the numerical integrator advances the tank height.
-3. Experiment with `simulations.variable_losses.create_plots` to see how \(\Lambda(t)\) responds to geometry changes.
+2. Study Sections 3–6 of `docs/variable_losses.md` to understand how losses evolve with Reynolds number and how the numerical integrator advances the tank height. Then experiment with `simulations/variable_losses.py` to verify the behaviour programmatically.
+3. Use `simulate_variable_losses` with different `SiphonSegment` lists to probe how \(\Lambda(t)\) responds to geometry changes. The helper returns the instantaneous loss coefficient and Reynolds number for easy plotting.
 
 ## 3. Advanced exploration (for research projects)
 
@@ -38,7 +38,7 @@ This guide summarises the modelling approach behind the three siphon simulations
 
 ## 4. Suggested next steps for the codebase
 
-1. **Testing:** add regression tests that call each simulation with a small time/point grid and assert drain times against known benchmarks.
+1. **Testing:** extend the new `tests/test_simulations.py` regression suite with geometry-specific cases and experimental datasets.
 2. **Cavitation warnings:** extend `SimulationResult.summary` with minimum crest pressure and inlet Froude number to provide automatic warnings.
 3. **Data assimilation:** create utilities to read CSV height–time data and fit \(\Lambda\) or roughness, closing the loop between experiment and model.
 4. **Documentation website:** publish the `docs/` materials with a static site generator (e.g., MkDocs) to make the derivations searchable and easier to navigate.
