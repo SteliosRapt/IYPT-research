@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.11.18)  18 NOV 2025 18:10
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.11.18)  18 NOV 2025 18:49
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -522,10 +522,17 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 19.
 (C:\Users\user\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
+<figures/siphon_diagram.png, id=55, 867.24pt x 1188.44pt>
+File: figures/siphon_diagram.png Graphic file (type png)
+<use figures/siphon_diagram.png>
+Package pdftex.def Info: figures/siphon_diagram.png  used on input line 22.
+(pdftex.def)             Requested size: 271.7835pt x 372.43837pt.
+
 [1
 
-{C:/Users/user/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}] [2]
-[3] [4] [5] [6] [7] [8] [9] [10] [11] (math_1_v2.aux)
+{C:/Users/user/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map} <./figures/sip
+hon_diagram.png>] [2] [3] [4] [5] [6] [7] [8] [9] [10] [11] [12]
+(math_1_v2.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-04>
@@ -534,13 +541,13 @@ Package rerunfilecheck Info: File `math_1_v2.out' has not changed.
 (rerunfilecheck)             Checksum: 2FBDE1A72981DEEB5BD1FDF27400DDED;2981.
  ) 
 Here is how much of TeX's memory you used:
- 15568 strings out of 474486
- 300617 string characters out of 5744226
- 1941542 words of memory out of 5000000
- 37616 multiletter control sequences out of 15000+600000
+ 15581 strings out of 474486
+ 300951 string characters out of 5744226
+ 1940542 words of memory out of 5000000
+ 37627 multiletter control sequences out of 15000+600000
  570244 words of font info for 79 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 79i,13n,93p,350b,1158s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 79i,13n,93p,599b,1160s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <C:\Users\user\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm1
 095.pk><C:/Users/user/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts
 /cm/cmbx10.pfb><C:/Users/user/AppData/Local/Programs/MiKTeX/fonts/type1/public/
@@ -557,9 +564,9 @@ b><C:/Users/user/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/c
 mti10.pfb><C:/Users/user/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfo
 nts/cm/cmti8.pfb><C:/Users/user/AppData/Local/Programs/MiKTeX/fonts/type1/publi
 c/amsfonts/symbols/msam10.pfb>
-Output written on math_1_v2.pdf (11 pages, 241142 bytes).
+Output written on math_1_v2.pdf (12 pages, 1269519 bytes).
 PDF statistics:
- 266 PDF objects out of 1000 (max. 8388607)
- 66 named destinations out of 1000 (max. 500000)
- 105 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 275 PDF objects out of 1000 (max. 8388607)
+ 68 named destinations out of 1000 (max. 500000)
+ 110 words of extra memory for PDF output out of 10000 (max. 10000000)
 
