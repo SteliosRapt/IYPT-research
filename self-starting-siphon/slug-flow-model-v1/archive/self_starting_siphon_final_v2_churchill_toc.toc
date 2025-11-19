@@ -1,0 +1,24 @@
+\contentsline {section}{\numberline {1}Introduction}{2}{section.1}%
+\contentsline {section}{\numberline {2}Geometry and coordinate systems}{2}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Global Cartesian coordinate system $(x,h)$}{2}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Pipe centreline: five node points and four segments}{3}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Centreline elevation as a function of arclength, $h(L)$}{3}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Wetted length coordinate $L(t)$ and the advancing front}{4}{subsection.2.4}%
+\contentsline {section}{\numberline {3}Container and pipe properties}{4}{section.3}%
+\contentsline {subsection}{\numberline {3.1}On the effective area $A_0$ for complex internal pipe layouts}{5}{subsection.3.1}%
+\contentsline {section}{\numberline {4}Initial conditions at $t=0$}{6}{section.4}%
+\contentsline {section}{\numberline {5}Volume conservation in the filling phase}{6}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Global volume balance (container + pipe)}{6}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Container level as a function of wetted length, $h_c(L)$}{7}{subsection.5.2}%
+\contentsline {section}{\numberline {6}Dynamics in the filling phase}{7}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Lossless momentum balance}{8}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Detailed derivation of the net driving force}{8}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Loss models: distributed friction and local (minor) losses}{10}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}Extended equation of motion in the filling phase}{11}{subsection.6.4}%
+\contentsline {subsection}{\numberline {6.5}Idealised lossless priming model and upper bound}{11}{subsection.6.5}%
+\contentsline {subsection}{\numberline {6.6}Geometric priming criterion}{12}{subsection.6.6}%
+\contentsline {section}{\numberline {7}Dynamics in the draining phase}{12}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Container mass balance}{13}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Momentum balance with losses in the draining phase}{13}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Quasi-steady draining approximation}{14}{subsection.7.3}%
+\contentsline {section}{\numberline {8}Phase transition and overall summary}{14}{section.8}%
