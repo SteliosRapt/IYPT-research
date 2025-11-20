@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.11.18)  20 NOV 2025 22:00
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.11.18)  20 NOV 2025 22:37
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -596,32 +596,32 @@ Package hyperref Warning: Token not allowed in a PDF string (Unicode):
 (hyperref)                removing `math shift' on input line 373.
 
 [8] [9] [10] [11] [12] [13] [14] [15] [16] [17]
-Underfull \hbox (badness 1303) in paragraph at lines 978--978
+Underfull \hbox (badness 1303) in paragraph at lines 1003--1003
 []|\T1/cmr/m/n/10 Global vol-ume con-ser-va-tion dur-ing
  []
 
 
-Underfull \hbox (badness 2165) in paragraph at lines 992--993
+Underfull \hbox (badness 2165) in paragraph at lines 1017--1018
 []|$[] \OT1/cmr/m/n/10 = [](\OML/cmm/m/it/10 h[] \OMS/cmsy/m/n/10 ^^@ \OML/cmm/
 m/it/10 h[]\OT1/cmr/m/n/10 ) \OMS/cmsy/m/n/10 ^^@ [][]\OML/cmm/m/it/10 f [] \OT
 1/cmr/m/n/10 +
  []
 
 
-Underfull \hbox (badness 1515) in paragraph at lines 993--993
+Underfull \hbox (badness 1515) in paragraph at lines 1018--1018
 []|\T1/cmr/m/n/10 Momentum bal-ance with losses in
  []
 
-[18]
+[18] [19]
 LaTeX Font Info:    Trying to load font information for T1+cmtt on input line 1
-044.
+069.
  (C:\Users\user\AppData\Local\Programs\MiKTeX\tex/latex/base\t1cmtt.fd
 File: t1cmtt.fd 2023/04/13 v2.5m Standard LaTeX font definitions
 )
 ! Missing $ inserted.
 <inserted text> 
                 $
-l.1044 ...} and \texttt{scipy.integrate.solve_ivp}
+l.1069 ...} and \texttt{scipy.integrate.solve_ivp}
                                                   . It encodes the filling and
 I've inserted a begin-math/end-math symbol since I think
 you left one out. Proceed, with fingers crossed.
@@ -629,7 +629,7 @@ you left one out. Proceed, with fingers crossed.
 ! Extra }, or forgotten $.
 <recently read> \egroup 
                         
-l.1044 ...} and \texttt{scipy.integrate.solve_ivp}
+l.1069 ...} and \texttt{scipy.integrate.solve_ivp}
                                                   . It encodes the filling and
 I've deleted a group-closing symbol because it seems to be
 spurious, as in `$x}$'. But perhaps the } is legitimate and
@@ -640,13 +640,13 @@ deleted material, e.g., by typing `I$}'.
 ! Missing $ inserted.
 <inserted text> 
                 $
-l.1045 ...l friction, and event handling for $L=L_
+l.1070 ...l friction, and event handling for $L=L_
                                                   {\max}$ and $h_c=h_{\text{...
 I've inserted a begin-math/end-math symbol since I think
 you left one out. Proceed, with fingers crossed.
 
 
-Overfull \hbox (113.15623pt too wide) in paragraph at lines 1043--1046
+Overfull \hbox (113.15623pt too wide) in paragraph at lines 1068--1071
 \T1/cmr/m/n/10.95 and \T1/cmtt/m/n/10.95 scipy.integrate.solve$[]\OML/cmm/m/it/
 10.95 vp:Itencodesthefillinganddrainingphases; Churchillfriction; andeventhandl
 ingfor$\T1/cmtt/m/n/10.95 L=L$[]$
@@ -655,190 +655,190 @@ ingfor$\T1/cmtt/m/n/10.95 L=L$[]$
 (C:\Users\user\AppData\Local\Programs\MiKTeX\tex/latex/listings\lstlang1.sty
 File: lstlang1.sty 2023/02/27 1.9 listings language file
 )
-[19] [20]
-Overfull \hbox (45.18163pt too wide) in paragraph at lines 1147--1152
+[20] [21]
+Overfull \hbox (45.18163pt too wide) in paragraph at lines 1172--1177
 []\T1/cmtt/m/n/10.95 This implementation mirrors the physical phase change from
  a partially filled, advancing
  []
 
 
-Overfull \hbox (16.86488pt too wide) in paragraph at lines 1147--1152
+Overfull \hbox (16.86488pt too wide) in paragraph at lines 1172--1177
 \T1/cmtt/m/n/10.95 slug to a fully filled draining siphon and allows direct com
 parison between simulation
  []
 
 
-Overfull \hbox (33.84pt too wide) in paragraph at lines 1147--1152
+Overfull \hbox (33.84pt too wide) in paragraph at lines 1172--1177
 \T1/cmtt/m/n/10.95 and experiment for a given geometry. In practice one would r
 eplace the example parameter
  []
 
 
-Overfull \hbox (28.18163pt too wide) in paragraph at lines 1147--1152
+Overfull \hbox (28.18163pt too wide) in paragraph at lines 1172--1177
 \T1/cmtt/m/n/10.95 values by those measured for a specific prototype and, if de
 sired, add diagnostic checks
  []
 
 
-Overfull \hbox (11.20651pt too wide) in paragraph at lines 1155--1162
+Overfull \hbox (11.20651pt too wide) in paragraph at lines 1180--1187
 \T1/cmtt/m/n/10.95 This document collects the full derivations for a self-start
 ing siphon model and adds
  []
 
 
-Overfull \hbox (56.47348pt too wide) in paragraph at lines 1155--1162
+Overfull \hbox (56.47348pt too wide) in paragraph at lines 1180--1187
 \T1/cmtt/m/n/10.95 several practical elements: (i) explicit start-up conditions
  matching experimental practice,
  []
 
 
-Overfull \hbox (5.54814pt too wide) in paragraph at lines 1155--1162
+Overfull \hbox (5.54814pt too wide) in paragraph at lines 1180--1187
 \T1/cmtt/m/n/10.95 (ii) an exact container volume map for arbitrary internal pi
 pe layouts together with
  []
 
 
-Overfull \hbox (67.79022pt too wide) in paragraph at lines 1155--1162
+Overfull \hbox (67.79022pt too wide) in paragraph at lines 1180--1187
 \T1/cmtt/m/n/10.95 a constant-area specialisation, (iii) quantitative validity 
 limits for cavitation, capillarity,
  []
 
 
-Overfull \hbox (11.20651pt too wide) in paragraph at lines 1155--1162
+Overfull \hbox (11.20651pt too wide) in paragraph at lines 1180--1187
 \T1/cmtt/m/n/10.95 and non-hydrostatic inlet effects, (iv) an analytic, geometr
 y-only upper bound on the
  []
 
 
-Overfull \hbox (21.69698pt too wide) in paragraph at lines 1155--1162
+Overfull \hbox (21.69698pt too wide) in paragraph at lines 1180--1187
 \T1/cmtt/m/n/10.95 climb height in the idealised lossless, fixed-$\OML/cmm/m/it
 /10.95 h[]$ \T1/cmtt/m/n/10.95 case, and (v) a runnable Python solver
  []
 
-[21]
-Overfull \hbox (33.86488pt too wide) in paragraph at lines 1163--1169
+
+Overfull \hbox (33.86488pt too wide) in paragraph at lines 1188--1194
 []\T1/cmtt/m/n/10.95 In a design setting the model can be used in two complemen
 tary ways: first, to screen
  []
 
 
-Overfull \hbox (0.12645pt too wide) in paragraph at lines 1163--1169
+Overfull \hbox (0.12645pt too wide) in paragraph at lines 1188--1194
 \T1/cmtt/m/n/10.95 candidate geometries via the ideal bound and the geometric p
 riming criterion $\OML/cmm/m/it/10.95 h[] >
  []
 
 
-Overfull \hbox (5.29039pt too wide) in paragraph at lines 1163--1169
+Overfull \hbox (5.29039pt too wide) in paragraph at lines 1188--1194
 \OML/cmm/m/it/10.95 h[]$\T1/cmtt/m/n/10.95 , and second, to simulate full filli
 ng and draining transients for a chosen layout
  []
 
 
-Overfull \hbox (33.84pt too wide) in paragraph at lines 1163--1169
+Overfull \hbox (33.84pt too wide) in paragraph at lines 1188--1194
 \T1/cmtt/m/n/10.95 and parameter set. Possible extensions include incorporating
  a pressure-floor cavitation
  []
 
 
-Overfull \hbox (5.54814pt too wide) in paragraph at lines 1163--1169
+Overfull \hbox (5.54814pt too wide) in paragraph at lines 1188--1194
 \T1/cmtt/m/n/10.95 switch directly into the ODE, adding a dedicated meniscus-st
 art model for very small
  []
 
 
-Overfull \hbox (60.18497pt too wide) in paragraph at lines 1163--1169
+Overfull \hbox (60.18497pt too wide) in paragraph at lines 1188--1194
 \T1/cmtt/m/n/10.95 diameters $\OML/cmm/m/it/10.95 D$\T1/cmtt/m/n/10.95 , and co
 upling the slug model to a simple two-phase description of air entrainment
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1179--1182
+Underfull \hbox (badness 10000) in paragraph at lines 1204--1207
 []\T1/cmtt/m/n/10.95 S. W. Churchill, ``Friction-factor equation spans all flui
 d-flow regimes,''
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1185--1189
+Underfull \hbox (badness 10000) in paragraph at lines 1210--1214
 []\T1/cmtt/m/n/10.95 C. F. Colebrook, ``Turbulent flow in pipes, with particula
 r reference to
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1185--1189
+Underfull \hbox (badness 10000) in paragraph at lines 1210--1214
 \T1/cmtt/m/n/10.95 the transition region between smooth and rough pipe laws,'' 
 Journal of the
  []
 
-
-Underfull \hbox (badness 10000) in paragraph at lines 1191--1194
+[22]
+Underfull \hbox (badness 10000) in paragraph at lines 1216--1219
 []\T1/cmtt/m/n/10.95 L. F. Moody, ``Friction factors for pipe flow,'' Transacti
 ons of the ASME
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1196--1199
+Underfull \hbox (badness 10000) in paragraph at lines 1221--1224
 []\T1/cmtt/m/n/10.95 Crane Co., \T1/cmtt/m/it/10.95 Flow of Fluids Through Valv
 es, Fittings, and Pipe (Technical Paper
  []
 
 LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <10.95> not available
-(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 1203.
+(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 1228.
 
-Underfull \hbox (badness 10000) in paragraph at lines 1206--1209
+Underfull \hbox (badness 10000) in paragraph at lines 1231--1234
 []\T1/cmtt/m/n/10.95 W. D. Jumper and B. Stanchev, ``Towards explaining the wat
 er siphon,'' The
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1211--1214
+Underfull \hbox (badness 10000) in paragraph at lines 1236--1239
 []\T1/cmtt/m/n/10.95 J. Zheng, J. Guo, J. Wang, Y. Zhang, Q. Lu, and H. Sun, ``
 Calculation of the
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1216--1219
+Underfull \hbox (badness 10000) in paragraph at lines 1241--1244
 []\T1/cmtt/m/n/10.95 C. R. Ortloff and A. Kassinos, ``Computational fluid dynam
 ics investigation
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1216--1219
+Underfull \hbox (badness 10000) in paragraph at lines 1241--1244
 \T1/cmtt/m/n/10.95 of the hydraulic behaviour of the Roman inverted siphon syst
 em at Aspendos,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1221--1224
+Underfull \hbox (badness 10000) in paragraph at lines 1246--1249
 []\T1/cmtt/m/n/10.95 M. Sedlar, P. Prochazka, M. Komarek, V. Uruba, and V. Skal
 a, ``Experimental
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1221--1224
+Underfull \hbox (badness 10000) in paragraph at lines 1246--1249
 \T1/cmtt/m/n/10.95 research and numerical analysis of flow phenomena in dischar
 ge object with
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1226--1229
+Underfull \hbox (badness 10000) in paragraph at lines 1251--1254
 []\T1/cmtt/m/n/10.95 E. Hairer, S. P. Norsett, and G. Wanner, \T1/cmtt/m/it/10.
 95 Solving Ordinary Differential
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1231--1234
+Underfull \hbox (badness 10000) in paragraph at lines 1256--1259
 []\T1/cmtt/m/n/10.95 A. Boatwright, S. Hughes, and J. Barry, ``The height limit
  of a siphon,''
  []
 
-[22]
-Underfull \hbox (badness 10000) in paragraph at lines 1236--1239
+
+Underfull \hbox (badness 10000) in paragraph at lines 1261--1264
 []\T1/cmtt/m/n/10.95 F. Vera, R. Rivera, D. Romero-Maltrana, and J. Villanueva,
  ``Negative pressures
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1236--1239
+Underfull \hbox (badness 10000) in paragraph at lines 1261--1264
 \T1/cmtt/m/n/10.95 and the first water siphon taller than 10.33 meters,'' PLOS 
 ONE 11(4), e0153055
  []
@@ -854,12 +854,12 @@ Package rerunfilecheck Info: File `siphon_models_combined.out' has not changed.
  )
 (\end occurred inside a group at level 1)
 
-### simple group (level 1) entered at line 1044 ({)
+### simple group (level 1) entered at line 1069 ({)
 ### bottom level 
 Here is how much of TeX's memory you used:
- 18678 strings out of 474486
- 355975 string characters out of 5744226
- 2296542 words of memory out of 5000000
+ 18682 strings out of 474486
+ 356001 string characters out of 5744226
+ 2385542 words of memory out of 5000000
  40554 multiletter control sequences out of 15000+600000
  585013 words of font info for 109 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -900,9 +900,9 @@ pe1/public/amsfonts/cm/cmsy10.pfb><C:/Users/user/AppData/Local/Programs/MiKTeX/
 fonts/type1/public/amsfonts/cm/cmsy7.pfb><C:/Users/user/AppData/Local/Programs/
 MiKTeX/fonts/type1/public/amsfonts/cm/cmsy8.pfb><C:/Users/user/AppData/Local/Pr
 ograms/MiKTeX/fonts/type1/public/amsfonts/symbols/msam10.pfb>
-Output written on siphon_models_combined.pdf (23 pages, 1444707 bytes).
+Output written on siphon_models_combined.pdf (23 pages, 1447875 bytes).
 PDF statistics:
- 1233 PDF objects out of 1440 (max. 8388607)
- 207 named destinations out of 1000 (max. 500000)
+ 1243 PDF objects out of 1440 (max. 8388607)
+ 211 named destinations out of 1000 (max. 500000)
  230 words of extra memory for PDF output out of 10000 (max. 10000000)
 

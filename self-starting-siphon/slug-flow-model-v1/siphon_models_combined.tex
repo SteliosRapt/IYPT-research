@@ -742,6 +742,10 @@ $L(t)$ first reaches $L_{\max}$.
 \section{Idealised climb bound and analytical stall height}
 \label{sec:bound}
 
+In this section we introduce a deliberately optimistic (lossless, fixed-head) priming model
+and show how it leads to an analytic upper bound on how high the priming slug can climb,
+expressed directly in terms of the centreline geometry $h(L)$.
+
 \subsection{Idealised lossless priming model and upper bound}
 
 For design purposes it is useful to consider an idealised upper-bound model for the priming
@@ -761,6 +765,10 @@ Under these assumptions the filling-phase equation reduces to
   \ddot L = \frac{g}{L}\,\bigl[h_0 - h(L)\bigr].
   \label{eq:ideal-ddotL}
 \end{equation}
+The factor $1/L$ appears because the moving water mass grows linearly with $L$: for a fixed
+excess head $h_0 - h(L)$, the same driving force must accelerate an ever longer slug, so the
+resulting acceleration decreases as $L$ increases.
+
 Introducing $v(L) = \dot L$ and viewing the velocity as a function of position along the
 pipe, we can rewrite the second derivative using the chain rule,
 \[
@@ -785,11 +793,14 @@ so that
   = 2g\int_{L_1}^{L} \frac{h_0 - h(\xi)}{\xi}\,d\xi.
   \label{eq:ideal-v2}
 \end{equation}
-The integrand has a simple interpretation: $h_0-h(\xi)$ is the local ``excess head'' above the
-front, and the factor $1/\xi$ weights this head by the inverse distance travelled so far. As
-the front climbs, regions where $h(\xi)$ lies well below $h_0$ add positive contributions
-to the integral (accelerating the slug), while regions close to or above $h_0$ contribute
-little or even decelerate it.
+Equation~\eqref{eq:ideal-v2} has a useful energy interpretation. The quantity $v(L)^2/(2g)$
+on the left is the velocity head of the slug at position $L$, while the integral on the right
+accumulates the excess gravitational head made available as the front moves from $L_1$ to $L$.
+Here $h_0-h(\xi)$ is the local ``excess head'' above the front, and the factor $1/\xi$
+captures the fact that the slug mass (and hence its inertia) is proportional to $\xi$.
+Early sections of the path, where $\xi$ is small and $h(\xi)$ lies well below $h_0$, are
+therefore most effective at building up speed; segments near or above $h_0$ contribute
+little or even decelerate the flow.
 
 \subsubsection*{Closed form for piecewise-linear $h(L)$}
 On each geometric segment $i$ the elevation can be written in the affine form
@@ -833,6 +844,20 @@ lossless model is
   h_{\max} = h\bigl(L_{\text{stall}}\bigr).
   \label{eq:hmax}
 \end{equation}
+In practical terms, the idealised climb bound can be evaluated directly from the
+piecewise-linear description of $h(L)$ as follows:
+\begin{enumerate}
+  \item Express each straight segment of the pipe centreline in the affine form
+    $h(L)=c_i+s_iL$ on $[S_{i-1},S_i]$ using~\eqref{eq:linear-hi}.
+  \item Use the segment contribution $\Phi_i(a,b)$ defined in~\eqref{eq:Phi} to build up the
+    integral in~\eqref{eq:ideal-v2} from $L_1$ along the pipe, summing complete segments and
+    a final partial segment as needed.
+  \item Locate the first arclength $L=L_{\text{stall}}$ at which the cumulative integral
+    changes sign, and solve the monotone equation~\eqref{eq:stall-piecewise} on that last
+    segment to find $L_{\text{stall}}$.
+  \item Evaluate $h_{\max} = h(L_{\text{stall}})$ and compare it with the crest elevation
+    $h_3$ to assess whether the idealised model predicts a successful climb.
+\end{enumerate}
 Because this model ignores both drawdown and dissipation, $h_{\max}$ is an upper bound on
 what can be attained in the full Churchill+loss model for the same geometry and initial
 configuration.
