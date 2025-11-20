@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.11.18)  19 NOV 2025 22:32
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.11.18)  19 NOV 2025 22:49
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -505,75 +505,77 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
  [1
 
 {C:/Users/user/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}]
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 75.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 75.
-
-[2]
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 120.
+<siphon_diagram.png, id=146, 867.24pt x 1188.44pt>
+File: siphon_diagram.png Graphic file (type png)
+<use siphon_diagram.png>
+Package pdftex.def Info: siphon_diagram.png  used on input line 69.
+(pdftex.def)             Requested size: 375.80544pt x 514.99062pt.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 120.
-
-[3]
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 151.
+(hyperref)                removing `math shift' on input line 80.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 151.
+(hyperref)                removing `math shift' on input line 80.
+
+[2] [3 <./siphon_diagram.png>]
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 125.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 125.
 
 [4]
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 210.
+(hyperref)                removing `math shift' on input line 156.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `subscript' on input line 210.
+(hyperref)                removing `math shift' on input line 156.
+
+[5]
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 215.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 210.
-
-[5] [6]
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 326.
+(hyperref)                removing `subscript' on input line 215.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `subscript' on input line 326.
+(hyperref)                removing `math shift' on input line 215.
+
+[6] [7]
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 331.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 326.
+(hyperref)                removing `subscript' on input line 331.
 
-[7] [8] [9] [10] [11] [12] [13] [14] [15] (siphon_final.aux)
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 331.
+
+[8] [9] [10] [11] [12] [13] [14] [15] [16] (siphon_final.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-04>
  ***********
-
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
 Package rerunfilecheck Info: File `siphon_final.out' has not changed.
 (rerunfilecheck)             Checksum: 19356BBE9CC491029DC817E1EEFE3781;6334.
  ) 
 Here is how much of TeX's memory you used:
- 16253 strings out of 474486
- 323202 string characters out of 5744226
+ 16265 strings out of 474486
+ 323458 string characters out of 5744226
  1943542 words of memory out of 5000000
- 38273 multiletter control sequences out of 15000+600000
+ 38283 multiletter control sequences out of 15000+600000
  584375 words of font info for 111 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  75i,14n,80p,429b,1193s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -605,9 +607,9 @@ cal/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/user/Ap
 pData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy8.pfb><C:/Users/
 user/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/symbols/msam10.p
 fb>
-Output written on siphon_final.pdf (15 pages, 343526 bytes).
+Output written on siphon_final.pdf (16 pages, 1371281 bytes).
 PDF statistics:
- 759 PDF objects out of 1000 (max. 8388607)
- 86 named destinations out of 1000 (max. 500000)
- 193 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 767 PDF objects out of 1000 (max. 8388607)
+ 88 named destinations out of 1000 (max. 500000)
+ 198 words of extra memory for PDF output out of 10000 (max. 10000000)
 
