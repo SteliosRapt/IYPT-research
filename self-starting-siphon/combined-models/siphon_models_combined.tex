@@ -27,15 +27,20 @@
   showstringspaces=false
 }
 
-\title{Self-starting Siphon Priming: Geometry, Dynamics, Losses, and Computation}
+\title{Self-starting Siphon Priming: Geometry, Dynamics, Losses, and Computation \\
+       \rule{0.8\textwidth}{0.4pt} \\[0.2em]
+       \large A Parameter Investigation for IYPT 2026 Problem \#1}
 \author{Stelios Raptopoulos}
-\date{20 November 2025}
+\date{21 November 2025}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-Self-starting siphons use a deliberate drop in the centreline to generate a momentum-bearing water slug that climbs a crest without external priming. This article reconnects the full narrative: (i) a physical start-up description with explicit initial conditions, (ii) an exact container volume map for arbitrary internal pipe layouts (piecewise $h_c(L)$) and a constant-area simplification, (iii) modelling limits (cavitation head margin, capillarity, and non-hydrostatic inlet correction), (iv) a detailed filling-phase momentum balance with losses, and (v) an analytic upper bound on the maximum crest height reachable in the idealised lossless, fixed-$h_c$ case, expressed directly in terms of the piecewise-linear geometry. A complete Python integration script is provided to evolve the two-phase ODE system with Churchill friction, minor losses, events, and optional cavitation flagging.
+Self-starting siphons---the subject of IYPT 2026 Problem~\#1---begin siphoning when partially immersed without initial suction. The underlying question is how geometric and physical parameters control priming, climb height, and draining dynamics.
+We develop a one-dimensional slug-flow model that provides direct parameter-to-outcome relationships, enabling rapid exploration of how the centreline geometry $h(L)$, the container-to-pipe area ratio $A_0/A$, the initial level $h_0$, the pipe diameter $D$, the relative roughness $\varepsilon/D$, and loss coefficients $\{K_i\}$ affect the behaviour of self-starting siphons. The model yields (i) an analytical upper bound for the maximum climb height expressed purely in geometric terms, (ii) explicit ordinary differential equations (ODEs) for the full time evolution with Churchill friction and minor losses, and (iii) quantitative validity criteria for cavitation, capillarity, inlet dynamics, and flow regime.
+The deliberate simplicity of treating the liquid as a one-dimensional slug with uniform velocity serves three purposes: it reveals which parameters matter and how they enter the physics, it enables rapid screening of candidate geometries (seconds per simulation versus hours for CFD), and it provides a transparent bridge between analytical reasoning, experiments, and high-fidelity CFD. Discrepancies between this model and reality, whether observed in laboratory prototypes or in CFD simulations, therefore directly highlight which additional mechanisms---such as three-dimensional structure, air entrainment, or column separation---lie beyond the slug approximation.
+A complete Python implementation is provided to support parameter studies, experimental comparison, and the identification of regimes where CFD or refined modelling are required.
 \end{abstract}
 
 \tableofcontents
@@ -43,6 +48,24 @@ Self-starting siphons use a deliberate drop in the centreline to generate a mome
 \bigskip
 
 \section{Introduction and mental model}
+\label{sec:intro}
+
+\subsection{IYPT Problem \#1 and objectives}
+
+The International Young Physicists' Tournament (IYPT) 2026 Problem~\#1 states:
+\begin{quote}
+``A self-starting siphon can be made using a piece of rigid tubing bent into a specific shape. When the siphon is partially immersed in water, it begins siphoning water without the need for initial suction. Investigate how the relevant parameters, such as the geometry, affect the siphoning process.''
+\end{quote}
+This deliberately open-ended question requires competitors to
+\begin{itemize}
+  \item identify the geometric and physical parameters that control the behaviour,
+  \item establish quantitative relationships between those parameters and observable outcomes (priming success or failure, filling time, crest height reached, steady draining rate, and so on),
+  \item understand the underlying mechanisms and their limitations, and
+  \item explore the regimes in which the siphon fails to prime and explain why.
+\end{itemize}
+The aim of this article is to provide the theoretical and computational backbone for such an investigation. We formulate a one-dimensional slug-flow model, derive an analytic climb-height bound, and implement a numerical solver that together allow systematic exploration of parameter space and structured comparison with experiments and CFD.
+
+\subsection{Physical mechanism and qualitative picture}
 
 Self-starting siphons differ from conventional inverted-U siphons in that they do not require
 an externally imposed pressure difference or pre-filling of the tube. Instead, the geometry is
@@ -51,13 +74,7 @@ a finite slug of water, and the resulting momentum carries the slug over a crest
 and gravity bring it to rest. Once the crest has been crossed, the device behaves like a standard
 siphon and continues to drain until the head between the reservoir and outlet is exhausted.
 
-The aim of this article is to connect this qualitative picture to a one-dimensional slug-flow
-model that is simple enough for analysis and simulation but rich enough to capture the
-essential dynamics. We introduce the centreline geometry, the arclength coordinate $L(t)$
-and a volume-based description of the container level, derive the basic lossless equation
-of motion for the filling phase, add distributed and local (minor) losses, and then write
-down the coupled system that governs the draining phase once the pipe is full.
-At the level of this slug model, the combined effect of pressure and gravity on the water in
+At the level of the slug model, the combined effect of pressure and gravity on the water in
 the pipe can be summarised very compactly: the net driving force is
 \begin{equation}
   F_{\text{drive}} = \rho g A\bigl[h_c(t) - h(L(t))\bigr],
@@ -70,11 +87,11 @@ generally re-crosses the container level with finite speed before decelerating t
 crest. By contrast, in a simple inverted-U siphon the driving head vanishes at the crest
 after the initial drop, so the flow does not enjoy the same momentum advantage.
 
-In practice there are two experimental ``wetting'' procedures (pre-filling the leg up to a point
+There are two experimental ``wetting'' procedures (pre-filling the leg up to a point
 near $B$, or dipping the inlet until the interface reaches $B$) which both lead, at the start
 of the dynamical filling phase, to the same initial conditions: the front sits at the end of
 segment $AB$ and is momentarily at rest, while the container level passes through $A$.
-We take $t=0$ at that moment and show below that both procedures collapse to
+We take $t=0$ at that moment and show in \cref{sec:ICs} that both procedures collapse to
 \[
   t_0 = 0,\qquad L(0) = L_1,\qquad \dot L(0) = 0,\qquad h_c(0) = h_0.
 \]
@@ -85,17 +102,23 @@ Zheng et al.~\cite{zheng_siphon}, Ortloff and Kassinos~\cite{ortloff_kassinos}, 
 The slug-flow model developed below focuses on the transient filling and draining dynamics
 of a self-starting siphon, including frictional and minor losses.
 
-Throughout, we make the following modelling assumptions:
+\subsection{Modelling strategy and scope}
+
+To investigate Problem~\#1 systematically one needs a framework that connects parameters to outcomes.
+High-fidelity computational fluid dynamics (CFD), such as volume-of-fluid solvers in OpenFOAM's \texttt{interFoam} or ANSYS Fluent~\cite{openfoam,ansys_fluent}, can resolve three-dimensional flow structures, free-surface dynamics, and turbulence, and are therefore indispensable for detailed validation and for regimes where complex phenomena dominate. However, such simulations are computationally expensive, can obscure the underlying mechanisms, and are not convenient for wide parameter sweeps.
+
+In this work we instead take a complementary approach based on a one-dimensional slug model. The water column is treated as a single slug with uniform velocity and a sharp leading front. This simplification
 \begin{itemize}
-  \item The fluid is incompressible and Newtonian with constant density $\rho$ and viscosity
-        $\mu$ (e.g.\ water at room temperature).
-  \item The pipe is rigid, stationary, and has a uniform circular cross-section of diameter $D$
-        and area $A$; the centreline geometry may be curved but lies in a vertical plane.
-  \item The container is large enough that the velocity at the free surface is negligible, so the
-        container remains hydrostatic at each instant.
-  \item Both the container free surface and the outlet discharge to the same atmospheric pressure,
-        and the external air dynamics are neglected.
+  \item exposes how each parameter enters the governing equations,
+  \item permits analytical results such as an ideal climb-height bound,
+  \item enables rapid parameter sweeps (seconds per simulation), and
+  \item makes the assumptions and validity limits completely explicit.
 \end{itemize}
+The model is not intended to replace CFD or experiments; rather, it provides a transparent intermediate level of description. Agreement between the 1D model and measurements indicates that the dominant physics is captured by slug dynamics, whereas systematic discrepancies point directly to additional mechanisms---such as complex inlet dynamics, air entrainment, or column separation---that require higher-fidelity treatment.
+
+For the present study we restrict attention to a single-phase water column in a rigid, circular pipe with piecewise-linear centreline $h(L)$ and a large, quasi-hydrostatic container. Section~\ref{sec:limits} discusses the corresponding validity limits (cavitation margin, capillarity, flow regime, and inlet dynamics) in detail.
+
+The remainder of the paper is organised as follows. Section~\ref{sec:geometry} introduces the geometry and coordinate systems and defines the function $h(L)$. Section~3 formulates the container volume map and effective area. Section~4 summarises the validity criteria. Sections~5 and~6 derive the initial conditions and filling-phase dynamics with losses, and Section~7 develops the idealised climb-height bound and geometric priming criterion. Section~8 treats the draining phase, and Section~\ref{sec:summary} collects the full model. Section~\ref{sec:comp} presents the computational implementation and example parameter studies, and Section~\ref{sec:conclusions} discusses conclusions, usage, and future work.
 
 \section{Geometry and coordinate systems}
 \label{sec:geometry}
@@ -404,70 +427,158 @@ The slug model developed below is intentionally minimal. It remains accurate onl
 certain physical assumptions hold. This section collects those limits, with enough
 explanation that a reader familiar with basic mechanics and Bernoulli's law can see where
 the model may break down.
+
+\subsection{Governing assumptions}
+
+Throughout, we adopt the following modelling assumptions:
 \begin{itemize}
-  \item \textbf{Hydrostatic inlet assumption.} The inlet pressure is taken as
-    $p(0,t)=p_{\mathrm{atm}}+\rho g\bigl(h_c(t)-h_0\bigr)$, i.e.\ the container is assumed to
-    remain hydrostatic at each instant: pressure at a given depth depends only on the
-    instantaneous height of the free surface, not on how fast it is moving. This is valid
-    when the free surface moves slowly compared with the natural acceleration scale of the
-    system,
-    \[
-      |\dot h_c|\ll \sqrt{gD},\qquad |\ddot h_c|\ll g,
-    \]
-    so that unsteady and dynamic effects at the inlet are small. The first inequality says,
-    very loosely, that the container level should not drop by an amount comparable to the
-    pipe diameter over the time it takes a gravity wave to cross that diameter. If these
-    conditions are violated, the inlet behaves more like a rapidly accelerating jet; in that
-    case an unsteady Bernoulli term can be interpreted as an additional effective head of
-    order
-    \[
-      \Delta h_{\text{unsteady}}\approx -\frac{A}{A_0}\,\frac{\dot h_c\,\dot L}{g},
-    \]
-    which lies beyond the present model. In the experiments that motivated this work the
-    inequalities above are comfortably satisfied, so the hydrostatic approximation is a
-    good one.
-
-  \item \textbf{Cavitation / tensile failure.} Along the centreline, and especially near the
-    crest, the absolute pressure must remain above vapour pressure (or the tensile strength
-    of the liquid) to avoid column separation. In terms of ``head'', this means that the
-    vertical distance between the container surface and the crest, after subtracting any
-    friction/loss head already spent, must not be so large that the pressure at the crest
-    would have to fall below vapour pressure. A conservative requirement is that the
-    available head between container and crest, minus the loss head to that point, exceeds
-    the vapour head,
-    \begin{equation}
-      h_c - h_{\text{crest}} - h_{\text{loss,crest}} \ge h_{\mathrm{vap}},\qquad
-      h_{\mathrm{vap}} = \frac{p_{\mathrm{atm}}-p_{\mathrm{vap}}}{\rho g}.
-      \label{eq:cavitation}
-    \end{equation}
-    If \eqref{eq:cavitation} is violated, the modelled negative pressures are not sustainable:
-    in reality small vapour bubbles appear (cavitation) or air is pulled in, and the flow
-    no longer behaves as a single continuous slug of water. Modern discussions of the siphon
-    height limit and negative pressures include Boatwright et al.~\cite{boatwright} and
-    Vera et al.~\cite{vera}; the role of water under tension in plant xylem is reviewed by
-    Tyree~\cite{tyree}.
-
-  \item \textbf{Capillarity / surface tension.} For very small diameters $D$ the meniscus
-    at the inlet can sustain a finite pressure jump. A simple estimate is the Jurin-like
-    height
-    \[
-      h_{\sigma}\approx \frac{4\sigma\cos\theta}{\rho g D},
-    \]
-    where $\sigma$ is the surface tension and $\theta$ the contact angle. For millimetre-scale
-    pipes this height can be a few centimetres, which is small compared with the overall
-    siphon height but can matter for very gentle start-up. A net head at least this large is
-    required to break the meniscus and start the motion; once a finite velocity is established,
-    the standard loss model applies.
-
-  \item \textbf{Slug-model breakdown.} The present model treats the water as a single,
-    one-dimensional slug with a sharp front: the model assumes almost-uniform velocity
-    across each cross-section and a single connected water column. Strong three-dimensional
-    curvature, vigorous turbulence, air entrainment, or repeated column separation can all
-    invalidate this picture. In such regimes a two-phase or fully resolved CFD approach is
-    more appropriate, and the present equations should only be used for qualitative guidance.
+  \item the fluid is incompressible and Newtonian with constant density $\rho$ and viscosity
+        $\mu$ (e.g.\ water at room temperature);
+  \item the pipe is rigid, stationary, and has a uniform circular cross-section of diameter $D$
+        and area $A$, with a piecewise-linear centreline $h(L)$ lying in a vertical plane;
+  \item the container is large enough that the velocity at the free surface is negligible, so the
+        container remains hydrostatic at each instant;
+  \item both the container free surface and the outlet discharge to the same atmospheric pressure,
+        and external air dynamics are neglected;
+  \item the water column behaves as a single connected slug with nearly uniform velocity across
+        each cross-section.
 \end{itemize}
+These assumptions underpin the one-dimensional slug description and the container volume map introduced in Sections~\ref{sec:geometry} and~3.
+
+It is useful to relate these assumptions to standard dimensionless numbers. The Reynolds number
+\[
+  \mathrm{Re} = \frac{\rho v D}{\mu}
+\]
+characterises the flow regime and the applicability of quasi-steady friction correlations.
+The Bond number
+\[
+  \mathrm{Bo} = \frac{\rho g D^2}{\sigma}
+\]
+and the Weber number
+\[
+  \mathrm{We} = \frac{\rho v^2 D}{\sigma}
+\]
+measure the importance of surface tension relative to gravity and inertia. The cavitation margin in \cref{eq:cavitation} quantifies how close the lowest pressure approaches vapour pressure.
+
+\subsection{Cavitation and pressure limits}
+
+Along the centreline, and especially near the crest, the absolute pressure must remain above
+vapour pressure (or the tensile strength of the liquid) to avoid column separation. In terms of
+``head'', this means that the vertical distance between the container surface and the crest,
+after subtracting any friction/loss head already spent, must not be so large that the pressure at
+the crest would have to fall below vapour pressure. A conservative requirement is that the
+available head between container and crest, minus the loss head to that point, exceeds
+the vapour head,
+\begin{equation}
+  h_c - h_{\text{crest}} - h_{\text{loss,crest}} \ge h_{\mathrm{vap}},\qquad
+  h_{\mathrm{vap}} = \frac{p_{\mathrm{atm}}-p_{\mathrm{vap}}}{\rho g}.
+  \label{eq:cavitation}
+\end{equation}
+If \eqref{eq:cavitation} is violated, the modelled negative pressures are not sustainable:
+in reality small vapour bubbles appear (cavitation) or air is pulled in, and the flow
+no longer behaves as a single continuous slug of water. Modern discussions of the siphon
+height limit and negative pressures include Boatwright et al.~\cite{boatwright} and
+Vera et al.~\cite{vera}; the role of water under tension in plant xylem is reviewed by
+Tyree~\cite{tyree}.
+
+From an investigative perspective, \cref{eq:cavitation} can be viewed as a design constraint:
+for a proposed geometry and operating condition, one should verify that the cavitation margin
+is comfortably positive along the path; marginal or negative margins signal regimes where
+column separation and multi-phase effects are likely and the slug model ceases to be reliable.
+
+\subsection{Surface tension and capillarity}
+
+For very small diameters $D$ the meniscus at the inlet can sustain a finite pressure jump.
+A simple estimate is the Jurin-like height
+\[
+  h_{\sigma}\approx \frac{4\sigma\cos\theta}{\rho g D},
+\]
+where $\sigma$ is the surface tension and $\theta$ the contact angle. For millimetre-scale
+pipes this height can be a few centimetres, which is small compared with the overall
+siphon height but can matter for very gentle start-up. A net head at least this large is
+required to break the meniscus and start the motion; once a finite velocity is established,
+the standard loss model applies.
+
+In terms of the Bond number, capillary effects are negligible when $\mathrm{Bo}\gg 1$, i.e.\
+when $\rho g D^2 \gg \sigma$. For small diameters such that $\mathrm{Bo}\lesssim 1$ the simple
+slug model should be supplemented by a more detailed meniscus-scale model; see the discussion
+of possible extensions in \cref{sec:conclusions}.
+
+\subsection{Flow regime and friction modelling}
+
+The Darcy--Weisbach friction factor $f$ used in the loss models of Sections~6 and~8 is evaluated
+from the Reynolds number and the relative roughness $\varepsilon/D$. For laminar flow
+($\mathrm{Re}\lesssim 2000$) one has $f=64/\mathrm{Re}$, while for turbulent and transitional
+regimes an explicit all-regime correlation due to Churchill~\cite{churchill} is particularly
+convenient; see \cref{eq:churchill-f,eq:churchill-A1,eq:churchill-A2}. The present model assumes
+that the instantaneous friction factor can be evaluated from the current velocity and used in a
+quasi-steady fashion.
+
+When the flow remains laminar or strongly transitional for most of the motion, or when the pipe
+roughness is poorly characterised, the uncertainty in $f$ translates directly into uncertainty in
+losses and therefore in priming predictions. In such regimes it is prudent either to calibrate
+the friction model experimentally or to compare with CFD, treating the simple slug model as a
+first-order approximation.
+
+\subsection{Inlet dynamics and non-hydrostatic effects}
+
+The inlet pressure is taken as
+\[
+  p(0,t)=p_{\mathrm{atm}}+\rho g\bigl(h_c(t)-h_0\bigr),
+\]
+i.e.\ the container is assumed to remain hydrostatic at each instant: pressure at a given depth
+depends only on the instantaneous height of the free surface, not on how fast it is moving.
+This is valid when the free surface moves slowly compared with the natural acceleration scale of
+the system,
+\[
+  |\dot h_c|\ll \sqrt{gD},\qquad |\ddot h_c|\ll g,
+\]
+so that unsteady and dynamic effects at the inlet are small. The first inequality says,
+very loosely, that the container level should not drop by an amount comparable to the
+pipe diameter over the time it takes a gravity wave to cross that diameter. If these
+conditions are violated, the inlet behaves more like a rapidly accelerating jet; in that
+case an unsteady Bernoulli term can be interpreted as an additional effective head of
+order
+\[
+  \Delta h_{\text{unsteady}}\approx -\frac{A}{A_0}\,\frac{\dot h_c\,\dot L}{g},
+\]
+which lies beyond the present model. In the experiments that motivated this work the
+inequalities above are comfortably satisfied, so the hydrostatic approximation is a
+good one.
+
+\subsection{Slug-model breakdown and missing physics}
+
+The present model treats the water as a single, one-dimensional slug with a sharp front: it
+assumes almost-uniform velocity across each cross-section and a single connected water column.
+Strong three-dimensional curvature, vigorous turbulence, air entrainment, or repeated column
+separation can all invalidate this picture. In such regimes a two-phase or fully resolved CFD
+approach is more appropriate, and the present equations should only be used for qualitative
+guidance. One practical use of the slug model is therefore diagnostic: systematic differences
+between measured or CFD-predicted behaviour and the one-dimensional predictions indicate
+precisely where additional physics becomes important.
+
+\subsection{Summary of validity criteria}
+
+For any proposed configuration the following checks should be applied before interpreting
+slug-model predictions quantitatively:
+\begin{itemize}
+  \item \emph{Cavitation margin:} verify that \cref{eq:cavitation} is satisfied with a comfortable
+        margin along the path between the container surface and the crest.
+  \item \emph{Capillarity:} ensure that the diameter is large enough for $\mathrm{Bo}\gg 1$, or
+        treat very small-$D$ cases with a dedicated meniscus model.
+  \item \emph{Flow regime:} evaluate typical Reynolds numbers and confirm that the chosen friction
+        model (laminar or Churchill correlation) is appropriate for the resulting regime.
+  \item \emph{Inlet dynamics:} check that $|\dot h_c|\ll \sqrt{gD}$ so that non-hydrostatic inlet
+        effects remain small.
+  \item \emph{Slug connectivity:} examine experiments or CFD for signs of air entrainment,
+        intermittent flow, or repeated column separation; such features indicate that the
+        single-slug approximation has broken down.
+\end{itemize}
+Within these limits the one-dimensional model provides quantitatively useful predictions and a
+transparent connection between system parameters and siphon behaviour.
 
 \section{Initial conditions and comparison with an inverted-U siphon}
+\label{sec:ICs}
 
 We choose $t = 0$ at the start of the filling phase, when the dynamical motion of the
 water slug begins. In practice there are two simple wetting procedures that prepare this
@@ -861,6 +972,14 @@ piecewise-linear description of $h(L)$ as follows:
 Because this model ignores both drawdown and dissipation, $h_{\max}$ is an upper bound on
 what can be attained in the full Churchill+loss model for the same geometry and initial
 configuration.
+From an investigative standpoint, this ideal bound is useful in three ways. First, it enables rapid
+screening of candidate geometries: any design with $h_{\max}\le h_3$ can be discarded without
+solving the full dynamical problem. Second, because $h_{\max}$ depends only on the geometric
+data $\{h_i,L_i\}$, one can study how individual geometric features influence priming by
+varying those inputs analytically or numerically. Third, the gap between $h_{\max}$ and the
+actual crest height reached in experiments or full simulations provides a quantitative measure
+of how strongly non-ideal effects (drawdown, friction, inlet dynamics, or multi-phase
+phenomena) influence the behaviour.
 
 \subsection{Geometric priming criterion}
 
@@ -949,6 +1068,7 @@ The initial conditions at the start of draining are taken from the end of the fi
 \]
 
 \section{Model summary}
+\label{sec:summary}
 
 The complete model for a self-starting siphon based on the present geometry and volume
 description can be summarised as follows; it links the centreline geometry $h(L)$ introduced in \cref{sec:geometry} to the dynamical variables $L(t)$, $v(t)$, and $h_c(t)$.
@@ -1040,11 +1160,57 @@ $h_c(t)$ in time.
 \end{tabular}
 \normalsize
 
+\subsection{Guide to parameter studies}
+
+The summary above is well suited to systematic parameter exploration. To investigate how a
+specific parameter affects priming behaviour, we recommend the following workflow:
+\begin{enumerate}
+  \item \textbf{Fix a baseline configuration.} Choose reference values for geometry, fluid
+        properties, and loss coefficients. Use the validity checks in \cref{sec:limits} to
+        confirm that the baseline lies within the regime where the slug model is reliable.
+  \item \textbf{Vary one parameter systematically.} Generate a set of values for the chosen
+        parameter (for example, a range of diameters $D$ or crest heights $h_3$) while holding
+        all others fixed.
+  \item \textbf{Run an ensemble of simulations.} For each parameter value, evaluate the ideal
+        climb bound $h_{\max}$ from Section~\ref{sec:bound}, integrate the full dynamical model
+        using the ODEs in Sections~6 and~8, and record diagnostic quantities such as priming
+        success/failure, filling time $t^*$, peak velocity, and draining duration.
+  \item \textbf{Visualise trends.} Plot outcome measures against the varied parameter. Typical
+        features of interest include threshold behaviour (a sharp priming boundary), scaling
+        relationships (e.g.\ power-law trends), and saturation regimes where further parameter
+        changes have little effect.
+  \item \textbf{Compare with experiments and CFD.} For a small number of representative
+        parameter values, perform laboratory measurements or CFD simulations and compare with
+        the one-dimensional predictions. Systematic discrepancies help identify which physical
+        mechanisms lie beyond the slug approximation.
+\end{enumerate}
+This procedure turns the model into a practical tool for answering the IYPT question of how
+geometry and other parameters control self-starting siphon behaviour.
+
 \section{Computational approach}
 \label{sec:comp}
-The coupled ODEs derived above are well suited to numerical integration. A convenient
-strategy is to treat the filling and draining phases as two separate initial-value problems
-linked by an event.
+
+\subsection{Computational strategy for investigation}
+
+The coupled ODEs derived above are well suited to numerical integration and to systematic
+parameter studies. The Python implementation is designed to support several investigative
+workflows:
+\begin{itemize}
+  \item \emph{Single-case prediction:} given a specific geometry and parameter set, predict
+        whether the siphon will prime and compute the full time evolution of $L(t)$, $v(t)$,
+        and $h_c(t)$.
+  \item \emph{Parameter sweeps:} nest the solver in loops over parameter arrays to map out
+        priming boundaries and trends in quantities such as $t^*$ or peak velocity.
+  \item \emph{Sensitivity analysis:} approximate derivatives of observables with respect to
+        parameters using finite differences, by perturbing one parameter at a time.
+  \item \emph{Model--experiment comparison:} load measured trajectories $L(t)$ or velocities
+        $v(t)$ and compare them directly to model predictions, using discrepancies to identify
+        missing physics.
+  \item \emph{CFD targeting:} identify borderline or surprising cases (barely priming,
+        unexpected failure) as candidates for higher-fidelity CFD studies.
+\end{itemize}
+Computationally, it is convenient to treat the filling and draining phases as two separate
+initial-value problems linked by an event:
 \begin{itemize}
   \item \textbf{Filling phase.} Integrate the second-order ODE \eqref{eq:filling-extended}
         for $L(t)$ (or, equivalently, the first-order system for $(L,\dot L)$) starting from
@@ -1063,19 +1229,19 @@ linked by an event.
 Standard ODE solvers such as Runge--Kutta methods with adaptive step size (e.g.\ those
 described in Hairer et al.~\cite{hairer}) are adequate.
 
-\subsection*{Example Python implementation}
+\subsection{Python implementation}
 
 To make the model directly runnable, this subsection provides a complete Python script
-using \texttt{numpy} and \texttt{scipy.integrate.solve_ivp}. It encodes the filling and
+using \texttt{numpy} and \texttt{scipy.integrate.solve\_ivp}. It encodes the filling and
 draining phases, Churchill friction, and event handling for $L=L_{\max}$ and $h_c=h_{\text{out}}$.
 
 \begin{lstlisting}[style=pythonblock,language=Python]
 import numpy as np
-from math import log
 from dataclasses import dataclass
 from scipy.integrate import solve_ivp
 
 def churchill_f(Re, eps_over_D):
+    """Return the Churchill friction factor for given Re and roughness."""
     Re = max(Re, 1e-8)
     A1 = (-2.457*np.log((7/Re)**0.9 + 0.27*eps_over_D))**16
     A2 = (37530/Re)**16
@@ -1102,12 +1268,14 @@ class Params:
     s: np.ndarray   # slopes
 
 def h_of_L(L, p: Params):
+    """Evaluate the piecewise-linear centreline elevation h(L)."""
     # find segment index
     idx = np.searchsorted(p.S, L, side='right') - 1
     idx = np.clip(idx, 0, len(p.S)-2)
     return p.c[idx] + p.s[idx]*L
 
 def filling_rhs(t, y, p: Params):
+    """Right-hand side for the filling-phase ODE system."""
     L, v = y
     h_c = p.h0 - (p.A/p.A0)*(L - p.L1)
     Re = p.rho*abs(v)*p.D/p.mu
@@ -1117,11 +1285,13 @@ def filling_rhs(t, y, p: Params):
     return [v, dvdt]
 
 def event_reach_outlet(t, y, p: Params):
+    """Event function: zero when the front reaches the outlet."""
     return y[0] - p.Lmax
 event_reach_outlet.terminal = True
 event_reach_outlet.direction = 1
 
 def drain_rhs(t, y, p: Params):
+    """Right-hand side for the draining-phase ODE system."""
     h_c, v = y
     Re = p.rho*abs(v)*p.D/p.mu
     f = churchill_f(Re, p.eps_over_D)
@@ -1130,44 +1300,94 @@ def drain_rhs(t, y, p: Params):
     dhcdt = -(p.A/p.A0)*v
     return [dhcdt, dvdt]
 
-# Example parameters (replace with experiment/geometry)
-p = Params(
-    g=9.81, rho=1000, mu=1e-3, D=0.01, A=np.pi*(0.01/2)**2,
-    A0=0.02, eps_over_D=1e-4, Ksum_fill=1.0, Ksum_drain=1.0,
-    h0=0.3, L1=0.05, Lmax=1.2, h_out=-0.4,
-    S=np.array([0.0, 0.05, 0.55, 0.95, 1.2]),
-    c=np.array([0.0, 0.05, -0.20, 0.10]),
-    s=np.array([1.0, 0.5, 0.75, -1.0])
-)
-
-# Filling phase
-y0 = [p.L1, 0.0]
-sol_fill = solve_ivp(
-    lambda t, y: filling_rhs(t, y, p),
-    [0, 20], y0, rtol=1e-7, atol=1e-9,
-    events=lambda t, y: event_reach_outlet(t, y, p)
-)
-L_end, v_end = sol_fill.y[0, -1], sol_fill.y[1, -1]
-t_star = sol_fill.t_events[0][0]
-
-# Draining phase
-y0_drain = [p.h0 - (p.A/p.A0)*(p.Lmax - p.L1), v_end]
-sol_drain = solve_ivp(
-    lambda t, y: drain_rhs(t, y, p),
-    [t_star, t_star + 200], y0_drain, rtol=1e-7, atol=1e-9,
-    events=lambda t, y: y[0] - p.h_out
-)
-
-print(
-    "Priming reached outlet at t* = %.4f s, "
-    "L = %.3f, v = %.3f m/s" % (t_star, L_end, v_end)
-)
-if sol_drain.t_events[0].size:
-    print(
-        "Draining stopped at t = %.2f s when h_c = h_out."
-        % sol_drain.t_events[0][0]
+def run_example():
+    """Run a single example configuration and print basic diagnostics."""
+    # Example parameters (replace with experiment/geometry)
+    p = Params(
+        g=9.81, rho=1000, mu=1e-3, D=0.01, A=np.pi*(0.01/2)**2,
+        A0=0.02, eps_over_D=1e-4, Ksum_fill=1.0, Ksum_drain=1.0,
+        h0=0.3, L1=0.05, Lmax=1.2, h_out=-0.4,
+        S=np.array([0.0, 0.05, 0.55, 0.95, 1.2]),
+        c=np.array([0.0, 0.05, -0.20, 0.10]),
+        s=np.array([1.0, 0.5, 0.75, -1.0])
     )
+
+    # Filling phase
+    y0 = [p.L1, 0.0]
+    sol_fill = solve_ivp(
+        lambda t, y: filling_rhs(t, y, p),
+        [0, 20], y0, rtol=1e-7, atol=1e-9,
+        events=lambda t, y: event_reach_outlet(t, y, p)
+    )
+    L_end, v_end = sol_fill.y[0, -1], sol_fill.y[1, -1]
+    t_star = sol_fill.t_events[0][0]
+
+    # Draining phase
+    y0_drain = [p.h0 - (p.A/p.A0)*(p.Lmax - p.L1), v_end]
+    sol_drain = solve_ivp(
+        lambda t, y: drain_rhs(t, y, p),
+        [t_star, t_star + 200], y0_drain, rtol=1e-7, atol=1e-9,
+        events=lambda t, y: y[0] - p.h_out
+    )
+
+    print(
+        "Priming reached outlet at t* = %.4f s, "
+        "L = %.3f, v = %.3f m/s" % (t_star, L_end, v_end)
+    )
+    if sol_drain.t_events[0].size:
+        print(
+            "Draining stopped at t = %.2f s when h_c = h_out."
+            % sol_drain.t_events[0][0]
+        )
+
+if __name__ == "__main__":
+    run_example()
 \end{lstlisting}
+
+\subsection{Example parameter study}
+
+The solver functions above can be embedded in simple loops to explore how specific parameters
+affect priming. For example, to study the influence of crest height one may vary the geometry
+so that the elevation $h_3$ changes while other quantities are held fixed and record, for each
+configuration, whether priming succeeds and what filling time $t^*$ is obtained. A schematic
+implementation is
+\begin{lstlisting}[style=pythonblock,language=Python]
+def sweep_crest_heights(h3_values):
+    results = []
+    for h3 in h3_values:
+        # construct Params instance p with this crest height
+        p = make_params_with_crest_height(h3)
+        t_star, L_end, v_end, _ = run_single_case(p)
+        results.append((h3, t_star, L_end, v_end))
+    return np.array(results)
+\end{lstlisting}
+In practice one would implement a helper such as \texttt{run\_single\_case} that mirrors the
+logic of \texttt{run\_example} but returns diagnostics instead of printing them. The resulting
+data arrays can then be visualised to reveal thresholds and trends, as outlined in the
+parameter-study guide of Section~9.
+
+\subsection{Comparison with CFD and experiments}
+
+The one-dimensional model is intended to complement, not replace, experiments and CFD
+simulations~\cite{openfoam,ansys_fluent}. When comparing predictions with data it is useful
+to organise the analysis by observable:
+\begin{itemize}
+  \item \emph{Priming success/failure.} Agreement indicates that the dominant mechanism is
+        captured by the slug model; discrepancies suggest that cavitation, inlet dynamics, or
+        multi-phase effects are important.
+  \item \emph{Filling time $t^*$.} Faster-than-predicted filling may point to additional
+        acceleration from inlet dynamics; slower filling often reflects underestimated losses
+        or strong three-dimensional separation.
+  \item \emph{Velocity history $v(t)$.} Differences in peak velocity or decay rate can be
+        traced to friction modelling or to air entrainment acting as an additional drag.
+  \item \emph{Draining flow rate.} Steady-state agreement suggests that the one-dimensional
+        model is adequate in the draining regime, whereas pronounced unsteadiness (e.g.\
+        oscillations due to air pockets) points to phenomena beyond a single-phase slug
+        description.
+\end{itemize}
+Documenting both agreement and disagreement across parameter space turns the combined
+model--experiment--CFD comparison into a diagnostic map of which physical mechanisms are
+essential for self-starting siphon behaviour.
 
 This implementation mirrors the physical phase change from a partially filled, advancing slug
 to a fully filled draining siphon and allows direct comparison between simulation and
@@ -1175,22 +1395,75 @@ experiment for a given geometry. In practice one would replace the example param
 by those measured for a specific prototype and, if desired, add diagnostic checks for
 conditions such as cavitation using the head margin \eqref{eq:cavitation}.
 
-\section{Value, usage, and future work}
+\section{Conclusions, usage, and future work}
+\label{sec:conclusions}
 
-This document collects the full derivations for a self-starting siphon model and adds several
-practical elements: (i) explicit start-up conditions matching experimental practice, (ii) an
-exact container volume map for arbitrary internal pipe layouts together with a constant-area
-specialisation, (iii) quantitative validity limits for cavitation, capillarity, and non-hydrostatic
-inlet effects, (iv) an analytic, geometry-only upper bound on the climb height in the idealised
-lossless, fixed-$h_c$ case, and (v) a runnable Python solver for the two-phase ODE system
-with Churchill friction and minor losses.
+\subsection{Summary of contributions}
 
-In a design setting the model can be used in two complementary ways: first, to screen candidate
-geometries via the ideal bound and the geometric priming criterion $h_{\max}>h_3$, and second,
-to simulate full filling and draining transients for a chosen layout and parameter set. Possible
-extensions include incorporating a pressure-floor cavitation switch directly into the ODE,
-adding a dedicated meniscus-start model for very small diameters $D$, and coupling the slug
-model to a simple two-phase description of air entrainment and column separation near stall.
+This article has developed a one-dimensional slug-flow model for self-starting siphons and
+positioned it as a theoretical and computational backbone for IYPT 2026 Problem~\#1. The main
+contributions are:
+\begin{itemize}
+  \item a geometric formulation of the pipe centreline via a piecewise-linear function $h(L)$,
+        together with an exact container volume map and constant-area specialisation;
+  \item quantitative validity criteria for cavitation, capillarity, flow regime, and inlet
+        dynamics, expressed in terms of standard dimensionless numbers and head margins;
+  \item an idealised, lossless priming model that yields an analytic upper bound $h_{\max}$ on
+        climb height and a simple geometric priming criterion $h_{\max}>h_3$;
+  \item a two-phase ODE model for filling and draining, incorporating Churchill friction and
+        minor losses, and a runnable Python implementation suitable for parameter studies.
+\end{itemize}
+Together, these elements connect system parameters---geometry, container size, diameter,
+roughness, and loss coefficients---to observable outcomes such as priming success, filling
+time, and draining behaviour.
+
+\subsection{Recommended investigation workflow}
+
+For IYPT teams and other investigators, the following workflow makes systematic use of the
+model:
+\begin{enumerate}
+  \item \textbf{Specify geometry and constraints.} Choose node heights, segment lengths, and
+        container dimensions, and construct the corresponding $h(L)$ and volume map.
+  \item \textbf{Assess validity.} Apply the diagnostic criteria of Section~4 to check
+        cavitation margin, capillarity, flow regime, and inlet dynamics for the proposed
+        configuration.
+  \item \textbf{Analyse a baseline configuration.} Compute the ideal climb bound $h_{\max}$,
+        verify the geometric priming criterion, and simulate the baseline dynamics using the
+        full ODE system.
+  \item \textbf{Perform parameter studies.} Vary selected parameters (e.g.\ crest height,
+        diameter, roughness, or $A_0/A$) following the guide in Section~9 and the computational
+        workflows of Section~\ref{sec:comp}.
+  \item \textbf{Build and test prototypes.} Construct a small number of representative
+        geometries, measure key observables (priming success, $t^*$, $v(t)$, draining rate),
+        and compare them with model predictions.
+  \item \textbf{Use CFD selectively.} For borderline or discrepant cases, perform higher-fidelity
+        CFD simulations to identify which additional physical mechanisms are responsible for the
+        differences between the 1D model and reality.
+\end{enumerate}
+Documenting both agreement and disagreement at each stage turns the model into a diagnostic
+framework rather than a black-box predictor.
+
+\subsection{Future work}
+
+Several extensions would broaden the range of validity and deepen the investigative value of
+the model:
+\begin{itemize}
+  \item incorporating an explicit pressure-floor cavitation switch into the ODE system to flag
+        parameter combinations where tensile failure limits priming;
+  \item developing a dedicated meniscus-start model for very small diameters $D$, where
+        capillary forces and Jurin-height effects are non-negligible;
+  \item extending the description to track multiple water slugs and air pockets after column
+        separation, yielding a simple two-phase slug model;
+  \item generalising the container volume map to more complex internal geometries beyond the
+        constant-area approximation;
+  \item building an experimental and CFD comparison database covering a wide range of geometries,
+        diameters, and fluids, to quantify the typical accuracy of the 1D model and to refine
+        its validity criteria.
+\end{itemize}
+Even without these refinements, the present formulation already serves its primary purpose:
+it makes the physics of self-starting siphons transparent, enables rapid exploration of
+parameter space, and provides a structured framework for understanding where additional
+mechanisms matter.
 
 \begin{thebibliography}{99}
 
@@ -1251,6 +1524,16 @@ Water \textbf{12}, 3330 (2020).
 E.~Hairer, S.~P.~Norsett, and G.~Wanner,
 \emph{Solving Ordinary Differential Equations I: Nonstiff Problems}, 2nd ed.
 Springer, Berlin, 1993.
+
+\bibitem{openfoam}
+OpenFOAM~Foundation,
+\emph{interFoam: VOF-based multiphase solver for incompressible immiscible fluids},
+available at \url{https://www.openfoam.com}.
+
+\bibitem{ansys_fluent}
+ANSYS Inc.,
+\emph{ANSYS Fluent Theory Guide}.
+ANSYS Inc.
 
 \bibitem{boatwright}
 A.~Boatwright, S.~Hughes, and J.~Barry,
