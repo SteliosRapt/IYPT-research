@@ -102,8 +102,9 @@ pre-filling or an externally imposed pressure difference. Instead, the geometry 
 so that an initial drop converts gravitational potential energy into kinetic energy, and the 
 resulting momentum carries a water slug over a crest before friction and gravity bring it to 
 rest. Once the crest is crossed, standard siphon action continues until the driving head is 
-exhausted. Classical discussions of siphon behaviour and the role of atmospheric pressure and 
-cohesion can be found in Potter and Barnes~\cite{potter_barnes} and Jumper and Stanchev~\cite{jumper_stanchev}.
+exhausted. Classical and teaching-oriented discussions of siphon behaviour and the role of 
+atmospheric pressure and cohesion can be found in Potter and Barnes~\cite{potter_barnes}, 
+Jumper and Stanchev~\cite{jumper_stanchev}, and Hughes~\cite{hughes_practical}.
 
 The key insight is that in a properly designed self-starting geometry, the driving head 
 $h_c(t) - h(L(t))$ (container surface minus front elevation) remains positive for an extended 
@@ -672,8 +673,9 @@ the vapour pressure $p_{\text{vap}}$ to avoid column separation. In terms of hea
 Violation of \eqref{eq:cavitation} indicates that the modelled negative gauge pressures 
 cannot be sustained; vapour bubbles or air would appear, breaking the slug. Modern 
 discussions of siphon height limits and negative pressures include 
-Boatwright et al.~\cite{boatwright} and Vera et al.~\cite{vera}; the role of water under 
-tension in plant xylem is reviewed by Tyree~\cite{tyree}.
+Boatwright et al.~\cite{boatwright} and Vera et al.~\cite{vera}; for broader background on 
+cavitation and water under tension, see Caupin and Herbert~\cite{caupin_cavitation}, and the 
+role of water under tension in plant xylem is reviewed by Tyree~\cite{tyree}.
 
 \subsection{Surface tension and capillarity}
 
@@ -758,7 +760,7 @@ Integrate from $(L_1, 0)$ until the event $L = L_{\max}$ occurs at time $t^*$.
 Integrate the system \eqref{eq:drain-mass}--\eqref{eq:drain-momentum} from 
 $(h_c(t^*), v(t^*))$ until $h_c \le h_{\text{out}}$ or $v \le 0$.
 
-Standard adaptive Runge--Kutta methods (e.g., those in SciPy's \texttt{solve\_ivp} or 
+Standard adaptive Runge--Kutta methods (e.g., those in SciPy's \texttt{solve\_ivp}~\cite{scipy} or 
 the classical RK45) are adequate~\cite{hairer}.
 
 \subsection{Python implementation}
@@ -888,6 +890,11 @@ A.~Potter and F.~H.~Barnes,
 ``The siphon,''
 \emph{Physics Education}, Vol.~6, No.~5, pp.~362--366, 1971.
 
+\bibitem{hughes_practical}
+S.~W.~Hughes,
+``A practical example of a siphon at work,''
+\emph{Physics Education}, Vol.~45, No.~2, pp.~162--166, 2010.
+
 \bibitem{jumper_stanchev}
 W.~D.~Jumper and B.~Stanchev,
 ``Towards explaining the water siphon,''
@@ -915,10 +922,15 @@ E.~Hairer, S.~P.~N{\o}rsett, and G.~Wanner,
 \emph{Solving Ordinary Differential Equations I: Nonstiff Problems}, 2nd ed.
 Springer Series in Computational Mathematics, Vol.~8. Springer-Verlag, Berlin, 1993.
 
+\bibitem{scipy}
+P.~Virtanen \emph{et al.},
+``SciPy 1.0: fundamental algorithms for scientific computing in Python,''
+\emph{Nature Methods}, Vol.~17, No.~3, pp.~261--272, 2020.
+
 \bibitem{openfoam}
 OpenFOAM Foundation,
 \emph{interFoam: VOF-based multiphase solver for incompressible immiscible fluids}.
-Available at \url{https://www.openfoam.com}.
+Available at \url{https://openfoam.org}.
 
 \bibitem{ansys_fluent}
 ANSYS Inc.,
@@ -934,6 +946,11 @@ A.~Boatwright, S.~Hughes, and J.~Barry,
 F.~Vera, R.~Rivera, D.~Romero-Maltrana, and J.~Villanueva,
 ``Negative pressures and the first water siphon taller than 10.33 meters,''
 \emph{PLOS ONE}, Vol.~11, No.~4, e0153055, 2016.
+
+\bibitem{caupin_cavitation}
+F.~Caupin and E.~Herbert,
+``Cavitation in water: a review,''
+\emph{Comptes Rendus Physique}, Vol.~7, Nos.~9--10, pp.~1000--1017, 2006.
 
 \bibitem{tyree}
 M.~T.~Tyree,
