@@ -46,7 +46,7 @@
        \rule{\textwidth}{0.4pt}\\[0.5em]
        \large IYPT 2026 Problem \#1}
 \author{Stylianos Raptopouos}
-\date{24/11/2025}
+\date{10/12/2025}
 
 \begin{document}
 \maketitle
@@ -62,8 +62,8 @@ IYPT 2026 Problem~\#1.
 
 The model yields three main results: (i)~an analytical upper bound $h_{\max}$ for the maximum 
 climb height, expressed in closed form for piecewise-linear pipe geometries; (ii)~a geometric 
-priming criterion $h_{\max} > h_{\text{crest}}$ that screens infeasible designs without 
-numerical integration; and (iii)~explicit ordinary differential equations for the full 
+crest-crossing criterion $h_{\max} > h_{\text{crest}}$ that rapidly screens infeasible designs 
+without numerical integration; and (iii)~explicit ordinary differential equations for the full 
 time evolution, incorporating Churchill friction and minor losses.
 
 The deliberate simplicity of treating the liquid as a rigid slug enables rapid parameter 
@@ -511,14 +511,36 @@ accumulated integral returns to zero:
   \boxed{\int_{L_1}^{L_{\text{stall}}} \frac{h_0 - h(\xi)}{\xi}\,d\xi = 0.}
   \label{eq:stall-condition}
 \end{equation}
-The corresponding maximum elevation is
+In other words, $L_{\text{stall}}$ is the first location along the pipe (if it exists) at 
+which the front velocity $v$ has decreased back to zero.
+
+It is convenient to distinguish between:
+\begin{itemize}[nosep]
+  \item the \emph{stall position} $L_{\text{stall}}$, where $v = 0$;
+  \item the \emph{trajectory peak} $L_{\text{peak}}$, where the front reaches its highest
+        elevation along the ideal trajectory;
+  \item the corresponding \emph{maximum elevation}
+        \begin{equation}
+          h_{\max} = h(L_{\text{peak}}).
+        \end{equation}
+\end{itemize}
+
+For the piecewise-linear geometry used here, node $D$ is the global crest, so the centreline 
+elevation $h(L)$ attains its geometric maximum at arclength $L_3 = S_3$. The highest elevation
+actually reached by the front during the ideal filling phase is therefore
 \begin{equation}
-  h_{\max} = h(L_{\text{stall}}).
+  L_{\text{peak}} = \min\{L_{\text{stall}},\,L_3\}, 
+  \qquad
+  h_{\max} = h(L_{\text{peak}}).
   \label{eq:hmax}
 \end{equation}
 
-Because the ideal model ignores drawdown and losses, $h_{\max}$ is an \emph{upper bound} 
-on the climb achievable in reality.
+If the stall occurs before the crest ($L_{\text{stall}} < L_3$), then $L_{\text{peak}} = 
+L_{\text{stall}}$ and the front never reaches $D$. If the stall occurs at or after the crest 
+($L_{\text{stall}} \ge L_3$), the trajectory peak coincides with the crest ($L_{\text{peak}} = 
+L_3$) and the front does pass $D$ before decelerating on the downstream leg. In both cases, 
+because the ideal model ignores drawdown and losses, $h_{\max}$ is an \emph{upper bound} on the 
+climb achievable in reality.
 
 \subsection{Closed-form evaluation for piecewise-linear $h(L)$}
 
@@ -555,13 +577,45 @@ root-finding problem (bisection or Newton's method suffices).
 
 \subsection{Geometric priming criterion}
 
-Let $h_3$ denote the crest elevation (at node $D$). A necessary condition for self-priming is
+Let $h_3$ denote the crest elevation (at node $D$) and recall that, in the ideal model, the
+container free surface is fixed at $h_c \equiv h_0$. Define the energy integral
+\begin{equation}
+  I(L) = \int_{L_1}^{L} \frac{h_0 - h(\xi)}{\xi}\,d\xi,
+  \label{eq:energy-integral-I}
+\end{equation}
+so that \eqref{eq:energy-integral} reads $v(L)^2/2 = g\,I(L)$.
+
+In the ideal model, the front reaches some position $L > L_1$ without stalling if and only if
+$I(L) > 0$ on $(L_1, L]$. A \emph{necessary and sufficient} ideal priming condition (front
+reaches the outlet without ever coming to rest) is therefore
+\begin{equation}
+  I(L) > 0 \quad \text{for all } L \in (L_1, L_{\max}].
+  \label{eq:priming-ideal}
+\end{equation}
+Equivalently, the minimum of $I(L)$ over $(L_1, L_{\max}]$ must be strictly positive.
+
+For typical self-starting geometries, the outlet $E$ lies below the container level
+($h_4 < h_0$), and the pipe has a single global crest at $D$. In that case, the path crosses
+the container level twice: once on the up-leg between $B$ and $D$, and once on the down-leg
+between $D$ and $E$. Let $L_{\text{cross}}$ denote the \emph{last} arclength where
+$h(L_{\text{cross}}) = h_0$ (the downward crossing). For $L > L_{\text{cross}}$ one has
+$h(L) < h_0$ and hence $\ddot{L} > 0$: the front is strictly accelerated toward the outlet.
+The first stall, if it occurs at all, must therefore lie in $[L_1, L_{\text{cross}}]$, and the
+ideal priming condition \eqref{eq:priming-ideal} can be restricted to that interval.
+
+While \eqref{eq:priming-ideal} is exact, it is analytically more involved to enforce than a
+simple geometric condition. A convenient \emph{necessary} screening criterion is obtained by
+comparing the ideal maximum climb height $h_{\max}$ from \eqref{eq:hmax} with the crest
+elevation. A necessary condition for self-priming is
 \begin{equation}
   \boxed{h_{\max} > h_3.}
   \label{eq:priming-criterion}
 \end{equation}
 If $h_{\max} \le h_3$, then even the most optimistic model predicts that the front stalls 
 below the crest---the geometry cannot self-prime regardless of friction or wetting details.
+Conversely, geometries with $h_{\max} > h_3$ merely pass this preliminary check: they still
+require verification of the stronger condition \eqref{eq:priming-ideal} (or full ODE
+integration) to guarantee priming.
 
 \subsection{Utility of the bound}
 
@@ -570,7 +624,8 @@ The ideal bound serves three purposes:
   \item \textbf{Rapid screening}: Any design with $h_{\max} \le h_3$ can be rejected without 
         solving the full ODE.
   \item \textbf{Parameter insight}: Since $h_{\max}$ depends only on geometric data 
-        $\{h_i, L_i\}$, one can analytically study how geometry affects priming potential.
+        $\{h_i, L_i\}$ and the ideal stall location $L_{\text{stall}}$, one can analytically 
+        study how geometry affects priming potential.
   \item \textbf{Diagnostic}: The gap between $h_{\max}$ and the actual climb (from 
         simulation or experiment) quantifies how strongly non-ideal effects influence 
         performance.
@@ -647,35 +702,51 @@ The slug model rests on several assumptions. This section quantifies when each m
 \begin{assumption}[Incompressible Newtonian fluid]
 Constant density $\rho$ and viscosity $\mu$ (e.g., water at room temperature).
 \end{assumption}
+This holds extremely well for clean water in typical IYPT siphons: density variations with 
+temperature are at the percent level, and non-Newtonian effects only arise with very viscous 
+or particulate fluids (which are outside the scope of this model).
 
 \begin{assumption}[Rigid uniform circular pipe]
 Diameter $D$ is constant, and the pipe does not deform under the internal pressures 
 encountered.
 \end{assumption}
+Commercial plastic or glass tubing with millimetre-scale wall thickness behaves essentially 
+rigidly over the pressure range of a few metres of water head; very soft silicone tubes can 
+expand noticeably, effectively changing $A$ and the friction factor.
 
 \begin{assumption}[Quasi-hydrostatic container]
 The free-surface velocity is negligible: $|\dot{h}_c| \ll \sqrt{gD}$ and $|\ddot{h}_c| \ll g$.
 \end{assumption}
+In practice, this requires a container cross-section $A_0$ much larger than the pipe area $A$ 
+so that $h_c(t)$ changes slowly. Narrow supply tubes or very small reservoirs violate this 
+assumption and would need a more detailed container-flow model.
 
 \begin{assumption}[Single connected slug]
 The water column remains continuous with nearly uniform velocity across each cross-section.
 \end{assumption}
+Once the column breaks into multiple slugs separated by air (for example after strong 
+cavitation or vigorous inlet entrainment), the present one-slug model no longer applies and a 
+multi-slug or two-phase description would be required.
 
 \subsection{Cavitation}
 
 Along the centreline, especially near the crest, the absolute pressure must remain above 
 the vapour pressure $p_{\text{vap}}$ to avoid column separation. In terms of head:
-\begin{equation}
-  h_c - h_{\text{crest}} - h_{\text{loss,crest}} \ge h_{\text{vap}}, \qquad
-  h_{\text{vap}} = \frac{p_{\text{atm}} - p_{\text{vap}}}{\rho g} \approx \SI{10.3}{m}.
-  \label{eq:cavitation}
-\end{equation}
-Violation of \eqref{eq:cavitation} indicates that the modelled negative gauge pressures 
-cannot be sustained; vapour bubbles or air would appear, breaking the slug. Modern 
-discussions of siphon height limits and negative pressures include 
-Boatwright et al.~\cite{boatwright} and Vera et al.~\cite{vera}; for broader background on 
-cavitation and water under tension, see Caupin and Herbert~\cite{caupin_cavitation}, and the 
-role of water under tension in plant xylem is reviewed by Tyree~\cite{tyree}.
+  \begin{equation}
+    h_c - h_{\text{crest}} - h_{\text{loss,crest}} \ge h_{\text{vap}}, \qquad
+    h_{\text{vap}} = \frac{p_{\text{atm}} - p_{\text{vap}}}{\rho g} \approx \SI{10.3}{m}.
+    \label{eq:cavitation}
+  \end{equation}
+  Violation of \eqref{eq:cavitation} indicates that the modelled negative gauge pressures 
+  cannot be sustained; vapour bubbles or air would appear, breaking the slug. Modern 
+  discussions of siphon height limits and negative pressures include 
+  Boatwright et al.~\cite{boatwright} and Vera et al.~\cite{vera}; for broader background on 
+  cavitation and water under tension, see Caupin and Herbert~\cite{caupin_cavitation}, and the 
+  role of water under tension in plant xylem is reviewed by Tyree~\cite{tyree}.
+For tabletop siphons with crest heights of order $\SI{1}{m}$ the left-hand side of
+\eqref{eq:cavitation} is typically many metres larger than $h_{\text{vap}}$, so cavitation is 
+unlikely; the inequality becomes important only for very tall devices or unusually large 
+losses between the container and the crest.
 
 \subsection{Surface tension and capillarity}
 
@@ -704,25 +775,27 @@ regimes, but the quasi-steady assumption (using instantaneous $\text{Re}$ to eva
 is most accurate when velocity changes slowly relative to the viscous diffusion time 
 $D^2/\nu$.
 
-For steady siphon flows in more detailed models, including direct calculation of the flow 
-velocity and comparison with experiments, see Zheng et al.~\cite{zheng_siphon}.
+  For steady siphon flows in more detailed models, including direct calculation of the flow 
+  velocity and comparison with experiments, see Zheng et al.~\cite{zheng_siphon}.
+In IYPT-scale siphons, Reynolds numbers are often in the $10^3$--$10^4$ range, so the flow is 
+usually turbulent and well within the range where the Churchill correlation is most useful.
 
-\subsection{When the slug model breaks down}
+  \subsection{When the slug model breaks down}
 
-The single-slug approximation fails when:
-\begin{itemize}[nosep]
+  The single-slug approximation fails when:
+  \begin{itemize}[nosep]
   \item Strong three-dimensional separation or recirculation occurs (sharp bends, sudden 
         expansions).
   \item Air is entrained at the inlet or outlet.
-  \item The column separates (cavitation, trapped air pockets).
-  \item Turbulent fluctuations are large compared to the mean flow.
-\end{itemize}
-In such regimes, volume-of-fluid CFD (e.g., OpenFOAM's \texttt{interFoam}~\cite{openfoam} 
-or ANSYS Fluent~\cite{ansys_fluent}) becomes necessary, and detailed CFD studies of siphon 
-and inverted-siphon systems~\cite{ortloff_kassinos,sedlar_siphon} provide useful reference 
-points. The slug model remains valuable 
-  as a diagnostic: systematic deviations from one-dimensional predictions highlight where 
-  additional physics is important.
+    \item The column separates (cavitation, trapped air pockets).
+    \item Turbulent fluctuations are large compared to the mean flow.
+  \end{itemize}
+  In such regimes, volume-of-fluid CFD (e.g., OpenFOAM's \texttt{interFoam}~\cite{openfoam} 
+  or ANSYS Fluent~\cite{ansys_fluent}) becomes necessary, and detailed CFD studies of siphon 
+  and inverted-siphon systems~\cite{ortloff_kassinos,sedlar_siphon} provide useful reference 
+  points. The slug model remains valuable 
+    as a diagnostic: systematic deviations from one-dimensional predictions highlight where 
+    additional physics is important.
 
 \subsection{Validity checklist}
 
@@ -774,10 +847,10 @@ results.
 \subsection{Ideal bound computation}
 
 The numerical routines that evaluate the ideal climb-height bound $h_{\max}$, including
-the helper function $\Phi$ and the root-finding procedure for the stall location, are
-implemented in \texttt{simulation\_code.py}. These functions mirror the analytical
-expressions derived in Section~\ref{sec:ideal-bound} and are kept in the external code
-base to facilitate further development and reuse.
+  the helper function $\Phi$ and the root-finding procedure for the stall location, are
+  implemented in \texttt{simulation\_code.py}. These functions mirror the analytical
+expressions derived in Section~\ref{sec:bounds} and are kept in the external code
+  base to facilitate further development and reuse.
 
 % ══════════════════════════════════════════════════════════════════════════════
 %  SECTION 10: SUMMARY
@@ -843,7 +916,7 @@ The main contributions are:
         $F_{\text{drive}} = \rho g A[h_c - h(L)]$.
   \item An analytical upper bound $h_{\max}$ on climb height with a closed-form evaluation 
         for piecewise-linear geometries.
-  \item A geometric priming criterion $h_{\max} > h_3$ for rapid design screening.
+\item A geometric crest-crossing criterion $h_{\max} > h_3$ for rapid design screening.
   \item Complete filling and draining ODEs with Churchill friction and minor losses.
   \item Explicit validity criteria for cavitation, capillarity, flow regime, and inlet 
         dynamics.

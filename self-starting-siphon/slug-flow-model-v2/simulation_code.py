@@ -298,38 +298,65 @@ def segment_energy(h1, c, s, a, b):
 
 
 def compute_ideal_bound(p: SiphonParams) -> Tuple[float, float, bool]:
-    """Ideal (lossless) maximum climb height."""
+    """Ideal (lossless) maximum climb height.
+
+    Returns
+    -------
+    h_max : float
+        Maximum elevation reached by the front along the ideal trajectory,
+        h_max = h(L_peak) with L_peak = min(L_stall, L_crest).
+    L_stall : float
+        Ideal stall arclength from the inlet. If the trajectory never stalls
+        before the outlet, this is set to the total pipe length.
+    can_prime : bool
+        True if the ideal trajectory reaches the crest before stalling,
+        i.e. L_stall >= L_crest (equivalently h_max >= h_crest).
+    """
     geom, h1 = p.geometry, p.h1
     S, c, s = geom.S, geom.intercepts, geom.slopes
     
     start_seg = geom.segment_of_L(p.L1)
     cumulative = 0.0
+    L_stall = None
     
     if p.L1 > S[start_seg]:
         contrib = segment_energy(h1, c[start_seg], s[start_seg], p.L1, S[start_seg + 1])
         if cumulative + contrib < 0:
             def fn(L): return cumulative + segment_energy(h1, c[start_seg], s[start_seg], p.L1, L)
             L_stall = brentq(fn, p.L1, S[start_seg + 1])
-            return geom.h_of_L(L_stall), L_stall, geom.h_of_L(L_stall) > geom.h_crest
-        cumulative += contrib
-        start_seg += 1
+        else:
+            cumulative += contrib
+            start_seg += 1
     
-    for i in range(start_seg, geom.n_segments):
-        a = S[i] if i > start_seg or p.L1 <= S[start_seg] else p.L1
-        b = S[i + 1]
-        contrib = segment_energy(h1, c[i], s[i], a, b)
-        
-        if cumulative + contrib < 0:
-            def fn(L, cum=cumulative, ci=c[i], si=s[i], ai=a):
-                return cum + segment_energy(h1, ci, si, ai, L)
-            try:
-                L_stall = brentq(fn, a + 1e-10, b)
-            except ValueError:
-                L_stall = b
-            return geom.h_of_L(L_stall), L_stall, geom.h_of_L(L_stall) > geom.h_crest
-        cumulative += contrib
-    
-    return np.max(geom.h_of_L_vec(np.linspace(p.L1, geom.L_total, 1000))), geom.L_total, True
+    if L_stall is None:
+        for i in range(start_seg, geom.n_segments):
+            a = S[i] if i > start_seg or p.L1 <= S[start_seg] else p.L1
+            b = S[i + 1]
+            contrib = segment_energy(h1, c[i], s[i], a, b)
+
+            if cumulative + contrib < 0:
+                def fn(L, cum=cumulative, ci=c[i], si=s[i], ai=a):
+                    return cum + segment_energy(h1, ci, si, ai, L)
+                try:
+                    L_stall = brentq(fn, a + 1e-10, b)
+                except ValueError:
+                    L_stall = b
+                break
+            cumulative += contrib
+
+    # If the integral never returns to zero, the ideal trajectory does not stall
+    # before the outlet; treat L_stall as the total pipe length.
+    if L_stall is None:
+        L_stall = geom.L_total
+
+    # Trajectory peak: highest elevation actually reached by the front
+    L_peak = min(L_stall, geom.L_crest)
+    h_max = geom.h_of_L(L_peak)
+
+    # Ideal priming possible iff crest is reached before stall
+    can_prime = L_stall >= geom.L_crest
+
+    return h_max, L_stall, can_prime
 
 
 def validate_setup(p: SiphonParams) -> List[str]:
