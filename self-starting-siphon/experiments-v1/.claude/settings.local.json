@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip show:*)",
+      "Bash(py -c:*)",
+      "Bash(chcp 65001)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

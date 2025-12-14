@@ -1,0 +1,332 @@
+[
+  {
+    "Geometric Parameters": NaN,
+    "Unnamed: 1": NaN,
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "Node / Point",
+    "Unnamed: 1": "x (cm)",
+    "Unnamed: 2": "h (cm)",
+    "Unnamed: 3": "Description"
+  },
+  {
+    "Geometric Parameters": "A",
+    "Unnamed: 1": 0,
+    "Unnamed: 2": 1,
+    "Unnamed: 3": "Inlet"
+  },
+  {
+    "Geometric Parameters": "B",
+    "Unnamed: 1": 7.5,
+    "Unnamed: 2": 11,
+    "Unnamed: 3": "First crest (below waterline)"
+  },
+  {
+    "Geometric Parameters": "C",
+    "Unnamed: 1": 13.5,
+    "Unnamed: 2": 5,
+    "Unnamed: 3": "Low point"
+  },
+  {
+    "Geometric Parameters": "W'",
+    "Unnamed: 1": 20.9,
+    "Unnamed: 2": 12.5,
+    "Unnamed: 3": "Waterline crossing (ascending) on C→D"
+  },
+  {
+    "Geometric Parameters": "D",
+    "Unnamed: 1": 21.4,
+    "Unnamed: 2": 13,
+    "Unnamed: 3": "Main crest (above waterline)"
+  },
+  {
+    "Geometric Parameters": "W",
+    "Unnamed: 1": 21.7,
+    "Unnamed: 2": 12.5,
+    "Unnamed: 3": "Waterline crossing (descending, last) on D→E"
+  },
+  {
+    "Geometric Parameters": "E",
+    "Unnamed: 1": 30.3,
+    "Unnamed: 2": -1.7,
+    "Unnamed: 3": "Outlet"
+  },
+  {
+    "Geometric Parameters": NaN,
+    "Unnamed: 1": NaN,
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "Initial water level (waterline):",
+    "Unnamed: 1": 12.5,
+    "Unnamed: 2": "cm",
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": NaN,
+    "Unnamed: 1": NaN,
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": NaN,
+    "Unnamed: 1": NaN,
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "Segment Properties",
+    "Unnamed: 1": NaN,
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": NaN,
+    "Unnamed: 1": NaN,
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "Segment",
+    "Unnamed: 1": "Length (L_i) (cm)",
+    "Unnamed: 2": "Slope (s_i = Δh / L_i)",
+    "Unnamed: 3": "Role"
+  },
+  {
+    "Geometric Parameters": "A → B",
+    "Unnamed: 1": 12.5,
+    "Unnamed: 2": 0.8,
+    "Unnamed: 3": "Initial rise"
+  },
+  {
+    "Geometric Parameters": "B → C",
+    "Unnamed: 1": 8.5,
+    "Unnamed: 2": -0.706,
+    "Unnamed: 3": "Drop"
+  },
+  {
+    "Geometric Parameters": "C → W′",
+    "Unnamed: 1": 10.5,
+    "Unnamed: 2": 0.714,
+    "Unnamed: 3": "Climb (below waterline)"
+  },
+  {
+    "Geometric Parameters": "W′ → D",
+    "Unnamed: 1": 0.7,
+    "Unnamed: 2": 0.714,
+    "Unnamed: 3": "Climb (above waterline)"
+  },
+  {
+    "Geometric Parameters": "D → W",
+    "Unnamed: 1": 0.6,
+    "Unnamed: 2": -0.855,
+    "Unnamed: 3": "Descent to waterline"
+  },
+  {
+    "Geometric Parameters": "W → E",
+    "Unnamed: 1": 16.6,
+    "Unnamed: 2": -0.855,
+    "Unnamed: 3": "Descent to outlet"
+  },
+  {
+    "Geometric Parameters": NaN,
+    "Unnamed: 1": NaN,
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "Total pipe length:",
+    "Unnamed: 1": 49.4,
+    "Unnamed: 2": "cm",
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": NaN,
+    "Unnamed: 1": NaN,
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": NaN,
+    "Unnamed: 1": NaN,
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "Cumulative Arclengths",
+    "Unnamed: 1": NaN,
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": NaN,
+    "Unnamed: 1": NaN,
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "Symbol",
+    "Unnamed: 1": "Value (cm)",
+    "Unnamed: 2": "Location",
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "S₀",
+    "Unnamed: 1": 0,
+    "Unnamed: 2": "Point A (inlet)",
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "S₁",
+    "Unnamed: 1": 12.5,
+    "Unnamed: 2": "Point B (first crest)",
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "S₂",
+    "Unnamed: 1": 21,
+    "Unnamed: 2": "Point C (low point)",
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "S_W'",
+    "Unnamed: 1": 31.5,
+    "Unnamed: 2": "Point W' (waterline crossing on C→D)",
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "S₃",
+    "Unnamed: 1": 32.2,
+    "Unnamed: 2": "Point D (main crest)",
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "S_W",
+    "Unnamed: 1": 32.8,
+    "Unnamed: 2": "Point W (last waterline crossing on D→E)",
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "S₄",
+    "Unnamed: 1": 49.4,
+    "Unnamed: 2": "Point E (outlet)",
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": NaN,
+    "Unnamed: 1": NaN,
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "Pipe Parameters",
+    "Unnamed: 1": NaN,
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": NaN,
+    "Unnamed: 1": NaN,
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "Parameter",
+    "Unnamed: 1": "Value",
+    "Unnamed: 2": "Description",
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "D",
+    "Unnamed: 1": "5mm",
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "A = πD^2/4",
+    "Unnamed: 1": "0.2 cm^2",
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "ε/D",
+    "Unnamed: 1": "0.00035",
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "Σk",
+    "Unnamed: 1": 4,
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": NaN,
+    "Unnamed: 1": NaN,
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "system parameters",
+    "Unnamed: 1": NaN,
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "A_0",
+    "Unnamed: 1": "340 cm^2",
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "A/A_0",
+    "Unnamed: 1": "0.0006",
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "ρ",
+    "Unnamed: 1": "998 kg/m^3",
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "μ",
+    "Unnamed: 1": "10^(-3) Pa",
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "ν",
+    "Unnamed: 1": "10^(-6) m^2/s",
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "γ",
+    "Unnamed: 1": "0.073 N/m",
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": "g",
+    "Unnamed: 1": "9.81 m/s^2",
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": NaN,
+    "Unnamed: 1": NaN,
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  },
+  {
+    "Geometric Parameters": NaN,
+    "Unnamed: 1": "17 degrees celcius",
+    "Unnamed: 2": NaN,
+    "Unnamed: 3": NaN
+  }
+]
