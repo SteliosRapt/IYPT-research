@@ -7,6 +7,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath,amssymb,amsfonts,amsthm}
 \usepackage{graphicx}
+\graphicspath{{figures/}}
 \usepackage{bm}
 \usepackage{siunitx}
 \usepackage{geometry}
@@ -123,7 +124,7 @@ A single geometry illustrates all calculations throughout this paper. \Cref{tab:
 
 \begin{table}[H]
 \centering
-\caption{Complete parameter set for the worked example.}
+\caption{Complete parameter set for the worked example (experimental setup).}
 \label{tab:parameters}
 \renewcommand{\arraystretch}{1.2}
 \small
@@ -133,49 +134,50 @@ A single geometry illustrates all calculations throughout this paper. \Cref{tab:
 \midrule
 Node & $x$ (cm) & $h$ (cm) & Description \\
 \midrule
-$A$ & 0 & 2 & Inlet \\
-$B$ & 1 & 19 & First crest (1\,cm below waterline) \\
-$C$ & 4 & 5 & Low point \\
-$D$ & 7 & 24 & Main crest (4\,cm above waterline) \\
-$E$ & 15 & 0 & Outlet \\
+$A$ & 0.0 & 1.0 & Inlet \\
+$B$ & 7.5 & 11.0 & First crest (1.5\,cm below waterline) \\
+$C$ & 13.5 & 5.0 & Low point \\
+$D$ & 21.4 & 13.0 & Main crest (0.5\,cm above waterline) \\
+$E$ & 30.3 & $-1.7$ & Outlet \\
 \midrule
-\multicolumn{4}{l}{Initial water level: $h_c^{(0)} = 20$\,cm} \\
+\multicolumn{4}{l}{Initial water level: $h_c^{(0)} = 12.5$\,cm} \\
 \midrule
 \multicolumn{4}{l}{\textbf{Segment properties}} \\
 \midrule
 Segment & Length $L_i$ (cm) & Slope $s_i$ & Role \\
 \midrule
-$A \to B$ & 17.03 & $+0.998$ & Initial rise \\
-$B \to C$ & 14.32 & $-0.978$ & Momentum-building drop \\
-$C \to D$ & 19.24 & $+0.988$ & Climb to crest \\
-$D \to E$ & 25.30 & $-0.949$ & Descent to outlet \\
+$A \to B$ & 12.50 & $+0.800$ & Initial rise \\
+$B \to C$ & 8.49 & $-0.707$ & Momentum-building drop \\
+$C \to D$ & 11.24 & $+0.712$ & Climb to crest \\
+$D \to E$ & 17.18 & $-0.855$ & Descent to outlet \\
 \midrule
-\multicolumn{4}{l}{Total pipe length: $L_{\max} = 75.88$\,cm} \\
+\multicolumn{4}{l}{Total pipe length: $L_{\max} = 49.41$\,cm} \\
 \midrule
 \multicolumn{4}{l}{\textbf{Cumulative arclengths}} \\
 \midrule
 Symbol & Value (cm) & \multicolumn{2}{l}{Location} \\
 \midrule
 $S_0$ & 0 & \multicolumn{2}{l}{Node $A$ (inlet)} \\
-$S_1$ & 17.03 & \multicolumn{2}{l}{Node $B$ (first crest)} \\
-$S_2$ & 31.35 & \multicolumn{2}{l}{Node $C$ (low point)} \\
-$S_3$ & 50.58 & \multicolumn{2}{l}{Node $D$ (main crest)} \\
-$S_W$ & 54.80 & \multicolumn{2}{l}{Point $W$ (last waterline crossing)} \\
-$S_4$ & 75.88 & \multicolumn{2}{l}{Node $E$ (outlet)} \\
+$S_1$ & 12.50 & \multicolumn{2}{l}{Node $B$ (first crest)} \\
+$S_2$ & 20.99 & \multicolumn{2}{l}{Node $C$ (low point)} \\
+$S_{W'}$ & 31.53 & \multicolumn{2}{l}{Point $W'$ (ascending waterline crossing)} \\
+$S_3$ & 32.23 & \multicolumn{2}{l}{Node $D$ (main crest)} \\
+$S_W$ & 32.81 & \multicolumn{2}{l}{Point $W$ (last waterline crossing)} \\
+$S_4$ & 49.41 & \multicolumn{2}{l}{Node $E$ (outlet)} \\
 \midrule
 \multicolumn{4}{l}{\textbf{Pipe parameters}} \\
 \midrule
 Parameter & Value & \multicolumn{2}{l}{Description} \\
 \midrule
-$D$ & 10\,mm & \multicolumn{2}{l}{Inner diameter} \\
-$A = \pi D^2/4$ & $0.785\,\text{cm}^2$ & \multicolumn{2}{l}{Cross-sectional area} \\
-$\varepsilon/D$ & $0.0001$ & \multicolumn{2}{l}{Relative roughness (smooth plastic)} \\
-$\sum K$ & 2 & \multicolumn{2}{l}{Total minor loss coefficient (4 bends)} \\
+$D$ & 5\,mm & \multicolumn{2}{l}{Inner diameter} \\
+$A = \pi D^2/4$ & $0.196\,\text{cm}^2$ & \multicolumn{2}{l}{Cross-sectional area} \\
+$\varepsilon/D$ & $3.5\times 10^{-4}$ & \multicolumn{2}{l}{Relative roughness (estimate; weakly identifiable at low Re)} \\
+$\sum K$ & 14.4 & \multicolumn{2}{l}{Effective minor loss coefficient (fit to $v(L)$)} \\
 \midrule
 \multicolumn{4}{l}{\textbf{System parameters}} \\
 \midrule
-$A_0$ & $150\,\text{cm}^2$ & \multicolumn{2}{l}{Container cross-sectional area} \\
-$A/A_0$ & $0.0052$ & \multicolumn{2}{l}{Area ratio} \\
+$A_0$ & $340\,\text{cm}^2$ & \multicolumn{2}{l}{Container cross-sectional area} \\
+$A/A_0$ & $5.77\times 10^{-4}$ & \multicolumn{2}{l}{Area ratio} \\
 $\rho$ & $998\,\text{kg/m}^3$ & \multicolumn{2}{l}{Water density at $20^\circ$C} \\
 $\mu$ & $1.0 \times 10^{-3}\,\text{Pa}\cdot\text{s}$ & \multicolumn{2}{l}{Dynamic viscosity} \\
 $\nu$ & $1.0 \times 10^{-6}\,\text{m}^2/\text{s}$ & \multicolumn{2}{l}{Kinematic viscosity} \\
@@ -194,16 +196,16 @@ The arclength $L$ measures distance along the pipe from the inlet. On segment $i
 \end{equation}
 where the slope $s_i = (h_i - h_{i-1})/L_i = \sin\theta_i$ and the intercept $c_i = h_{i-1} - s_i S_{i-1}$ ensures continuity.
 
-For the worked example: $c_1 = 2.00$\,cm, $c_2 = 35.65$\,cm, $c_3 = -25.96$\,cm, $c_4 = 71.99$\,cm.
+For the worked example: $c_1 = 1.00$\,cm, $c_2 = 19.84$\,cm, $c_3 = -9.93$\,cm, $c_4 = 40.57$\,cm.
 
 \subsection{Point $W$: the last waterline crossing}
 
-On segment $D \to E$, the front descends from $h_3 = 24$\,cm (above waterline) to $h_4 = 0$ (below). Point $W$ is where the front crosses the waterline for the last time:
+On segment $D \to E$, the front descends from $h_3 = 13$\,cm (above waterline) to $h_4 = -1.7$\,cm (below). Point $W$ is where the front crosses the waterline for the last time:
 \[
-  h(S_W) = h_c^{(0)} \quad \Rightarrow \quad S_W = \frac{h_c^{(0)} - c_4}{s_4} = \frac{20 - 71.99}{-0.949} = 54.80\,\text{cm}.
+  h(S_W) = h_c^{(0)} \quad \Rightarrow \quad S_W = \frac{h_c^{(0)} - c_4}{s_4} = \frac{12.5 - 40.57}{-0.855} = 32.81\,\text{cm}.
 \]
 
-Point $W$ is critical: once past it, the driving force is permanently positive and priming is guaranteed.
+The front also crosses the waterline on the climb at point $W'$ on segment $C \to D$ at $S_{W'} = 31.53$\,cm. Between $W'$ and $W$, the driving force is negative. Point $W$ is critical: once past it, the driving force is permanently positive and priming is guaranteed.
 
 \subsection{State variables and initial conditions}
 
@@ -217,7 +219,7 @@ The front velocity is $v = \dot{L}$ and the front elevation is $h(L)$.
 
 At $t = 0$, the container has been slowly filled to level $h_c^{(0)}$. Water has entered the pipe and filled segment $A \to B$ hydrostatically, with the front resting at node $B$. A small perturbation tips water over the first crest, initiating dynamic filling.
 
-Initial conditions: $L(0) = S_1 = 17.03$\,cm, $v(0) = 0$.
+Initial conditions: $L(0) = S_1 = 12.50$\,cm, $v(0) = 0$.
 
 % --- FIGURE 1: Geometry schematic ---
 \begin{figure}[H]
@@ -231,7 +233,7 @@ Initial conditions: $L(0) = S_1 = 17.03$\,cm, $v(0) = 0$.
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\textwidth]{figure2_centreline.pdf}
-  \caption{Centreline elevation $h(L)$ versus arclength for the worked example. The dashed line marks $h_c^{(0)} = 20$\,cm. After leaving $B$, the front crosses this level twice: once ascending (on $C \to D$) and once descending (at point $W$). Blue shading: driving force positive. Red shading: driving force negative.}
+  \caption{Centreline elevation $h(L)$ versus arclength for the worked example. The dashed line marks $h_c^{(0)} = 12.5$\,cm. After leaving $B$, the front crosses this level twice: once ascending (at $W'$ on $C \to D$) and once descending (at $W$ on $D \to E$). Blue shading: driving force positive. Red shading: driving force negative.}
   \label{fig:centreline}
 \end{figure}
 
@@ -358,30 +360,30 @@ To compute $I(L)$ for $L$ on segment $k$:
 
 Computing $I(S_W)$ requires contributions from segments 2, 3, and part of 4.
 
-\paragraph{Segment 2 ($B \to C$), interval $[17.03, 31.35]$\,cm:}
+\paragraph{Segment 2 ($B \to C$), interval $[12.50, 20.99]$\,cm:}
 \[
-  \Phi_2 = (20 - 35.65)\ln\frac{31.35}{17.03} - (-0.978)(14.32) = -9.55 + 14.00 = +4.45\,\text{cm}.
+  \Phi_2 = (12.5 - 19.84)\ln\frac{20.99}{12.50} - (-0.707)(8.49) = -3.80 + 6.00 = +2.20\,\text{cm}.
 \]
 
-\paragraph{Segment 3 ($C \to D$), interval $[31.35, 50.58]$\,cm:}
+\paragraph{Segment 3 ($C \to D$), interval $[20.99, 32.23]$\,cm:}
 \[
-  \Phi_3 = (20 - (-25.96))\ln\frac{50.58}{31.35} - (0.988)(19.24) = 22.0 - 19.0 = +2.99\,\text{cm}.
+  \Phi_3 = (12.5 - (-9.93))\ln\frac{32.23}{20.99} - (0.712)(11.24) = 9.62 - 8.00 = +1.62\,\text{cm}.
 \]
 
-\paragraph{Segment 4 ($D \to W$), interval $[50.58, 54.80]$\,cm:}
+\paragraph{Segment 4 ($D \to W$), interval $[32.23, 32.81]$\,cm:}
 \[
-  \Phi_4 = (20 - 71.99)\ln\frac{54.80}{50.58} - (-0.949)(4.22) = -4.16 + 4.00 = -0.16\,\text{cm}.
+  \Phi_4 = (12.5 - 40.57)\ln\frac{32.81}{32.23} - (-0.855)(0.58) = -0.50 + 0.50 = -0.005\,\text{cm}.
 \]
 
 \paragraph{Total:}
 \begin{equation}
-  I(S_W) = 4.45 + 2.99 - 0.16 = 7.28\,\text{cm} > 0.
+  I(S_W) = 2.20 + 1.62 - 0.005 = 3.82\,\text{cm} > 0.
   \label{eq:I-SW-value}
 \end{equation}
 
 The criterion is satisfied. Frictionless velocity at $W$:
 \[
-  v_W = \sqrt{2 \times 981 \times 7.28} = 119.5\,\text{cm/s} = 1.20\,\text{m/s}.
+  v_W = \sqrt{2 \times 981 \times 3.82} = 86.5\,\text{cm/s} = 0.865\,\text{m/s}.
 \]
 
 \subsection{Design insights}
@@ -410,7 +412,7 @@ The energy integral reveals how geometry controls priming:
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\textwidth]{figure4_energy_integral.pdf}
-  \caption{Energy integral $I(L)$ versus arclength (frictionless, no drawdown). The integral rises during the drop $B \to C$, continues rising during the early climb (where $h < h_c^{(0)}$), then decreases slightly above the waterline. At point $W$, $I(S_W) = 7.28$\,cm $> 0$: priming succeeds.}
+  \caption{Energy integral $I(L)$ versus arclength (frictionless, no drawdown). The integral rises during the drop $B \to C$, continues rising during the early climb (where $h < h_c^{(0)}$), then decreases slightly while the front is above the waterline (between $W'$ and $W$). At point $W$, $I(S_W) = 3.82$\,cm $> 0$: priming succeeds.}
   \label{fig:energy-integral}
 \end{figure}
 
@@ -459,37 +461,37 @@ The drawdown penalty integral evaluates to:
 
 \subsection{Worked example}
 
-For the worked example with $A/A_0 = 0.0052$, at $L = S_W = 54.80$\,cm:
+For the worked example with $A/A_0 = 5.77\times 10^{-4}$, at $L = S_W = 32.81$\,cm:
 \[
-  (54.80 - 17.03) - 17.03 \ln\frac{54.80}{17.03} = 37.77 - 19.91 = 17.86\,\text{cm}.
+  (32.81 - 12.50) - 12.50 \ln\frac{32.81}{12.50} = 20.31 - 12.06 = 8.25\,\text{cm}.
 \]
 
 Drawdown penalty:
 \[
-  \frac{A}{A_0} \times 17.86 = 0.0052 \times 17.86 = 0.093\,\text{cm}.
+  \frac{A}{A_0} \times 8.25 = (5.77\times 10^{-4}) \times 8.25 = 0.0048\,\text{cm}.
 \]
 
 Modified integral:
 \begin{equation}
-  I_{\text{dd}}(S_W) = 7.28 - 0.09 = 7.19\,\text{cm} > 0.
+  I_{\text{dd}}(S_W) = 3.82 - 0.005 = 3.81\,\text{cm} > 0.
   \label{eq:I-dd-value}
 \end{equation}
 
-Drawdown reduces the margin by about 1\% for this large container.
+Drawdown reduces the margin by only $\sim 0.1\%$ for this large container.
 
 \subsection{When drawdown matters}
 
 The total drawdown when the front reaches the outlet:
 \[
-  \Delta h_c = \frac{A}{A_0}(S_4 - S_1) = 0.0052 \times 58.85 = 0.31\,\text{cm}.
+  \Delta h_c = \frac{A}{A_0}(S_4 - S_1) = (5.77\times 10^{-4}) \times 36.91 = 0.021\,\text{cm}.
 \]
 
-For a smaller container with $A_0 = 20\,\text{cm}^2$ (area ratio 0.039):
+For a smaller container with $A_0 = 20\,\text{cm}^2$ (area ratio $A/A_0 \approx 0.0098$):
 \[
-  \Delta h_c = 0.039 \times 58.85 = 2.31\,\text{cm}.
+  \Delta h_c \approx 0.0098 \times 36.91 = 0.36\,\text{cm}.
 \]
 
-This would significantly reduce the initial driving head of 1\,cm at node $B$, potentially causing failure in marginal geometries.
+This would reduce the initial driving head of $h_c^{(0)} - h_1 = 1.5$\,cm at node $B$, potentially causing failure in marginal geometries.
 
 \paragraph{Key parameter: $A/A_0$.} When $A/A_0 \ll 0.01$, drawdown is negligible. When $A/A_0 \gtrsim 0.01$, drawdown must be included.
 
@@ -497,7 +499,7 @@ This would significantly reduce the initial driving head of 1\,cm at node $B$, p
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\textwidth]{figure5_drawdown.pdf}
-  \caption{Container level $h_c(L)$ versus slug position for two area ratios. Solid line: $A/A_0 = 0.0052$ (worked example). Dashed line: $A/A_0 = 0.05$ (smaller container). Vertical dotted lines mark $S_W$ and $S_4$. For the smaller container, the level drops 3\,cm by the time the front reaches the outlet.}
+  \caption{Container level $h_c(L)$ versus slug position for two area ratios. Solid line: $A/A_0 = 5.77\times 10^{-4}$ (experiment). Dashed line: $A/A_0 = 0.05$ (smaller container). Vertical dotted lines mark $S_W$ and $S_4$. For the experiment, drawdown is negligible ($\Delta h_c \approx 0.02$\,cm by the outlet).}
   \label{fig:drawdown}
 \end{figure}
 
@@ -540,7 +542,7 @@ This approximation is exact in the fully rough regime where $f$ depends only on 
   \label{eq:fully-rough}
 \end{equation}
 
-More generally, taking a representative value $f_0$ from the expected Reynolds number range introduces errors comparable to other model uncertainties. For the worked example, we use $f_0 = 0.025$.
+More generally, taking a representative value $f_0$ from the expected Reynolds number range introduces errors comparable to other model uncertainties. For the worked example, we use $f_0 \approx 0.078$, chosen from the filling-phase Reynolds number range after fitting $\sum K$ to the experimental $v(L)$ curve.
 
 \subsection{Friction-corrected energy integral}
 
@@ -581,50 +583,51 @@ Since $\mu(r)/\mu(L) < 1$ for $r < L$, we have $I_f(L) < I(L)$ always.
 
 \subsection{Worked example}
 
-For $f_0 = 0.025$, $\sum K = 2$, $D = 1$\,cm, at $L = S_W = 54.80$\,cm:
+For $f_0 \approx 0.078$, $\sum K = 14.4$, $D = 0.5$\,cm, at $L = S_W = 32.81$\,cm:
 \[
-  \mu(S_W) = \left(\frac{54.80}{17.03}\right)^2 \exp\left(\frac{0.025 \times 37.77}{1.0}\right) = (3.22)^2 \times e^{0.94} \approx 26.6.
+  \mu(S_W) = \left(\frac{32.81}{12.50}\right)^{14.4} \exp\left(\frac{0.078 \times 20.31}{0.5}\right) \approx (2.62)^{14.4} \times e^{3.16} \approx 2.5\times 10^{7}.
 \]
 
 Numerical evaluation gives:
 \begin{equation}
-  I_f(S_W) \approx 1.13\,\text{cm} > 0.
+  I_f(S_W) \approx 0.020\,\text{cm} > 0.
   \label{eq:I-f-value}
 \end{equation}
 
-Comparing to $I(S_W) = 7.28$\,cm, friction reduces the available energy by about 85\%. Even with the relatively smooth bends of the worked example ($\sum K = 2$), the factor $(L/S_1)^{\sum K}$ in the integrating factor and the exponential discounting still significantly penalise energy stored early along the path. The velocity at $W$:
+Comparing to $I(S_W) = 3.82$\,cm, the constant-friction model reduces the available energy by $\sim 99.5\%$. The velocity at $W$:
 \[
-  v_W = \sqrt{2 \times 981 \times 1.13} \approx 47\,\text{cm/s} \approx 0.47\,\text{m/s}.
+  v_W = \sqrt{2 \times 981 \times 0.020} \approx 6.3\,\text{cm/s} \approx 0.063\,\text{m/s}.
 \]
 
-The priming criterion is comfortably satisfied: even in the constant-friction model there remains a margin of order a centimetre. This illustrates a key insight: \emph{minor losses from bends can dominate the energy budget}. Increasing bend losses (larger $\sum K$) would dramatically reduce this margin.
+The priming criterion is only marginally satisfied in the conservative constant-friction model. This reflects the experimental reality for a small-diameter siphon: effective minor losses (bends, entrance/exit, and unmodelled dissipation) can dominate the energy budget, leaving a small margin near the threshold.
 
 \subsection{When friction matters}
 
 The key parameters are $\varepsilon/D$ (relative roughness) and $\sum K$ (bend losses).
 
-For the worked example at frictionless crest velocity $v = 1.21$\,m/s:
+For the worked example, the measured peak filling velocity is $v \approx 0.36$\,m/s. With $D = 5$\,mm and $\nu = 10^{-6}\,\text{m}^2/\text{s}$:
 \[
-  \text{Re} = \frac{vD}{\nu} = \frac{1.21 \times 0.01}{10^{-6}} = 12100.
+  \text{Re} \approx \frac{0.36 \times 0.005}{10^{-6}} \approx 1800,
+\]
+so the flow is mostly laminar and $f \approx 64/\text{Re} \approx 0.036$; roughness has little influence in this regime.
+
+Distributed friction head loss over the full pipe ($L_{\max} = 0.494$\,m):
+\[
+  h_f \approx 0.036 \times \frac{0.494}{0.005} \times \frac{0.36^2}{2 \times 9.81} \approx 0.023\,\text{m} \approx 2.3\,\text{cm}.
 \]
 
-Distributed friction head loss over full pipe:
+Minor losses (effective fitted $\sum K \approx 14.4$):
 \[
-  h_f = 0.032 \times \frac{75.9}{1.0} \times \frac{1.21^2}{2 \times 9.81} = 18\,\text{cm}.
+  h_{\text{minor}} \approx 14.4 \times \frac{0.36^2}{2 \times 9.81} \approx 0.095\,\text{m} \approx 9.5\,\text{cm}.
 \]
 
-Minor losses:
-\[
-  h_{\text{minor}} = 6 \times \frac{1.21^2}{2 \times 9.81} = 45\,\text{cm}.
-\]
-
-Minor losses dominate for this geometry with tight bends. Smoother bends (lower $K$) would significantly reduce friction losses.
+Thus, even at modest Reynolds numbers, minor losses can dominate the energy budget for small-diameter siphons. This motivates treating $\sum K$ as an effective parameter when bend details and entrance/exit effects are not measured.
 
 % --- FIGURE 6: Friction factor f(Re) ---
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\textwidth]{figure6_friction.pdf}
-  \caption{Friction factor $f$ versus Reynolds number from the Churchill correlation. Three regimes are visible: laminar ($f = 64/\text{Re}$), transitional, and turbulent. The shaded band shows the Reynolds number range traversed during filling in the worked example (0 to 12000). The horizontal dashed line marks $f_0 = 0.025$, the constant-friction approximation.}
+  \caption{Friction factor $f$ versus Reynolds number from the Churchill correlation. Three regimes are visible: laminar ($f = 64/\text{Re}$), transitional, and turbulent. The shaded bands show the experimental and model Reynolds-number ranges during filling (both mostly below $\text{Re} \approx 2000$). The horizontal dashed line marks $f_0 \approx 0.078$, the constant-friction approximation.}
   \label{fig:friction}
 \end{figure}
 
@@ -648,9 +651,9 @@ We now have three energy integrals forming a hierarchy:
 \toprule
 Model & Integral at $S_W$ & Velocity at $W$ & Key parameter \\
 \midrule
-Frictionless & $I = 7.28$\,cm & 1.20\,m/s & Geometry \\
-With drawdown & $I_{\text{dd}} = 7.19$\,cm & 1.19\,m/s & $A/A_0 = 0.0052$ \\
-With friction & $I_f \approx 1.13$\,cm & 0.47\,m/s & $\varepsilon/D$, $\sum K$ \\
+Frictionless & $I = 3.82$\,cm & 0.865\,m/s & Geometry \\
+With drawdown & $I_{\text{dd}} = 3.81$\,cm & 0.86\,m/s & $A/A_0 = 5.77\times 10^{-4}$ \\
+With friction & $I_f \approx 0.020$\,cm & 0.063\,m/s & $\varepsilon/D$, $\sum K$ \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -659,13 +662,13 @@ With friction & $I_f \approx 1.13$\,cm & 0.47\,m/s & $\varepsilon/D$, $\sum K$ \
 
 \paragraph{Frictionless integral $I(L)$:} The upper bound. Represents the maximum kinetic energy achievable from geometry alone. If $I(S_W) \leq 0$, no amount of friction reduction can save the design.
 
-\paragraph{Drawdown-corrected integral $I_{\text{dd}}(L)$:} Accounts for the falling container level. The reduction $I - I_{\text{dd}}$ grows with $A/A_0$ and with slug length. For the worked example with a large container, drawdown reduces the margin by only 1\%.
+\paragraph{Drawdown-corrected integral $I_{\text{dd}}(L)$:} Accounts for the falling container level. The reduction $I - I_{\text{dd}}$ grows with $A/A_0$ and with slug length. For the worked example with a large container, drawdown reduces the margin by only $\sim 0.1\%$.
 
-\paragraph{Friction-corrected integral $I_f(L)$:} Accounts for energy dissipation. For the worked example with smoother bends ($\sum K = 2$), friction still reduces the energy by about 85\%. This substantial reduction arises from the $(L/S_1)^{\sum K}$ factor in the integrating factor together with the exponential discounting, both of which penalise geometries with high minor losses. The constant-friction model is conservative: it provides a lower bound that, while pessimistic, guarantees priming if $I_f(S_W) > 0$.
+\paragraph{Friction-corrected integral $I_f(L)$:} Accounts for energy dissipation. For the worked example with an effective $\sum K \approx 14.4$, the constant-friction integral reduces the available energy by $\sim 99.5\%$. This substantial reduction arises from the $(L/S_1)^{\sum K}$ factor in the integrating factor together with the exponential discounting, both of which strongly penalise energy stored early along the path. The constant-friction model is conservative: it provides a lower bound that, while pessimistic, guarantees priming if $I_f(S_W) > 0$.
 
 \subsection{Implications for geometry screening}
 
-A geometry with $I(S_W) = 3$\,cm passes the frictionless test but may have $I_f(S_W) < 0$ and fail with friction. For the worked example with $\sum K = 2$, the constant-friction model predicts $I_f(S_W) \approx 1.13$\,cm---a comfortable but not excessive margin. This sensitivity to minor losses suggests:
+A geometry with $I(S_W) = 3$\,cm passes the frictionless test but may have $I_f(S_W) < 0$ and fail with friction. For the worked example with effective $\sum K \approx 14.4$, the constant-friction model predicts $I_f(S_W) \approx 0.020$\,cm---a small but positive margin. This sensitivity to minor losses suggests:
 \begin{itemize}[nosep,leftmargin=2em]
   \item \textbf{Bend geometry matters more than pipe roughness.} The $\sum K$ term dominates.
   \item \textbf{Smoother bends dramatically improve margins.} Decreasing $\sum K$ significantly increases $I_f(S_W)$ and hence the priming margin.
@@ -676,7 +679,7 @@ A geometry with $I(S_W) = 3$\,cm passes the frictionless test but may have $I_f(
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\textwidth]{figure7_comparison.pdf}
-  \caption{Comparison of energy integrals $I(L)$, $I_{\text{dd}}(L)$, and $I_f(L)$ versus arclength for the worked example. The frictionless integral (solid) provides the upper bound. Drawdown (dashed) reduces it slightly. Friction (dash-dot) causes substantial reduction, especially as $L$ increases. All three are positive at $S_W$, confirming priming succeeds. The gap between curves quantifies the energy cost of each effect.}
+  \caption{Comparison of energy integrals $I(L)$, $I_{\text{dd}}(L)$, and $I_f(L)$ versus arclength for the worked example. The frictionless integral (solid) provides the upper bound. Drawdown (dashed) reduces it slightly. Friction (dash-dot) causes substantial reduction, especially as $L$ increases. Black points show the experimental kinetic head $v^2/(2g)$ plotted against biased $L$.}
   \label{fig:comparison}
 \end{figure}
 
@@ -744,9 +747,9 @@ At each integration step, compute $\text{Re} = vD/\nu$ and evaluate $f$ from \eq
 
 Numerical integration for the worked example yields:
 \begin{itemize}[nosep,leftmargin=2em]
-  \item Velocity at crest $D$: $\approx 0.5$--$0.7$\,m/s (vs.\ 1.21\,m/s frictionless)
-  \item Velocity at $W$: $\approx 0.4$--$0.6$\,m/s (vs.\ 1.20\,m/s frictionless)
-  \item Filling time to outlet: $\approx 1.5$--$2$\,s (vs.\ $\approx 0.5$\,s frictionless)
+  \item Velocity at crest $D$: $\approx 0.08$\,m/s (vs.\ 0.87\,m/s frictionless)
+  \item Velocity at $W$: $\approx 0.05$--$0.07$\,m/s (vs.\ 0.87\,m/s frictionless)
+  \item Filling time to outlet: $\approx 2.2$\,s (experiment: $\sim 1.8$\,s of tracked filling)
 \end{itemize}
 
 The analytical bounds bracket reality:
@@ -798,9 +801,9 @@ Substituting \eqref{eq:quasi-steady} into \eqref{eq:draining-hc} and integrating
 \end{equation}
 where $\Delta h_0 = h_c^{(0)} - h_4$ is the initial siphon head.
 
-For the worked example with $\Delta h_0 = 20$\,cm:
+For the worked example with $\Delta h_0 = h_c^{(0)} - h_4 = 12.5 - (-1.7) = 14.2$\,cm:
 \[
-  t_{\text{drain}} \approx \frac{2 \times 150}{0.785}\sqrt{\frac{0.030 \times 75.9 + 6}{2 \times 981}}\sqrt{20} \approx 50\,\text{s}.
+  t_{\text{drain}} \approx \frac{2 \times 340}{0.196}\sqrt{\frac{0.078 \times (49.4/0.5) + 14.4}{2 \times 981}}\sqrt{14.2} \approx 1.4\times 10^{3}\,\text{s} \approx 23\,\text{min}.
 \]
 
 Draining is much slower than filling because friction limits the steady-state velocity.
@@ -809,16 +812,16 @@ Draining is much slower than filling because friction limits the steady-state ve
 
 Draining continues until $h_c = h_4$ (siphon head zero) or until $h_c$ drops below the inlet ($h_c < h_0$), breaking the siphon by admitting air.
 
-For the worked example with $h_0 = 2$\,cm and $h_4 = 0$, the siphon breaks when $h_c = h_0 = 2$\,cm. The container drains from 20\,cm to 2\,cm, removing:
+For the worked example with $h_0 = 1$\,cm and $h_4 = -1.7$\,cm, the siphon breaks when $h_c = h_0 = 1$\,cm. The container drains from 12.5\,cm to 1\,cm, removing:
 \[
-  \Delta V = A_0 \times 18\,\text{cm} = 150 \times 18 = 2700\,\text{cm}^3 = 2.7\,\text{L}.
+  \Delta V = A_0 \times 11.5\,\text{cm} = 340 \times 11.5 = 3910\,\text{cm}^3 \approx 3.9\,\text{L}.
 \]
 
 % --- FIGURE 8: Velocity v(L) comparison ---
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\textwidth]{figure8_velocity.pdf}
-  \caption{Velocity $v(L)$ versus position during filling. Four curves: frictionless $\sqrt{2gI}$, with drawdown $\sqrt{2gI_{\text{dd}}}$, constant friction $\sqrt{2gI_f}$, and full ODE numerical solution. The frictionless model overestimates velocity; the constant-friction model is conservative due to severe discounting of early-stored energy. Error percentages relative to the ODE solution are annotated at key points.}
+  \caption{Velocity $v(L)$ versus position during filling. Curves: frictionless $\sqrt{2gI}$, with drawdown $\sqrt{2gI_{\text{dd}}}$, constant friction $\sqrt{2gI_f}$, and full ODE numerical solution. Black points: experimental velocities plotted against the biased arclength $L$. The frictionless model overestimates velocity; the constant-friction model is conservative due to severe discounting of early-stored energy.}
   \label{fig:velocity}
 \end{figure}
 
@@ -826,7 +829,7 @@ For the worked example with $h_0 = 2$\,cm and $h_4 = 0$, the siphon breaks when 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\textwidth]{figure9_time.pdf}
-  \caption{Position $L(t)$ and velocity $v(t)$ versus time from numerical integration of the full ODE. Left axis: slug position (solid). Right axis: velocity (dashed). Key points marked: $C$ (low point), $D$ (crest), $W$ (last waterline crossing), outlet. The filling phase ($\sim 1.5$\,s) is followed by the draining phase (shown for comparable duration). Velocity decreases during draining as the container level falls.}
+  \caption{Position $L(t)$ and velocity $v(t)$ versus time. Solid curves: numerical integration of the full ODE (time-shifted to align with the first experimental point). Black points: experimental $L_{\text{biased}}(t)$ and $v(t)$ from video tracking. Key points marked: $C$ (low point), $D$ (crest), $W$ (last waterline crossing), outlet.}
   \label{fig:time}
 \end{figure}
 
@@ -858,7 +861,7 @@ The pipe has circular cross-section with diameter $D$. Using cylindrical coordin
 \paragraph{Assumption 2: Quasi-steady, fully-developed velocity profile.}
 The instantaneous velocity profile matches the steady profile for the current mean velocity (parabolic for laminar, logarithmic for turbulent).
 
-\emph{What this neglects:} Profile development time. Valid when flow changes slowly compared to viscous diffusion time $\tau_\nu = D^2/\nu$. For $D = 10$\,mm, $\tau_\nu = 100$\,s; filling occurs in $\sim 1$\,s, so this assumption is questionable during rapid acceleration.
+\emph{What this neglects:} Profile development time. Valid when flow changes slowly compared to viscous diffusion time $\tau_\nu = D^2/\nu$. For $D = 5$\,mm, $\tau_\nu \approx 25$\,s; filling occurs in $\sim 2$\,s, so this assumption is questionable during rapid acceleration.
 
 \paragraph{Assumption 3: Cross-sectional averaging.}
 Define mean velocity $\bar{u}(s,t)$ as the cross-sectional average of $u_s$. Integrating axial momentum over the cross-section:
@@ -1013,21 +1016,21 @@ Dynamic meniscus effects are negligible when $\text{Ca} \ll 1$.
 
 \subsubsection{Worked example assessment}
 
-For $D = 10$\,mm:
+For $D = 5$\,mm:
 \[
-  \text{Bo} = \frac{1000 \times 9.81 \times 0.01^2}{0.073} = 13.4.
+  \text{Bo} = \frac{1000 \times 9.81 \times 0.005^2}{0.073} \approx 3.4.
 \]
 
-Capillary pressure: $\Delta p_{\text{cap}} = 4 \times 0.073/0.01 = 29$\,Pa, corresponding to head $0.3$\,cm. This is 30\% of the initial driving head of 1\,cm---not entirely negligible for this diameter.
+Capillary pressure: $\Delta p_{\text{cap}} = 4 \times 0.073/0.005 \approx 58$\,Pa, corresponding to head $\approx 0.6$\,cm. This is $\sim 40\%$ of the initial driving head of $h_c^{(0)} - h_1 = 1.5$\,cm---not negligible for this diameter.
 
-At $v = 1$\,m/s:
+At the measured peak filling speed $v \approx 0.36$\,m/s:
 \[
-  \text{Ca} = \frac{10^{-3} \times 1}{0.073} = 0.014.
+  \text{Ca} = \frac{10^{-3} \times 0.36}{0.073} \approx 0.0049.
 \]
 
-Small $\text{Ca}$ indicates dynamic meniscus effects may be significant at low velocities.
+Small $\text{Ca}$ indicates viscous-capillary coupling at the meniscus is possible, especially near the crest where velocities are small.
 
-\paragraph{Recommendation:} For $D > 15$\,mm, capillarity is negligible. For $D < 5$\,mm, capillarity dominates. The worked example at $D = 10$\,mm is in the transitional regime.
+\paragraph{Recommendation:} For $D > 15$\,mm, capillarity is negligible. For $D < 5$\,mm, capillarity dominates. The worked example at $D = 5$\,mm lies near the capillary-influenced boundary.
 
 \subsection{Entrance effects and unsteady friction}
 
@@ -1059,14 +1062,18 @@ where $\omega$ is angular frequency. For filling, $\omega \sim 1/T$.
 
 \subsubsection{Worked example assessment}
 
-For $\text{Re} = 12000$, turbulent entrance length: $L_e \approx 15 \times 1\,\text{cm} = 15$\,cm. Segments are 14--25\,cm, so flow may not fully develop on each segment.
-
-For $v = 1$\,m/s changing over $T = 0.5$\,s:
+For the worked example, the flow is mostly laminar ($\text{Re} \lesssim 2000$). Laminar entrance length scales as $L_e/D \approx 0.05\,\text{Re}$, so at $\text{Re} \approx 1800$:
 \[
-  \text{St} = \frac{0.01}{1 \times 0.5} = 0.02.
+  \frac{L_e}{D} \approx 90 \quad \Rightarrow \quad L_e \approx 90 \times 0.5\,\text{cm} \approx 45\,\text{cm}.
+\]
+Segments are 8--17\,cm, so the flow is likely developing over much of the pipe; this is a plausible source of deviation from quasi-steady friction assumptions.
+
+For $v \approx 0.36$\,m/s changing over $T = 0.5$\,s:
+\[
+  \text{St} = \frac{0.005}{0.36 \times 0.5} \approx 0.028.
 \]
 
-Small Strouhal number suggests unsteady effects are modest, but they may matter during initial acceleration.
+Small Strouhal number suggests unsteady effects are modest, but they may matter during initial acceleration and near the crest where velocities are low.
 
 \subsection{Three-dimensional effects at bends}
 
@@ -1085,12 +1092,12 @@ where $R$ is the bend radius of curvature. Secondary flows are significant when 
 
 \subsubsection{Worked example assessment}
 
-For tight $180^\circ$ bends with $R \approx 2D$:
+For tight $180^\circ$ bends with $R \approx 2D$ and $\text{Re} \approx 1800$:
 \[
-  \text{De} = 12000 \times \sqrt{\frac{1}{4}} = 6000.
+  \text{De} \approx 1800 \times \sqrt{\frac{1}{4}} \approx 900.
 \]
 
-This high Dean number indicates strong secondary flows, justifying the substantial minor loss coefficients ($K \approx 1.5$ per bend). The empirical $K$ values absorb this complexity.
+This Dean number indicates strong secondary flows. In practice, entrance/exit effects and bend losses can be absorbed into an effective $\sum K$ when detailed bend geometry is not characterised; in the worked example, fitting to the measured $v(L)$ yields $\sum K \approx 14.4$ (order $3$--$4$ per bend for four bends).
 
 \subsection{Validity regime diagrams}
 
@@ -1100,7 +1107,7 @@ This high Dean number indicates strong secondary flows, justifying the substanti
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.95\textwidth]{figure10_validity.pdf}
-  \caption{Validity regime diagrams. (a) Diameter $D$ versus crest height $h_3 - h_c$: cavitation limits tall crests; capillarity limits small diameters. (b) Reynolds number versus capillary number: the model is valid in the central region where neither capillarity ($\text{Ca} \ll 1$) nor very low Re (laminar entrance effects) dominate. (c) $L/D$ versus Reynolds number: high $L/D$ means friction-dominated flow; the quasi-steady assumption requires $\text{Re} > 2000$ for each segment to exceed entrance length. The worked example (marked point) lies within the valid region in all three diagrams.}
+  \caption{Validity regime diagrams. (a) Diameter $D$ versus crest height $h_3 - h_c$: cavitation limits tall crests; capillarity limits small diameters. (b) Reynolds number versus capillary number: highlights the laminar/transition boundary and the small-$\text{Ca}$ regime. (c) $L/D$ versus Reynolds number: high $L/D$ means friction-dominated flow; entrance-length and quasi-steady assumptions become questionable at low Re. The worked example (marked) lies close to the capillary/entrance-effect boundaries.}
   \label{fig:validity}
 \end{figure}
 
@@ -1108,23 +1115,23 @@ This high Dean number indicates strong secondary flows, justifying the substanti
 
 Upper boundary: cavitation limit, $(h_3 - h_c) < 10\,\text{m} - v^2/2g$. Lower boundary for small $D$: capillarity dominates when $\text{Bo} < 1$, i.e., $D < \sqrt{\gamma/\rho g} \approx 2.7$\,mm.
 
-\emph{Insight:} The worked example ($D = 10$\,mm, $h_3 - h_c = 4$\,cm) is far from cavitation but approaching the capillary-influenced regime.
+\emph{Insight:} The worked example ($D = 5$\,mm, $h_3 - h_c = 0.5$\,cm) is far from cavitation but close to the capillary-influenced regime.
 
 \subsubsection{Diagram (b): Re versus Ca}
 
-Valid region: $\text{Re} > 2000$ (turbulent, quasi-steady friction valid) and $\text{Ca} < 0.1$ (capillary effects on meniscus small). The worked example operates at $\text{Re} \sim 10^4$, $\text{Ca} \sim 0.01$, well within bounds.
+Valid region: $\text{Ca} < 0.1$ (capillary effects on meniscus small) and sufficiently high Re for quasi-steady/fully-developed assumptions. The worked example operates at $\text{Re} \sim 10^3$, $\text{Ca} \sim 5\times 10^{-3}$: capillary number is small, but Re is near the laminar/transition boundary, so developing-flow effects may matter.
 
 \emph{Insight:} Decreasing diameter pushes toward higher Re (for fixed velocity) but also higher capillary influence. There is an optimal diameter range.
 
 \subsubsection{Diagram (c): $L/D$ versus Re}
 
-For quasi-steady friction, each segment should exceed entrance length: $L_i > L_e \approx 10D$ to $20D$. The worked example has $L_i/D \approx 15$ to 25, marginally satisfying this.
+For quasi-steady friction, each segment should exceed entrance length. Using the turbulent estimate $L_e \approx 10D$ to $20D$, the worked example has $L_i/D \approx 17$ to 34 and would be marginal. In the laminar regime, however, entrance lengths can be much longer ($L_e/D \sim 0.05\,\text{Re}$), so this is a key limitation.
 
 \emph{Insight:} Shorter segments or smaller diameters push toward the entrance-effect-dominated regime where the friction model loses accuracy.
 
 \subsubsection{Summary}
 
-The worked example lies within the valid region of all three diagrams, but near the capillary and entrance-effect boundaries. The model predictions should be reliable for this geometry; experimental deviations would indicate which secondary effect is most significant.
+The worked example lies near the capillary and entrance-effect boundaries. This suggests that discrepancies between the simplest 1D model and experiment may be driven by meniscus physics and developing/unsteady friction, rather than by geometry alone.
 
 % ══════════════════════════════════════════════════════════════════════════════
 %  SECTION 10: CONCLUSION
@@ -1140,7 +1147,7 @@ Adding drawdown introduces the area ratio $A/A_0$. The modified integral $I_{\te
 
 Adding friction introduces $\varepsilon/D$ and the bend loss coefficients $K$. The constant-friction integral $I_f(L)$ reveals how dissipation discounts early-stored energy through an exponential factor. This intermediate model provides conservative velocity estimates.
 
-Comparing the three integrals on a single graph visualises the energy cost of each effect. For the worked example with smoother bends ($\sum K = 2$), the constant-friction model predicts that friction still dominates, reducing energy by about 85\%; drawdown accounts for only $\sim 1\%$. This sensitivity to minor losses highlights the importance of bend geometry: larger $\sum K$ would reduce the available energy much more severely.
+Comparing the three integrals on a single graph visualises the energy cost of each effect. For the worked example with effective $\sum K \approx 14.4$, the constant-friction model predicts that friction dominates, reducing energy by $\sim 99.5\%$; drawdown accounts for only $\sim 0.1\%$. This sensitivity to minor losses highlights the importance of bend geometry: larger $\sum K$ would reduce the available energy much more severely.
 
 The full dynamics require numerical integration due to velocity-dependent friction, but the analytical integrals bracket the solution. The draining phase, which dominates the total siphoning time, is governed by a simpler ODE where the slug length is constant.
 

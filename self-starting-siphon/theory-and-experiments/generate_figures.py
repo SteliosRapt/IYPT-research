@@ -2,10 +2,16 @@
 Generate all figures for siphon-theory-5.tex
 """
 
+from __future__ import annotations
+
+from pathlib import Path
+import re
+
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 from scipy.integrate import solve_ivp, quad
-from scipy.optimize import brentq
+from scipy.optimize import brentq, minimize
 import matplotlib.patches as mpatches
 
 # Set up matplotlib style
@@ -21,13 +27,145 @@ plt.rcParams.update({
 })
 
 # =============================================================================
+# PATHS / DATA LOADING
+# =============================================================================
+
+ROOT_DIR = Path(__file__).resolve().parent
+FIG_DIR = ROOT_DIR / "figures"
+FIG_DIR.mkdir(parents=True, exist_ok=True)
+EXCEL_PATH = ROOT_DIR / "Exp-data.xlsx"
+
+
+def save_figure(basename: str) -> None:
+    """Save the current matplotlib figure as PDF+PNG into figures/."""
+    plt.savefig(FIG_DIR / f"{basename}.pdf", bbox_inches="tight")
+    plt.savefig(FIG_DIR / f"{basename}.png", dpi=150, bbox_inches="tight")
+
+
+def _parse_first_float(value) -> float | None:
+    if value is None or (isinstance(value, float) and np.isnan(value)):
+        return None
+    if isinstance(value, (int, float, np.integer, np.floating)):
+        return float(value)
+    if isinstance(value, str):
+        match = re.search(r"[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?", value.replace(",", "."))
+        if match:
+            return float(match.group(0))
+    return None
+
+
+def load_setup_from_excel(excel_path: Path = EXCEL_PATH) -> dict:
+    """Load geometry + setup parameters from Exp-data.xlsx (second sheet)."""
+    if not excel_path.exists():
+        raise FileNotFoundError(f"Experimental workbook not found: {excel_path}")
+
+    xl = pd.ExcelFile(excel_path)
+    df = xl.parse(xl.sheet_names[1])
+
+    key_col = df.columns[0]
+    v1_col = df.columns[1]
+    v2_col = df.columns[2]
+
+    nodes: dict[str, tuple[float, float]] = {}
+    h_c0_val: float | None = None
+    D_mm: float | None = None
+    A0_cm2: float | None = None
+    eps_D: float | None = None
+    K_total: float | None = None
+
+    for _, row in df.iterrows():
+        key = row.get(key_col, None)
+        if not isinstance(key, str):
+            continue
+        key_s = key.strip()
+
+        if key_s in {"A", "B", "C", "D", "E", "W", "W'", "W′"}:
+            x = _parse_first_float(row.get(v1_col, None))
+            h = _parse_first_float(row.get(v2_col, None))
+            if x is not None and h is not None:
+                nodes[key_s] = (x, h)
+            continue
+
+        key_norm = key_s.lower().replace(" ", "")
+
+        if key_norm.startswith("initialwaterlevel"):
+            h_c0_val = _parse_first_float(row.get(v1_col, None))
+            continue
+
+        if key_s == "D":
+            D_mm = _parse_first_float(row.get(v1_col, None))
+            continue
+
+        if key_s in {"ε/D", "e/D", "eps/D", "ε\\D"}:
+            eps_D = _parse_first_float(row.get(v1_col, None))
+            continue
+
+        if key_s in {"Σk", "ΣK", "∑K", "∑k", "SumK", "sumK"} or ("k" in key_norm and ("σ" in key_norm or "∑" in key_norm)):
+            K_total = _parse_first_float(row.get(v1_col, None))
+            continue
+
+        if key_s in {"A_0", "A0"}:
+            A0_cm2 = _parse_first_float(row.get(v1_col, None))
+            continue
+
+    # Sensible fallbacks (keep script runnable if sheet format changes)
+    if not nodes:
+        nodes = {
+            "A": (0.0, 1.0),
+            "B": (7.5, 11.0),
+            "C": (13.5, 5.0),
+            "D": (21.4, 13.0),
+            "E": (30.3, -1.7),
+        }
+
+    return {
+        "nodes": nodes,
+        "h_c0_cm": float(h_c0_val) if h_c0_val is not None else 12.5,
+        "D_cm": (float(D_mm) / 10.0) if D_mm is not None else 0.5,  # mm -> cm
+        "A0_cm2": float(A0_cm2) if A0_cm2 is not None else 340.0,
+        "epsilon_D_guess": float(eps_D) if eps_D is not None else 0.00035,
+        "K_total_guess": float(K_total) if K_total is not None else 4.0,
+    }
+
+
+def load_experimental_timeseries(excel_path: Path = EXCEL_PATH) -> dict:
+    """Load experimental time-series (first sheet)."""
+    if not excel_path.exists():
+        raise FileNotFoundError(f"Experimental workbook not found: {excel_path}")
+
+    xl = pd.ExcelFile(excel_path)
+    df = xl.parse(xl.sheet_names[0]).copy()
+    df.columns = [str(c).strip() for c in df.columns]
+
+    required = {"t(s)", "V(cm/s)", "L(cm)", "L_biased"}
+    missing = required - set(df.columns)
+    if missing:
+        raise ValueError(f"Missing columns in experimental sheet: {sorted(missing)}")
+
+    for c in ["t(s)", "V(cm/s)", "L(cm)", "L_biased"]:
+        df[c] = pd.to_numeric(df[c], errors="coerce")
+
+    valid = df["V(cm/s)"].notna() & df["L_biased"].notna()
+
+    return {
+        "t_s": df.loc[valid, "t(s)"].to_numpy(dtype=float),
+        "v_cm_s": df.loc[valid, "V(cm/s)"].to_numpy(dtype=float),
+        "L_raw_cm": df.loc[valid, "L(cm)"].to_numpy(dtype=float),
+        "L_biased_cm": df.loc[valid, "L_biased"].to_numpy(dtype=float),
+        "df": df,
+    }
+
+# =============================================================================
 # PARAMETERS (from Experimental Data)
 # =============================================================================
 
-# Geometric parameters (cm) - from experimental measurements
-nodes_x = np.array([0, 7.5, 13.5, 21.4, 30.3])  # x coordinates
-nodes_h = np.array([1, 11, 5, 13, -1.7])  # h coordinates (elevations)
-h_c0 = 12.5  # Initial water level (cm)
+# Geometric parameters (cm) - from experimental workbook
+setup = load_setup_from_excel()
+nodes = setup["nodes"]
+
+nodes_x = np.array([nodes["A"][0], nodes["B"][0], nodes["C"][0], nodes["D"][0], nodes["E"][0]], dtype=float)
+nodes_h = np.array([nodes["A"][1], nodes["B"][1], nodes["C"][1], nodes["D"][1], nodes["E"][1]], dtype=float)
+h_c0 = float(setup["h_c0_cm"])  # Initial water level (cm)
 
 # Compute segment lengths and slopes
 n_segments = 4
@@ -52,16 +190,22 @@ for i in range(n_segments):
 
 # Point W: where h(L) = h_c0 on segment 4 (index 3)
 S_W = (h_c0 - c_seg[3]) / s_seg[3]
+# Point W': where h(L) = h_c0 on segment 3 (index 2, ascending crossing)
+S_Wp = (h_c0 - c_seg[2]) / s_seg[2]
 
 # Physical parameters - from experimental setup
-D_pipe = 0.5  # Pipe diameter (cm) = 5 mm
-A_pipe = np.pi * D_pipe**2 / 4  # Pipe cross-sectional area (cm^2) ≈ 0.196 cm^2
-A_container = 340.0  # Container area (cm^2)
-A_ratio = A_pipe / A_container  # Area ratio ≈ 0.0006
+D_pipe = float(setup["D_cm"])  # Pipe diameter (cm)
+A_pipe = np.pi * D_pipe**2 / 4  # Pipe cross-sectional area (cm^2)
+A_container = float(setup["A0_cm2"])  # Container area (cm^2)
+A_ratio = A_pipe / A_container  # Area ratio
 
-epsilon_D = 0.00035  # Relative roughness (from experimental estimate)
-K_total = 4.0  # Total minor loss coefficient (4 bends, experimental estimate)
-f0 = 0.035  # Constant friction factor approximation (adjusted for smaller diameter)
+epsilon_D_guess = float(setup["epsilon_D_guess"])  # Relative roughness (initial estimate)
+K_total_guess = float(setup["K_total_guess"])  # Total minor loss coefficient (initial estimate)
+
+# These get calibrated to the experiment below.
+epsilon_D = epsilon_D_guess
+K_total = K_total_guess
+f0 = 0.035  # Representative friction factor for I_f (updated after calibration)
 
 # Fluid parameters (CGS units for consistency)
 rho = 0.998  # g/cm^3
@@ -78,63 +222,33 @@ L_max = S4
 # EXPERIMENTAL DATA
 # =============================================================================
 
-# Experimental velocity measurements with biased L values
-# Note: Velocity only measured from L ≈ 18.6 cm to L ≈ 49.4 cm due to measurement difficulties
-# L_biased applies exponential correction to better match actual L_max = 49.4 cm
+# Experimental time-series (video tracking) is loaded from Exp-data.xlsx.
+# Use the biased arclength L_biased for all v(L) plots.
 
-exp_t = np.array([0.433, 0.467, 0.500, 0.533, 0.567, 0.600, 0.633, 0.667, 0.700, 0.733,
-                  0.767, 0.800, 0.833, 0.867, 0.900, 0.933, 0.967, 1.000, 1.233, 1.267,
-                  1.367, 1.433, 1.467, 1.533, 1.567, 1.600, 1.667, 1.700, 1.733, 1.800,
-                  1.867, 1.900, 1.933, 1.967, 2.000, 2.033, 2.133, 2.167, 2.233, 2.267,
-                  2.533, 2.567, 2.600, 2.633, 2.667, 2.700, 2.733, 2.767, 2.800, 2.833,
-                  2.867, 2.900, 2.933, 2.967, 3.000, 3.033, 3.067, 3.200, 3.233, 3.267])
+# Load experimental time-series from workbook
+exp = load_experimental_timeseries()
+exp_t_valid = exp["t_s"]
+exp_v_valid = exp["v_cm_s"]
+exp_L_raw_valid = exp["L_raw_cm"]
+exp_L_biased_valid = exp["L_biased_cm"]
 
-exp_v = np.array([np.nan, 14.8, 14.0, 13.0, 13.1, 16.5, 19.5, 19.9, 16.9, 15.9,
-                  16.6, 17.1, 17.1, 15.8, 14.2, 13.5, 12.8, 10.7, 5.9, 5.0,
-                  4.8, 4.5, 4.3, 4.1, 3.6, 3.2, 2.9, 3.0, 3.2, 3.1,
-                  3.7, 3.6, 3.3, 3.4, 3.2, 3.8, 4.4, 4.9, 5.5, 5.8,
-                  6.2, 7.1, 7.6, 8.3, 8.6, 8.7, 8.8, 9.4, 10.2, 10.7,
-                  10.9, 10.8, 11.1, 11.7, 12.9, 13.5, 13.9, 14.7, 14.8, np.nan])
+# Measurement range info (use biased L for all plots, per experimental note)
+L_measurement_start = float(np.nanmin(exp_L_biased_valid))
+L_measurement_end = float(np.nanmax(exp_L_biased_valid))
 
-exp_L_raw = np.array([18.90000, 19.15160, 19.62680, 20.07230, 20.51600, 21.00440, 21.59840, 22.26820,
-                      22.87540, 23.41660, 23.96910, 24.52515, 25.08945, 25.64875, 26.14375, 26.60080,
-                      27.04790, 27.43565, 29.36955, 29.55485, 30.04485, 30.35175, 30.50135, 30.77855,
-                      30.90945, 31.02165, 31.22600, 31.32335, 31.42565, 31.63670, 31.86450, 31.98495,
-                      32.09880, 32.21270, 32.32160, 32.43710, 32.84710, 33.00520, 33.34840, 33.54050,
-                      35.13650, 35.36260, 35.60515, 35.86750, 36.15480, 36.44025, 36.72900, 37.03840,
-                      37.36180, 37.70665, 38.07385, 38.43190, 38.79325, 39.18085, 39.58675, 40.02235,
-                      40.48815, 42.39005, 42.87680, 43.12840])
 
-exp_L_biased = np.array([18.900000, 19.195936, 19.717777, 20.212025, 20.706639, 21.248655, 21.900144,
-                         22.631573, 23.302502, 23.909028, 24.529802, 25.156964, 25.795380, 26.431464,
-                         27.003940, 27.539635, 28.067340, 28.535612, 30.617764, 30.882266, 31.466952,
-                         31.861969, 32.093136, 32.459774, 32.673288, 32.867804, 33.160906, 33.341295,
-                         33.527623, 33.830927, 34.153409, 34.361876, 34.564017, 34.766965, 34.965258,
-                         35.171439, 35.698452, 35.953316, 36.411269, 36.705790, 38.541425, 38.879233,
-                         39.236527, 39.617136, 40.026919, 40.436335, 40.851101, 41.290592, 41.747543,
-                         42.230411, 42.740381, 43.242190, 43.749815, 44.289231, 44.851644, 45.450152,
-                         46.085565, 48.362099, 49.030668, 49.432551])
-
-# Filter out NaN values for velocity data
-valid_mask = ~np.isnan(exp_v)
-exp_t_valid = exp_t[valid_mask]
-exp_v_valid = exp_v[valid_mask]
-exp_L_biased_valid = exp_L_biased[valid_mask]
-
-# Measurement range info
-L_measurement_start = 18.6  # cm - where velocity measurement started
-L_measurement_end = L_max   # cm - end of measurements (at outlet)
-
-print("=" * 60)
-print("GEOMETRY PARAMETERS")
-print("=" * 60)
-print(f"Segment lengths: {L_seg}")
-print(f"Slopes: {s_seg}")
-print(f"Intercepts: {c_seg}")
-print(f"Cumulative S: {S}")
-print(f"S_W = {S_W:.2f} cm")
-print(f"L_max = {L_max:.2f} cm")
-print()
+def print_setup_summary() -> None:
+    print("=" * 60)
+    print("SETUP SUMMARY (from Exp-data.xlsx)")
+    print("=" * 60)
+    print(f"h_c0 = {h_c0:.2f} cm")
+    print(f"L_max = {L_max:.2f} cm")
+    print(f"S = {np.array2string(S, precision=2)} cm")
+    print(f"S_W' = {S_Wp:.2f} cm, S_W = {S_W:.2f} cm")
+    print(f"D = {D_pipe:.3f} cm, A/A0 = {A_ratio:.6f}")
+    print(f"epsilon/D guess = {epsilon_D_guess:g}, sum K guess = {K_total_guess:g}")
+    print(f"Experimental points = {exp_L_biased_valid.size} (L_biased {L_measurement_start:.2f}..{L_measurement_end:.2f} cm)")
+    print()
 
 # =============================================================================
 # HELPER FUNCTIONS
@@ -207,14 +321,22 @@ def I_drawdown(L, area_ratio=A_ratio):
     """Energy integral with drawdown: I_dd(L) = I(L) - (A/A0) * penalty."""
     return I_frictionless(L) - area_ratio * drawdown_penalty(L)
 
-def integrating_factor(L, f=f0, K=K_total):
+def integrating_factor(L, f=None, K=None):
     """Integrating factor mu(L) for friction-corrected integral."""
+    if f is None:
+        f = f0
+    if K is None:
+        K = K_total
     if L <= S1:
         return 1.0
     return (L / S1)**K * np.exp(f * (L - S1) / D_pipe)
 
-def I_friction(L, f=f0, K=K_total):
+def I_friction(L, f=None, K=None):
     """Friction-corrected energy integral I_f(L) using numerical integration."""
+    if f is None:
+        f = f0
+    if K is None:
+        K = K_total
     if L <= S1:
         return 0.0
 
@@ -231,8 +353,10 @@ def I_friction(L, f=f0, K=K_total):
 # CHURCHILL FRICTION CORRELATION
 # =============================================================================
 
-def churchill_f(Re, eps_D=epsilon_D):
+def churchill_f(Re, eps_D=None):
     """Churchill correlation for Darcy friction factor."""
+    if eps_D is None:
+        eps_D = epsilon_D
     if Re < 1e-10:
         return 64.0 / 1e-10  # Avoid division by zero
 
@@ -242,8 +366,10 @@ def churchill_f(Re, eps_D=epsilon_D):
     f = 8 * ((8.0/Re)**12 + 1.0/(A_c + B_c)**1.5)**(1.0/12.0)
     return f
 
-def colebrook_f(Re, eps_D=epsilon_D, tol=1e-8, max_iter=50):
+def colebrook_f(Re, eps_D=None, tol=1e-8, max_iter=50):
     """Colebrook-White equation (implicit, solved iteratively)."""
+    if eps_D is None:
+        eps_D = epsilon_D
     if Re < 4000:
         return np.nan  # Not valid for laminar/transitional
 
@@ -314,7 +440,7 @@ def draining_ode(t, y, L_full=L_max):
 
     return [dh_c_dt, dv_dt]
 
-def solve_filling():
+def solve_filling(t_max=20.0, max_step=0.01):
     """Solve the filling ODE from S1 to S4."""
     # Initial conditions
     y0 = [S1 + 0.01, 0.01]  # Small perturbation to start
@@ -326,10 +452,10 @@ def solve_filling():
     event_outlet.direction = 1
 
     # Solve
-    sol = solve_ivp(filling_ode, [0, 20], y0,
+    sol = solve_ivp(filling_ode, [0, t_max], y0,
                     events=event_outlet,
                     dense_output=True,
-                    max_step=0.01)
+                    max_step=max_step)
 
     return sol
 
@@ -352,6 +478,82 @@ def solve_draining(h_c_start, v_start, t_max=5.0):
     return sol
 
 # =============================================================================
+# CALIBRATION: fit (epsilon/D, sum K) to experiment
+# =============================================================================
+
+def fit_loss_params():
+    """
+    Fit epsilon/D and sum K so the model v(L) matches the measured v(L_biased).
+
+    Notes:
+      - If the flow is mostly laminar (Re < ~2000), epsilon/D is weakly identifiable
+        because f ≈ 64/Re is roughness-independent.
+      - The objective enforces successful priming (front reaches outlet).
+    """
+    global epsilon_D, K_total, f0
+
+    mask = np.isfinite(exp_L_biased_valid) & np.isfinite(exp_v_valid)
+    mask &= (exp_L_biased_valid >= S1) & (exp_L_biased_valid <= L_max)
+
+    exp_L = exp_L_biased_valid[mask]
+    exp_v = exp_v_valid[mask]
+
+    if exp_L.size < 6:
+        raise ValueError("Not enough experimental points to fit loss parameters.")
+
+    def transform(x):
+        eps = float(np.clip(10 ** float(x[0]), 1e-6, 1e-2))
+        K = float(np.clip(10 ** float(x[1]) - 1.0, 0.0, 20.0))
+        return eps, K
+
+    def objective(x):
+        global epsilon_D, K_total
+        eps, K = transform(x)
+
+        # Set globals used by filling_ode/churchill_f
+        epsilon_D = eps
+        K_total = K
+
+        sol = solve_filling(t_max=20.0, max_step=0.02)
+
+        # Enforce priming (reach outlet)
+        reached_outlet = sol.status == 1 and sol.y[0][-1] >= (L_max - 1e-3)
+        if not reached_outlet:
+            # Penalise non-priming parameter sets heavily.
+            return 1e9 + (L_max - sol.y[0][-1]) * 1e7
+
+        L_model = sol.y[0]
+        v_model = sol.y[1]
+
+        # Interpolate v(L) onto experimental biased L positions.
+        if exp_L.max() > L_model.max():
+            return 1e8 + (exp_L.max() - L_model.max()) * 1e6
+
+        v_pred = np.interp(exp_L, L_model, v_model)
+        mse = float(np.mean((v_pred - exp_v) ** 2))
+
+        # Light regularisation to avoid unphysical drift (esp. epsilon/D in laminar regime).
+        reg_eps = float(np.log10(eps / epsilon_D_guess) ** 2)
+        reg_K = float(((K - K_total_guess) / max(K_total_guess, 1.0)) ** 2)
+        return mse + 1.0 * reg_eps + 0.05 * reg_K
+
+    x0 = np.array([np.log10(epsilon_D_guess), np.log10(K_total_guess + 1.0)], dtype=float)
+    res = minimize(objective, x0, method="Nelder-Mead", options={"maxiter": 120, "xatol": 1e-4, "fatol": 1e-3})
+
+    eps_fit, K_fit = transform(res.x)
+    epsilon_D = eps_fit
+    K_total = K_fit
+
+    # Update representative f0 for constant-friction integral (median during filling, ignore tiny Re).
+    sol = solve_filling(t_max=20.0, max_step=0.01)
+    Re = np.abs(sol.y[1]) * D_pipe / nu
+    f_arr = np.array([churchill_f(r) for r in Re])
+    mask_f = Re > 200
+    f0 = float(np.nanmedian(f_arr[mask_f])) if mask_f.any() else float(np.nanmedian(f_arr))
+
+    return res
+
+# =============================================================================
 # FIGURE 2: Centreline elevation h(L)
 # =============================================================================
 
@@ -366,7 +568,8 @@ def figure2_centreline():
     ax.plot(L_arr, h_arr, 'b-', linewidth=2, label='$h(L)$')
 
     # Water level
-    ax.axhline(h_c0, color='gray', linestyle='--', linewidth=1.5, label='$h_c^{(0)} = 20$ cm')
+    ax.axhline(h_c0, color='gray', linestyle='--', linewidth=1.5,
+               label=rf"$h_c^{{(0)}} = {h_c0:.1f}\,$cm")
 
     # Shade regions
     # Below waterline (blue) - driving force positive
@@ -387,21 +590,26 @@ def figure2_centreline():
         ax.annotate(f'${label}$', (s, h), textcoords='offset points',
                    xytext=offset, fontsize=12, fontweight='bold')
 
-    # Mark point W
-    ax.plot(S_W, h_c0, 'rs', markersize=10)
-    ax.annotate('$W$', (S_W, h_c0), textcoords='offset points',
+    # Mark waterline crossings
+    ax.plot(S_Wp, h_c0, marker='s', markersize=9, color='purple')
+    ax.annotate(r"$W'$", (S_Wp, h_c0), textcoords='offset points',
+               xytext=(8, -14), fontsize=12, fontweight='bold', color='purple')
+
+    ax.plot(S_W, h_c0, marker='s', markersize=9, color='red')
+    ax.annotate(r"$W$", (S_W, h_c0), textcoords='offset points',
                xytext=(8, 5), fontsize=12, fontweight='bold', color='red')
 
     ax.set_xlabel('Arclength $L$ (cm)')
     ax.set_ylabel('Elevation $h$ (cm)')
     ax.set_xlim(0, L_max + 2)
-    ax.set_ylim(-2, 28)
+    y_min = min(nodes_h.min(), h_c0) - 2
+    y_max = max(nodes_h.max(), h_c0) + 2
+    ax.set_ylim(y_min, y_max)
     ax.legend(loc='upper right')
     ax.set_title('Centreline Elevation Profile')
 
     plt.tight_layout()
-    plt.savefig('figure2_centreline.pdf', bbox_inches='tight')
-    plt.savefig('figure2_centreline.png', dpi=150, bbox_inches='tight')
+    save_figure('figure2_centreline')
     plt.close()
     print("Figure 2 saved.")
 
@@ -432,7 +640,7 @@ def figure3_force_acceleration():
     ax1.set_title('Driving Force: $F = \\rho g A [h_c - h(L)]$')
 
     # Mark key points
-    for s, label in [(S[2], 'C'), (S[3], 'D'), (S_W, 'W')]:
+    for s, label in [(S[2], 'C'), (S_Wp, "W'"), (S[3], 'D'), (S_W, 'W')]:
         ax1.axvline(s, color='gray', linestyle=':', alpha=0.5)
 
     # Bottom panel: Acceleration
@@ -446,7 +654,7 @@ def figure3_force_acceleration():
     ax2.set_title('Acceleration: $a = g[h_c - h(L)]/L$ (note $1/L$ suppression)')
 
     # Mark key points
-    for s, label in [(S[2], 'C'), (S[3], 'D'), (S_W, 'W')]:
+    for s, label in [(S[2], 'C'), (S_Wp, "W'"), (S[3], 'D'), (S_W, 'W')]:
         ax2.axvline(s, color='gray', linestyle=':', alpha=0.5)
         y_pos = ax2.get_ylim()[1] * 0.9
         ax2.annotate(f'${label}$', (s, y_pos), fontsize=10, ha='center')
@@ -459,8 +667,7 @@ def figure3_force_acceleration():
                 fontsize=9)
 
     plt.tight_layout()
-    plt.savefig('figure3_force_acceleration.pdf', bbox_inches='tight')
-    plt.savefig('figure3_force_acceleration.png', dpi=150, bbox_inches='tight')
+    save_figure('figure3_force_acceleration')
     plt.close()
     print("Figure 3 saved.")
 
@@ -479,20 +686,23 @@ def figure4_energy_integral():
     ax.axhline(0, color='k', linestyle='-', linewidth=0.5)
 
     # Mark key points
+    I_at_Wp = I_frictionless(S_Wp)
     I_at_W = I_frictionless(S_W)
     I_at_crest = I_frictionless(S[3])
 
-    ax.plot(S_W, I_at_W, 'rs', markersize=10, label=f'$I(S_W) = {I_at_W:.2f}$ cm')
-    ax.plot(S[3], I_at_crest, 'go', markersize=8, label=f'$I(S_3) = {I_at_crest:.2f}$ cm')
+    ax.plot(S_Wp, I_at_Wp, marker='s', markersize=8, color='purple',
+            label=rf"$I(S_{{W'}}) = {I_at_Wp:.2f}\,$cm")
+    ax.plot(S_W, I_at_W, marker='s', markersize=9, color='red',
+            label=rf"$I(S_W) = {I_at_W:.2f}\,$cm")
+    ax.plot(S[3], I_at_crest, 'go', markersize=8, label=rf"$I(S_3) = {I_at_crest:.2f}\,$cm")
 
     # Vertical lines at key positions
-    for s, label in [(S[1], 'B'), (S[2], 'C'), (S[3], 'D'), (S_W, 'W')]:
+    for s, label in [(S[1], 'B'), (S[2], 'C'), (S_Wp, "W'"), (S[3], 'D'), (S_W, 'W')]:
         ax.axvline(s, color='gray', linestyle=':', alpha=0.5)
         ax.annotate(f'${label}$', (s, ax.get_ylim()[1] * 0.95), fontsize=10, ha='center')
 
     # Shade where h > h_c (above waterline)
-    # Find crossings
-    ax.axvspan(46.5, S_W, alpha=0.1, color='red', label='Front above waterline')
+    ax.axvspan(S_Wp, S_W, alpha=0.12, color='red', label='Front above waterline')
 
     ax.set_xlabel('Arclength $L$ (cm)')
     ax.set_ylabel('Energy Integral $I(L)$ (cm)')
@@ -501,8 +711,7 @@ def figure4_energy_integral():
     ax.set_xlim(S1 - 2, L_max + 2)
 
     plt.tight_layout()
-    plt.savefig('figure4_energy_integral.pdf', bbox_inches='tight')
-    plt.savefig('figure4_energy_integral.png', dpi=150, bbox_inches='tight')
+    save_figure('figure4_energy_integral')
     plt.close()
     print("Figure 4 saved.")
 
@@ -516,9 +725,9 @@ def figure5_drawdown():
 
     L_arr = np.linspace(S1, L_max, 500)
 
-    # Two area ratios
-    ratios = [0.0052, 0.05]
-    labels = ['$A/A_0 = 0.0052$ (worked example)', '$A/A_0 = 0.05$ (smaller container)']
+    # Two area ratios: experiment + a deliberately larger one to illustrate the effect
+    ratios = [A_ratio, 0.05]
+    labels = [rf"$A/A_0 = {A_ratio:.4f}$ (experiment)", r"$A/A_0 = 0.05$ (smaller container)"]
     styles = ['-', '--']
 
     for ratio, label, style in zip(ratios, labels, styles):
@@ -526,30 +735,33 @@ def figure5_drawdown():
         ax.plot(L_arr, h_c_arr, style, linewidth=2, label=label)
 
     # Initial level
-    ax.axhline(h_c0, color='gray', linestyle=':', alpha=0.5, label='$h_c^{(0)} = 20$ cm')
+    ax.axhline(h_c0, color='gray', linestyle=':', alpha=0.5,
+               label=rf"$h_c^{{(0)}} = {h_c0:.1f}\,$cm")
 
     # Mark S_W and S_4
     ax.axvline(S_W, color='red', linestyle=':', alpha=0.7)
     ax.axvline(S4, color='green', linestyle=':', alpha=0.7)
-    ax.annotate('$S_W$', (S_W, 21), fontsize=10, ha='center', color='red')
-    ax.annotate('$S_4$', (S4, 21), fontsize=10, ha='center', color='green')
+    y_annot = h_c0 + 0.4
+    ax.annotate('$S_W$', (S_W, y_annot), fontsize=10, ha='center', color='red')
+    ax.annotate('$S_4$', (S4, y_annot), fontsize=10, ha='center', color='green')
 
     # Drawdown amounts
-    dd_small = 0.0052 * (S4 - S1)
+    dd_exp = A_ratio * (S4 - S1)
     dd_large = 0.05 * (S4 - S1)
-    ax.annotate(f'$\\Delta h_c = {dd_small:.2f}$ cm', (S4 + 1, h_c0 - dd_small), fontsize=9)
-    ax.annotate(f'$\\Delta h_c = {dd_large:.1f}$ cm', (S4 + 1, h_c0 - dd_large), fontsize=9)
+    ax.annotate(rf"$\Delta h_c = {dd_exp:.3f}\,$cm", (S4 + 0.8, h_c0 - dd_exp), fontsize=9)
+    ax.annotate(rf"$\Delta h_c = {dd_large:.2f}\,$cm", (S4 + 0.8, h_c0 - dd_large), fontsize=9)
 
     ax.set_xlabel('Slug Position $L$ (cm)')
     ax.set_ylabel('Container Level $h_c$ (cm)')
     ax.set_title('Container Drawdown')
     ax.legend(loc='lower left')
     ax.set_xlim(S1 - 2, L_max + 10)
-    ax.set_ylim(15, 21)
+    y_min = h_c0 - dd_large - 0.6
+    y_max = h_c0 + 0.6
+    ax.set_ylim(y_min, y_max)
 
     plt.tight_layout()
-    plt.savefig('figure5_drawdown.pdf', bbox_inches='tight')
-    plt.savefig('figure5_drawdown.png', dpi=150, bbox_inches='tight')
+    save_figure('figure5_drawdown')
     plt.close()
     print("Figure 5 saved.")
 
@@ -572,11 +784,22 @@ def figure6_friction():
     f_lam = 64 / Re_lam
     ax.loglog(Re_lam, f_lam, 'g--', linewidth=1.5, label='$f = 64/\\text{Re}$ (laminar)')
 
-    # Shade the Re range for worked example (0 to ~12000)
-    ax.axvspan(10, 12000, alpha=0.15, color='orange', label='Filling Re range (worked example)')
+    # Shade experimental and model Re ranges during filling
+    Re_exp = np.abs(exp_v_valid) * D_pipe / nu
+    if np.isfinite(Re_exp).any():
+        ax.axvspan(np.nanmin(Re_exp), np.nanmax(Re_exp), alpha=0.12, color='orange',
+                   label='Experimental Re range')
+
+    sol = solve_filling(t_max=20.0, max_step=0.01)
+    Re_model = np.abs(sol.y[1]) * D_pipe / nu
+    mask_model = Re_model > 50
+    if mask_model.any():
+        ax.axvspan(np.nanmin(Re_model[mask_model]), np.nanmax(Re_model[mask_model]),
+                   alpha=0.08, color='gray', label='Model Re range')
 
     # Constant f0
-    ax.axhline(f0, color='red', linestyle=':', linewidth=1.5, label=f'$f_0 = {f0}$ (constant approx.)')
+    ax.axhline(f0, color='red', linestyle=':', linewidth=1.5,
+               label=rf"$f_0 = {f0:.3f}$ (constant approx.)")
 
     # Mark regimes
     ax.axvline(2300, color='gray', linestyle='--', alpha=0.5)
@@ -593,8 +816,7 @@ def figure6_friction():
     ax.set_ylim(0.01, 1)
 
     plt.tight_layout()
-    plt.savefig('figure6_friction.pdf', bbox_inches='tight')
-    plt.savefig('figure6_friction.png', dpi=150, bbox_inches='tight')
+    save_figure('figure6_friction')
     plt.close()
     print("Figure 6 saved.")
 
@@ -616,6 +838,11 @@ def figure7_comparison():
     ax.plot(L_arr, I_dd_arr, 'g--', linewidth=2, label='$I_{\\text{dd}}(L)$ (with drawdown)')
     ax.plot(L_arr, I_f_arr, 'r-.', linewidth=2, label='$I_f(L)$ (with friction)')
 
+    # Experimental "kinetic head" for comparison: v^2/(2g)
+    I_exp = (exp_v_valid ** 2) / (2 * g)
+    ax.scatter(exp_L_biased_valid, I_exp, s=18, color='k', alpha=0.65,
+               label=r'Experiment: $v^2/(2g)$')
+
     ax.axhline(0, color='k', linestyle='-', linewidth=0.5)
 
     # Mark values at S_W
@@ -629,14 +856,12 @@ def figure7_comparison():
     ax.plot(S_W, I_f_W, 'ro', markersize=8)
 
     # Annotations
-    ax.annotate(f'$I(S_W) = {I_W:.2f}$ cm', (S_W + 1, I_W + 0.3), fontsize=9, color='blue')
-    ax.annotate(f'$I_{{\\text{{dd}}}}(S_W) = {I_dd_W:.2f}$ cm', (S_W + 1, I_dd_W - 0.5), fontsize=9, color='green')
-    ax.annotate(f'$I_f(S_W) \\approx {I_f_W:.1f}$ cm', (S_W + 1, I_f_W - 0.5), fontsize=9, color='red')
-
-    ax.annotate('$S_W$', (S_W, -1), fontsize=10, ha='center')
+    ax.annotate(rf"$I(S_W) = {I_W:.2f}\,$cm", (S_W + 0.8, I_W + 0.25), fontsize=9, color='blue')
+    ax.annotate(rf"$I_{{\mathrm{{dd}}}}(S_W) = {I_dd_W:.2f}\,$cm", (S_W + 0.8, I_dd_W - 0.25), fontsize=9, color='green')
+    ax.annotate(rf"$I_f(S_W) = {I_f_W:.3f}\,$cm", (S_W + 0.8, I_f_W + 0.08), fontsize=9, color='red')
 
     # Mark key positions
-    for s, label in [(S[2], 'C'), (S[3], 'D')]:
+    for s, label in [(S[2], 'C'), (S_Wp, "W'"), (S[3], 'D'), (S_W, 'W')]:
         ax.axvline(s, color='lightgray', linestyle=':', alpha=0.5)
 
     ax.set_xlabel('Arclength $L$ (cm)')
@@ -646,8 +871,7 @@ def figure7_comparison():
     ax.set_xlim(S1 - 2, L_max + 5)
 
     plt.tight_layout()
-    plt.savefig('figure7_comparison.pdf', bbox_inches='tight')
-    plt.savefig('figure7_comparison.png', dpi=150, bbox_inches='tight')
+    save_figure('figure7_comparison')
     plt.close()
     print("Figure 7 saved.")
 
@@ -678,14 +902,18 @@ def figure8_velocity():
     v_ode_raw = sol_filling.y[1]
     v_ode = np.interp(L_arr, L_ode, v_ode_raw)
 
-    ax.plot(L_arr, v_frictionless, 'b-', linewidth=2, label='Frictionless: $\\sqrt{2gI}$')
-    ax.plot(L_arr, v_drawdown, 'g--', linewidth=2, label='With drawdown: $\\sqrt{2gI_{\\text{dd}}}$')
-    ax.plot(L_arr, v_friction, 'r-.', linewidth=2, label='Constant friction: $\\sqrt{2gI_f}$')
+    ax.plot(L_arr, v_frictionless, 'b-', linewidth=2, label=r'Frictionless: $\sqrt{2gI}$')
+    ax.plot(L_arr, v_drawdown, 'g--', linewidth=2, label=r'With drawdown: $\sqrt{2gI_{\mathrm{dd}}}$')
+    ax.plot(L_arr, v_friction, 'r-.', linewidth=2, label=r'Constant friction: $\sqrt{2gI_f}$')
     ax.plot(L_arr, v_ode, 'k-', linewidth=2.5, label='Full ODE (numerical)')
 
+    # Experimental velocity points (use biased L)
+    ax.scatter(exp_L_biased_valid, exp_v_valid, s=24, color='black', alpha=0.75,
+               label='Experiment (biased $L$)')
+
     # Error analysis at key points
-    key_positions = [S[2], S[3], S_W]
-    key_labels = ['C', 'D', 'W']
+    key_positions = [S[2], S_Wp, S[3], S_W]
+    key_labels = ['C', "W'", 'D', 'W']
 
     for pos, label in zip(key_positions, key_labels):
         if pos > L_arr.max():
@@ -701,20 +929,20 @@ def figure8_velocity():
                        textcoords='offset points',
                        xytext=(10, 5), fontsize=8, color='blue')
 
-    # Mark S_W
-    ax.axvline(S_W, color='gray', linestyle=':', alpha=0.5)
-    ax.annotate('$S_W$', (S_W, 10), fontsize=10, ha='center')
+    # Mark crossings
+    ax.axvline(S_Wp, color='purple', linestyle=':', alpha=0.6)
+    ax.axvline(S_W, color='red', linestyle=':', alpha=0.6)
 
     ax.set_xlabel('Arclength $L$ (cm)')
     ax.set_ylabel('Velocity $v$ (cm/s)')
     ax.set_title('Velocity Comparison: Analytical Bounds vs. Numerical Solution')
     ax.legend(loc='upper left')
     ax.set_xlim(S1, L_max)
-    ax.set_ylim(0, 150)
+    v_max = max(np.nanmax(exp_v_valid), np.nanmax(v_ode), np.nanmax(v_frictionless))
+    ax.set_ylim(0, v_max * 1.15 + 2)
 
     plt.tight_layout()
-    plt.savefig('figure8_velocity.pdf', bbox_inches='tight')
-    plt.savefig('figure8_velocity.png', dpi=150, bbox_inches='tight')
+    save_figure('figure8_velocity')
     plt.close()
     print("Figure 8 saved.")
 
@@ -727,7 +955,7 @@ def figure9_time():
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(9, 7), sharex=True)
 
     # Solve filling
-    sol_filling = solve_filling()
+    sol_filling = solve_filling(t_max=20.0, max_step=0.01)
     t_fill = sol_filling.t
     L_fill = sol_filling.y[0]
     v_fill = sol_filling.y[1]
@@ -753,64 +981,82 @@ def figure9_time():
     L_all = np.concatenate([L_fill, L_drain])
     v_all = np.concatenate([v_fill, v_drain])
 
+    # Align model time axis to the first experimental point (to account for video tracking start)
+    t_shift = 0.0
+    if exp_t_valid.size > 0:
+        L_align = float(exp_L_biased_valid[0])
+        if L_align <= float(L_fill.max()):
+            t_model_align = float(np.interp(L_align, L_fill, t_fill))
+            t_shift = float(exp_t_valid[0] - t_model_align)
+
+    t_fill_plot = t_fill + t_shift
+    t_drain_plot = t_drain + t_shift
+    t_fill_end_plot = t_fill_end + t_shift
+
     # TOP PANEL: Position L(t)
-    ax1.plot(t_fill, L_fill, 'b-', linewidth=2, label='Filling phase')
-    ax1.plot(t_drain, L_drain, 'b--', linewidth=2, label='Draining phase (pipe full)')
+    ax1.plot(t_fill_plot, L_fill, 'b-', linewidth=2, label='Model: filling')
+    ax1.plot(t_drain_plot, L_drain, 'b--', linewidth=2, label='Model: draining (pipe full)')
+    ax1.scatter(exp_t_valid, exp_L_biased_valid, s=18, color='black', alpha=0.75,
+                label='Experiment (biased $L$)')
     ax1.set_ylabel('Position $L$ (cm)')
     ax1.set_ylim(0, L_max + 5)
 
     # Mark key positions on L axis
-    key_positions = [(S[1], 'B'), (S[2], 'C'), (S[3], 'D'), (S_W, 'W'), (S4, 'E (outlet)')]
+    key_positions = [(S[1], 'B'), (S[2], 'C'), (S_Wp, "W'"), (S[3], 'D'), (S_W, 'W'), (S4, 'E (outlet)')]
+    t_left = min(float(t_fill_plot.min()), float(exp_t_valid.min())) if exp_t_valid.size else float(t_fill_plot.min())
+    t_left += 0.02
     for pos, label in key_positions:
         ax1.axhline(pos, color='gray', linestyle=':', alpha=0.4, linewidth=0.8)
-        ax1.annotate(label, (0.02, pos + 1), fontsize=8, color='gray')
+        ax1.annotate(label, (t_left, pos + 0.6), fontsize=8, color='gray')
 
     # Mark transition
-    ax1.axvline(t_fill_end, color='green', linestyle='-', alpha=0.7, linewidth=1.5)
+    ax1.axvline(t_fill_end_plot, color='green', linestyle='-', alpha=0.7, linewidth=1.5)
     ax1.legend(loc='lower right')
     ax1.set_title('Time Evolution: Filling and Draining Phases')
 
     # BOTTOM PANEL: Velocity v(t)
-    ax2.plot(t_fill, v_fill, 'r-', linewidth=2, label='Filling phase')
-    ax2.plot(t_drain, v_drain, 'r--', linewidth=2, label='Draining phase')
+    ax2.plot(t_fill_plot, v_fill, 'r-', linewidth=2, label='Model: filling')
+    ax2.plot(t_drain_plot, v_drain, 'r--', linewidth=2, label='Model: draining')
+    ax2.scatter(exp_t_valid, exp_v_valid, s=18, color='black', alpha=0.75,
+                label='Experiment')
     ax2.set_xlabel('Time $t$ (s)')
     ax2.set_ylabel('Velocity $v$ (cm/s)')
     ax2.set_ylim(0, max(v_all) * 1.15)
 
     # Mark transition
-    ax2.axvline(t_fill_end, color='green', linestyle='-', alpha=0.7, linewidth=1.5)
-    ax2.annotate('Pipe fills\ncompletely', (t_fill_end + 0.03, max(v_all) * 0.8),
+    ax2.axvline(t_fill_end_plot, color='green', linestyle='-', alpha=0.7, linewidth=1.5)
+    ax2.annotate('Pipe fills\ncompletely', (t_fill_end_plot + 0.03, max(v_all) * 0.8),
                 fontsize=9, color='green')
 
     # Find and mark key events
     # Find time when slug reaches C (low point, max velocity during filling)
     idx_C = np.argmin(np.abs(L_fill - S[2]))
-    t_C = t_fill[idx_C]
+    t_C = t_fill_plot[idx_C]
     v_C = v_fill[idx_C]
     ax2.plot(t_C, v_C, 'ko', markersize=6)
     ax2.annotate(f'C: v={v_C:.0f} cm/s', (t_C + 0.02, v_C), fontsize=8)
 
     # Find time when slug reaches D (crest)
     idx_D = np.argmin(np.abs(L_fill - S[3]))
-    t_D = t_fill[idx_D]
+    t_D = t_fill_plot[idx_D]
     v_D = v_fill[idx_D]
     ax2.plot(t_D, v_D, 'ko', markersize=6)
     ax2.annotate(f'D: v={v_D:.0f} cm/s', (t_D + 0.02, v_D - 5), fontsize=8)
 
     # Find time when slug reaches W
     idx_W = np.argmin(np.abs(L_fill - S_W))
-    t_W = t_fill[idx_W]
+    t_W = t_fill_plot[idx_W]
     v_W = v_fill[idx_W]
     ax2.plot(t_W, v_W, 'rs', markersize=7)
     ax2.annotate(f'W: v={v_W:.0f} cm/s', (t_W + 0.02, v_W + 3), fontsize=8, color='red')
 
     ax2.legend(loc='upper right')
 
-    ax2.set_xlim(0, t_all[-1] + 0.05)
+    x_max = max(float(t_drain_plot[-1]), float(exp_t_valid.max()) if exp_t_valid.size else 0.0) + 0.05
+    ax2.set_xlim(t_left - 0.02, x_max)
 
     plt.tight_layout()
-    plt.savefig('figure9_time.pdf', bbox_inches='tight')
-    plt.savefig('figure9_time.png', dpi=150, bbox_inches='tight')
+    save_figure('figure9_time')
     plt.close()
     print("Figure 9 saved.")
 
@@ -849,9 +1095,11 @@ def figure10_validity():
     ax.axvline(D_cap_limit, color='blue', linestyle='--', label=f'Capillarity limit (Bo=1)')
     ax.axvspan(0, D_cap_limit, alpha=0.2, color='blue')
 
-    # Mark worked example
-    ax.plot(10, 4, 'ko', markersize=12, markerfacecolor='yellow',
-            markeredgewidth=2, label='Worked example')
+    # Mark experiment
+    D_mm_exp = D_pipe * 10.0
+    crest_height_exp = nodes_h[3] - h_c0
+    ax.plot(D_mm_exp, crest_height_exp, 'ko', markersize=10, markerfacecolor='yellow',
+            markeredgewidth=2, label='Experiment')
 
     ax.set_xlabel('Diameter $D$ (mm)')
     ax.set_ylabel('Crest height $h_3 - h_c$ (cm)')
@@ -882,9 +1130,10 @@ def figure10_validity():
     ax.axvspan(100, 2000, alpha=0.15, color='orange')
     ax.axhspan(0.1, 1, alpha=0.15, color='purple')
 
-    # Mark worked example: Re ~ 10000, Ca ~ 0.01
-    ax.plot(10000, 0.01, 'ko', markersize=12, markerfacecolor='yellow',
-            markeredgewidth=2, label='Worked example')
+    # Mark experiment (filling) as a trajectory of (Re, Ca)
+    Re_exp = np.abs(exp_v_valid) * D_pipe / nu
+    Ca_exp = (mu * np.abs(exp_v_valid)) / gamma
+    ax.scatter(Re_exp, Ca_exp, s=18, color='black', alpha=0.65, label='Experiment (filling)')
 
     ax.set_xscale('log')
     ax.set_yscale('log')
@@ -919,9 +1168,11 @@ def figure10_validity():
     ax.axhspan(100, 2000, alpha=0.15, color='orange')
     ax.axvspan(10, 20, alpha=0.15, color='brown')
 
-    # Worked example: L/D ~ 76/1 = 76
-    ax.plot(76, 10000, 'ko', markersize=12, markerfacecolor='yellow',
-            markeredgewidth=2, label='Worked example')
+    # Mark experiment at (L/D, Re_max)
+    LD_exp = L_max / D_pipe
+    Re_max_exp = float(np.nanmax(Re_exp)) if np.isfinite(Re_exp).any() else 1000.0
+    ax.plot(LD_exp, Re_max_exp, 'ko', markersize=10, markerfacecolor='yellow',
+            markeredgewidth=2, label='Experiment')
 
     ax.set_yscale('log')
     ax.set_xlabel('Length/Diameter $L/D$')
@@ -935,8 +1186,7 @@ def figure10_validity():
     ax.annotate('Valid', (100, 20000), fontsize=10, color='green')
 
     plt.tight_layout()
-    plt.savefig('figure10_validity.pdf', bbox_inches='tight')
-    plt.savefig('figure10_validity.png', dpi=150, bbox_inches='tight')
+    save_figure('figure10_validity')
     plt.close()
     print("Figure 10 saved.")
 
@@ -988,8 +1238,7 @@ def figureA1_friction_comparison():
     ax.set_ylim(0.01, 1)
 
     plt.tight_layout()
-    plt.savefig('figureA1_friction_comparison.pdf', bbox_inches='tight')
-    plt.savefig('figureA1_friction_comparison.png', dpi=150, bbox_inches='tight')
+    save_figure('figureA1_friction_comparison')
     plt.close()
     print("Figure A1 saved.")
 
@@ -1001,12 +1250,23 @@ if __name__ == '__main__':
     print("Generating all figures for siphon-theory-5.tex")
     print("=" * 60)
 
-    # Verify parameters
-    print(f"\nKey values:")
-    print(f"  I(S_W) = {I_frictionless(S_W):.2f} cm")
-    print(f"  I_dd(S_W) = {I_drawdown(S_W):.2f} cm")
-    print(f"  I_f(S_W) = {I_friction(S_W):.2f} cm")
-    print(f"  v_frictionless at W = {np.sqrt(2*g*I_frictionless(S_W)):.1f} cm/s")
+    print_setup_summary()
+
+    print("Calibrating (epsilon/D, sum K) to match v(L_biased)...")
+    fit_res = fit_loss_params()
+    print(f"Fit success: {bool(fit_res.success)} ({fit_res.message})")
+    print(f"  epsilon/D = {epsilon_D:.6g}")
+    print(f"  sum K     = {K_total:.3g}")
+    print(f"  f0 (rep.) = {f0:.4f}")
+    print()
+
+    # Key values for energy-integral discussion
+    print("Key energy-integral values:")
+    print(f"  I(S_W')    = {I_frictionless(S_Wp):.3f} cm")
+    print(f"  I(S_W)     = {I_frictionless(S_W):.3f} cm")
+    print(f"  I_dd(S_W)  = {I_drawdown(S_W):.3f} cm")
+    print(f"  I_f(S_W)   = {I_friction(S_W):.3f} cm")
+    print(f"  v0(W)      = {np.sqrt(2*g*max(I_frictionless(S_W),0)):.1f} cm/s (frictionless)")
     print()
 
     # Generate all figures
