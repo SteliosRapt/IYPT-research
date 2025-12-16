@@ -911,24 +911,6 @@ def figure8_velocity():
     ax.scatter(exp_L_biased_valid, exp_v_valid, s=24, color='black', alpha=0.75,
                label='Experiment (biased $L$)')
 
-    # Error analysis at key points
-    key_positions = [S[2], S_Wp, S[3], S_W]
-    key_labels = ['C', "W'", 'D', 'W']
-
-    for pos, label in zip(key_positions, key_labels):
-        if pos > L_arr.max():
-            continue
-        idx = np.argmin(np.abs(L_arr - pos))
-        v_ode_pt = v_ode[idx]
-        v_fric_pt = v_frictionless[idx]
-
-        if v_ode_pt > 0:
-            error_pct = (v_fric_pt - v_ode_pt) / v_ode_pt * 100
-            ax.annotate(f'{label}: +{error_pct:.0f}%',
-                       (pos, v_fric_pt),
-                       textcoords='offset points',
-                       xytext=(10, 5), fontsize=8, color='blue')
-
     # Mark crossings
     ax.axvline(S_Wp, color='purple', linestyle=':', alpha=0.6)
     ax.axvline(S_W, color='red', linestyle=':', alpha=0.6)
