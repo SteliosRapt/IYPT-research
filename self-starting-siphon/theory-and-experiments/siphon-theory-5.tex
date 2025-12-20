@@ -198,6 +198,12 @@ where the slope $s_i = (h_i - h_{i-1})/L_i = \sin\theta_i$ and the intercept $c_
 
 For the worked example: $c_1 = 1.00$\,cm, $c_2 = 19.84$\,cm, $c_3 = -9.93$\,cm, $c_4 = 40.57$\,cm.
 
+\subsection{Experimental apparatus and data acquisition}
+
+The siphon was constructed from flexible drinking straws arranged in the five-node geometry described above, mounted on simple plastic containers. Video recordings were captured using an iPhone at 4K resolution and 60\,fps. Frame-by-frame motion analysis was performed using free video motion analysis software, available on both mobile and desktop platforms. The water front position was tracked manually in each frame, yielding position-versus-time data from which velocities were computed by numerical differentiation.
+
+This low-cost setup demonstrates that the essential physics of self-starting siphons can be investigated without specialised laboratory equipment.
+
 \subsection{Point $W$: the last waterline crossing}
 
 On segment $D \to E$, the front descends from $h_3 = 13$\,cm (above waterline) to $h_4 = -1.7$\,cm (below). Point $W$ is where the front crosses the waterline for the last time:
@@ -805,6 +811,8 @@ For the worked example with $\Delta h_0 = h_c^{(0)} - h_4 = 12.5 - (-1.7) = 14.2
 \[
   t_{\text{drain}} \approx \frac{2 \times 340}{0.196}\sqrt{\frac{0.078 \times (49.4/0.5) + 14.4}{2 \times 981}}\sqrt{14.2} \approx 1.4\times 10^{3}\,\text{s} \approx 23\,\text{min}.
 \]
+
+However, the experimentally observed drainage time was approximately 12 minutes---roughly half the quasi-steady prediction. This discrepancy suggests that the quasi-steady approximation, which assumes the friction factor remains constant at its fully-developed value throughout draining, overestimates the effective resistance. Possible explanations include: (i) the effective minor loss coefficient $\sum K$ fitted to filling-phase data may not apply unchanged during steady draining; (ii) air entrainment or intermittent flow near the end of draining may accelerate the process; (iii) the quasi-steady model neglects inertial effects during the initial acceleration to steady flow. For precise drainage-time predictions, the full coupled ODE system \eqref{eq:draining-v}--\eqref{eq:draining-hc} should be integrated numerically.
 
 Draining is much slower than filling because friction limits the steady-state velocity.
 
