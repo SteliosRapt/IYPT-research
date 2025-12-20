@@ -239,7 +239,7 @@ Initial conditions: $L(0) = S_1 = 12.50$\,cm, $v(0) = 0$.
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\textwidth]{figure2_centreline.pdf}
-  \caption{Centreline elevation $h(L)$ versus arclength for the worked example. The dashed line marks $h_c^{(0)} = 12.5$\,cm. After leaving $B$, the front crosses this level twice: once ascending (at $W'$ on $C \to D$) and once descending (at $W$ on $D \to E$). Blue shading: driving force positive. Red shading: driving force negative.}
+  \caption{Centreline elevation $h(L)$ versus arclength for the experimental geometry. The dashed line marks $h_c^{(0)} = 12.5$\,cm. After leaving $B$, the front crosses this level twice: once ascending (at $W'$ on $C \to D$) and once descending (at $W$ on $D \to E$). Blue shading: driving force positive. Red shading: driving force negative.}
   \label{fig:centreline}
 \end{figure}
 
@@ -362,9 +362,9 @@ To compute $I(L)$ for $L$ on segment $k$:
   \label{eq:I-piecewise}
 \end{equation}
 
-\subsection{Worked example}
+\subsection{Evaluation for the experimental geometry}
 
-Computing $I(S_W)$ requires contributions from segments 2, 3, and part of 4.
+Computing $I(S_W)$ for the experiment requires contributions from segments 2, 3, and part of 4.
 
 \paragraph{Segment 2 ($B \to C$), interval $[12.50, 20.99]$\,cm:}
 \[
@@ -418,7 +418,7 @@ The energy integral reveals how geometry controls priming:
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\textwidth]{figure4_energy_integral.pdf}
-  \caption{Energy integral $I(L)$ versus arclength (frictionless, no drawdown). The integral rises during the drop $B \to C$, continues rising during the early climb (where $h < h_c^{(0)}$), then decreases slightly while the front is above the waterline (between $W'$ and $W$). At point $W$, $I(S_W) = 3.82$\,cm $> 0$: priming succeeds.}
+  \caption{Energy integral $I(L)$ versus arclength for the experimental geometry (frictionless, no drawdown). The integral rises during the drop $B \to C$, continues rising during the early climb (where $h < h_c^{(0)}$), then decreases slightly while the front is above the waterline (between $W'$ and $W$). At point $W$, $I(S_W) = 3.82$\,cm $> 0$: priming succeeds.}
   \label{fig:energy-integral}
 \end{figure}
 
@@ -465,9 +465,9 @@ The drawdown penalty integral evaluates to:
   \label{eq:drawdown-penalty}
 \end{equation}
 
-\subsection{Worked example}
+\subsection{Evaluation for the experimental geometry}
 
-For the worked example with $A/A_0 = 5.77\times 10^{-4}$, at $L = S_W = 32.81$\,cm:
+For the experiment with $A/A_0 = 5.77\times 10^{-4}$, at $L = S_W = 32.81$\,cm:
 \[
   (32.81 - 12.50) - 12.50 \ln\frac{32.81}{12.50} = 20.31 - 12.06 = 8.25\,\text{cm}.
 \]
@@ -587,9 +587,9 @@ The exponential factor \emph{discounts} contributions from earlier positions: en
 
 Since $\mu(r)/\mu(L) < 1$ for $r < L$, we have $I_f(L) < I(L)$ always.
 
-\subsection{Worked example}
+\subsection{Evaluation for the experimental geometry}
 
-For $f_0 \approx 0.078$, $\sum K = 14.4$, $D = 0.5$\,cm, at $L = S_W = 32.81$\,cm:
+The effective minor loss coefficient $\sum K = 14.4$ was obtained by fitting the constant-friction model to the measured velocity profile $v(L)$. With $f_0 \approx 0.078$ and $D = 0.5$\,cm, at $L = S_W = 32.81$\,cm:
 \[
   \mu(S_W) = \left(\frac{32.81}{12.50}\right)^{14.4} \exp\left(\frac{0.078 \times 20.31}{0.5}\right) \approx (2.62)^{14.4} \times e^{3.16} \approx 2.5\times 10^{7}.
 \]
