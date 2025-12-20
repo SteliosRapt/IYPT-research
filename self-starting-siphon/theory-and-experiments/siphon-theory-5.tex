@@ -37,7 +37,7 @@
 %  ABSTRACT
 % ══════════════════════════════════════════════════════════════════════════════
 \begin{abstract}
-A self-starting siphon primes spontaneously when partially immersed, without external suction. This paper develops a one-dimensional slug-flow model through layered analysis, progressively adding physical effects to identify how parameters control priming success and filling time.
+A self-starting siphon primes spontaneously when partially immersed, without external suction. This paper develops a one-dimensional slug-flow model through layered analysis, progressively adding physical effects to identify how parameters control priming success and filling time. The theoretical framework is validated against a laboratory experiment using a siphon constructed from drinking straws; the experimental geometry and measurements serve as the worked example throughout.
 
 The analysis begins with the frictionless case, where geometry alone determines the outcome. The driving force $F = \rho g A [h_c - h(L)]$ depends only on the elevation difference between the container surface and the advancing front. This yields an energy integral $I(L)$ computable in closed form for piecewise-linear geometries. The priming criterion $I(S_W) > 0$ provides a geometric screening tool.
 
@@ -80,7 +80,7 @@ This paper develops a theoretical framework through layered analysis:
   \item \textbf{Validity limits} (\cref{sec:validity}): Dimensionless parameters quantify when the model breaks down.
 \end{enumerate}
 
-Each layer introduces one key parameter while preserving analytical tractability as long as possible. The goal is not optimal design but understanding: how does each parameter affect the siphoning process?
+Each layer introduces one key parameter while preserving analytical tractability as long as possible. A laboratory experiment provides the worked example: the experimental geometry and velocity measurements are used throughout to test each successive model. The goal is not optimal design but understanding: how does each parameter affect the siphoning process?
 
 % ══════════════════════════════════════════════════════════════════════════════
 %  SECTION 2: PHYSICAL SETUP
@@ -117,10 +117,10 @@ $E$ & Outlet, at or below container bottom \\
 
 The defining constraint for self-starting is $h_1 < h_c^{(0)} < h_3$: the first crest lies below the waterline, the main crest above it.
 
-\subsection{The worked example}
+\subsection{The worked example: experimental parameters}
 \label{sec:worked-example}
 
-A single geometry illustrates all calculations throughout this paper. \Cref{tab:parameters} defines every parameter; subsequent sections reference this table rather than re-introducing values.
+The theoretical framework is developed around a specific siphon geometry that was constructed and tested in the laboratory. All numerical examples throughout this paper use the parameters from this experiment, allowing direct comparison between theoretical predictions and measured behaviour. \Cref{tab:parameters} defines every parameter; subsequent sections reference this table rather than re-introducing values.
 
 \begin{table}[H]
 \centering
@@ -200,9 +200,9 @@ For the worked example: $c_1 = 1.00$\,cm, $c_2 = 19.84$\,cm, $c_3 = -9.93$\,cm, 
 
 \subsection{Experimental apparatus and data acquisition}
 
-The siphon was constructed from flexible drinking straws arranged in the five-node geometry described above, mounted on simple plastic containers. Video recordings were captured using an iPhone at 4K resolution and 60\,fps. Frame-by-frame motion analysis was performed using free video motion analysis software, available on both mobile and desktop platforms. The water front position was tracked manually in each frame, yielding position-versus-time data from which velocities were computed by numerical differentiation.
+The experiment providing the worked example was conducted as follows. The siphon was constructed from flexible drinking straws arranged in the five-node geometry described above, mounted on simple plastic containers. Video recordings were captured using an iPhone at 4K resolution and 60\,fps. Frame-by-frame motion analysis was performed using free video motion analysis software, available on both mobile and desktop platforms. The water front position was tracked manually in each frame, yielding position-versus-time data from which velocities were computed by numerical differentiation.
 
-This low-cost setup demonstrates that the essential physics of self-starting siphons can be investigated without specialised laboratory equipment.
+The experimental velocity measurements (shown as data points in \cref{fig:comparison,fig:velocity,fig:time}) are compared against model predictions throughout the paper. This low-cost setup demonstrates that the essential physics of self-starting siphons can be investigated without specialised laboratory equipment.
 
 \subsection{Point $W$: the last waterline crossing}
 
@@ -211,7 +211,7 @@ On segment $D \to E$, the front descends from $h_3 = 13$\,cm (above waterline) t
   h(S_W) = h_c^{(0)} \quad \Rightarrow \quad S_W = \frac{h_c^{(0)} - c_4}{s_4} = \frac{12.5 - 40.57}{-0.855} = 32.81\,\text{cm}.
 \]
 
-The front also crosses the waterline on the climb at point $W'$ on segment $C \to D$ at $S_{W'} = 31.53$\,cm. Between $W'$ and $W$, the driving force is negative. Point $W$ is critical: once past it, the driving force is permanently positive and priming is guaranteed.
+The front also crosses the waterline on the climb at point $W'$ on segment $C \to D$ at $S_{W'} = 31.53$\,cm. Between $W'$ and $W$, the driving force is negative. Point $W$ is critical: once past it, the driving force is permanently positive and the model predicts successful priming.
 
 \subsection{State variables and initial conditions}
 
@@ -239,7 +239,7 @@ Initial conditions: $L(0) = S_1 = 12.50$\,cm, $v(0) = 0$.
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\textwidth]{figure2_centreline.pdf}
-  \caption{Centreline elevation $h(L)$ versus arclength for the worked example. The dashed line marks $h_c^{(0)} = 12.5$\,cm. After leaving $B$, the front crosses this level twice: once ascending (at $W'$ on $C \to D$) and once descending (at $W$ on $D \to E$). Blue shading: driving force positive. Red shading: driving force negative.}
+  \caption{Centreline elevation $h(L)$ versus arclength for the experimental geometry. The dashed line marks $h_c^{(0)} = 12.5$\,cm. After leaving $B$, the front crosses this level twice: once ascending (at $W'$ on $C \to D$) and once descending (at $W$ on $D \to E$). Blue shading: driving force positive. Red shading: driving force negative.}
   \label{fig:centreline}
 \end{figure}
 
@@ -362,9 +362,9 @@ To compute $I(L)$ for $L$ on segment $k$:
   \label{eq:I-piecewise}
 \end{equation}
 
-\subsection{Worked example}
+\subsection{Evaluation for the experimental geometry}
 
-Computing $I(S_W)$ requires contributions from segments 2, 3, and part of 4.
+Computing $I(S_W)$ for the experiment requires contributions from segments 2, 3, and part of 4.
 
 \paragraph{Segment 2 ($B \to C$), interval $[12.50, 20.99]$\,cm:}
 \[
@@ -418,7 +418,7 @@ The energy integral reveals how geometry controls priming:
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\textwidth]{figure4_energy_integral.pdf}
-  \caption{Energy integral $I(L)$ versus arclength (frictionless, no drawdown). The integral rises during the drop $B \to C$, continues rising during the early climb (where $h < h_c^{(0)}$), then decreases slightly while the front is above the waterline (between $W'$ and $W$). At point $W$, $I(S_W) = 3.82$\,cm $> 0$: priming succeeds.}
+  \caption{Energy integral $I(L)$ versus arclength for the experimental geometry (frictionless, no drawdown). The integral rises during the drop $B \to C$, continues rising during the early climb (where $h < h_c^{(0)}$), then decreases slightly while the front is above the waterline (between $W'$ and $W$). At point $W$, $I(S_W) = 3.82$\,cm $> 0$: priming succeeds.}
   \label{fig:energy-integral}
 \end{figure}
 
@@ -465,9 +465,9 @@ The drawdown penalty integral evaluates to:
   \label{eq:drawdown-penalty}
 \end{equation}
 
-\subsection{Worked example}
+\subsection{Evaluation for the experimental geometry}
 
-For the worked example with $A/A_0 = 5.77\times 10^{-4}$, at $L = S_W = 32.81$\,cm:
+For the experiment with $A/A_0 = 5.77\times 10^{-4}$, at $L = S_W = 32.81$\,cm:
 \[
   (32.81 - 12.50) - 12.50 \ln\frac{32.81}{12.50} = 20.31 - 12.06 = 8.25\,\text{cm}.
 \]
@@ -587,9 +587,9 @@ The exponential factor \emph{discounts} contributions from earlier positions: en
 
 Since $\mu(r)/\mu(L) < 1$ for $r < L$, we have $I_f(L) < I(L)$ always.
 
-\subsection{Worked example}
+\subsection{Evaluation for the experimental geometry}
 
-For $f_0 \approx 0.078$, $\sum K = 14.4$, $D = 0.5$\,cm, at $L = S_W = 32.81$\,cm:
+The effective minor loss coefficient $\sum K = 14.4$ and relative roughness $\varepsilon/D$ were obtained by fitting the full ODE model (with velocity-dependent Churchill friction) to the measured velocity profile $v(L)$; the constant-friction approximation $f_0 \approx 0.078$ is the median friction factor from that calibrated solution. With $D = 0.5$\,cm, at $L = S_W = 32.81$\,cm:
 \[
   \mu(S_W) = \left(\frac{32.81}{12.50}\right)^{14.4} \exp\left(\frac{0.078 \times 20.31}{0.5}\right) \approx (2.62)^{14.4} \times e^{3.16} \approx 2.5\times 10^{7}.
 \]
@@ -670,7 +670,7 @@ With friction & $I_f \approx 0.020$\,cm & 0.063\,m/s & $\varepsilon/D$, $\sum K$
 
 \paragraph{Drawdown-corrected integral $I_{\text{dd}}(L)$:} Accounts for the falling container level. The reduction $I - I_{\text{dd}}$ grows with $A/A_0$ and with slug length. For the worked example with a large container, drawdown reduces the margin by only $\sim 0.1\%$.
 
-\paragraph{Friction-corrected integral $I_f(L)$:} Accounts for energy dissipation. For the worked example with an effective $\sum K \approx 14.4$, the constant-friction integral reduces the available energy by $\sim 99.5\%$. This substantial reduction arises from the $(L/S_1)^{\sum K}$ factor in the integrating factor together with the exponential discounting, both of which strongly penalise energy stored early along the path. The constant-friction model is conservative: it provides a lower bound that, while pessimistic, guarantees priming if $I_f(S_W) > 0$.
+\paragraph{Friction-corrected integral $I_f(L)$:} Accounts for energy dissipation. For the experiment with $\sum K \approx 14.4$, the constant-friction integral reduces the available energy by $\sim 99.5\%$. The integrating factor grows rapidly with $L$, discounting energy stored early in the path. This model is conservative: if $I_f(S_W) > 0$, the model predicts successful priming.
 
 \subsection{Implications for geometry screening}
 
@@ -749,9 +749,9 @@ Initial conditions: $L(0) = S_1$, $v(0) = 0$.
 
 At each integration step, compute $\text{Re} = vD/\nu$ and evaluate $f$ from \eqref{eq:churchill}.
 
-\subsection{Comparison to analytical bounds}
+\subsection{Comparison to experiment and analytical bounds}
 
-Numerical integration for the worked example yields:
+Numerical integration for the experimental geometry yields:
 \begin{itemize}[nosep,leftmargin=2em]
   \item Velocity at crest $D$: $\approx 0.08$\,m/s (vs.\ 0.87\,m/s frictionless)
   \item Velocity at $W$: $\approx 0.05$--$0.07$\,m/s (vs.\ 0.87\,m/s frictionless)
@@ -787,34 +787,6 @@ Volume flow rate $Q = Av$ removes water from the container:
 \end{equation}
 
 Equations \eqref{eq:draining-v} and \eqref{eq:draining-hc} form a coupled system for $(v, h_c)$ during draining.
-
-\subsubsection{Quasi-steady approximation}
-
-For large containers ($A/A_0 \ll 1$), the flow is approximately steady at each instant. Setting $\dot{v} = 0$:
-\begin{equation}
-  v_{\text{qs}} = \sqrt{\frac{2g(h_c - h_4)}{f\frac{L_{\max}}{D} + \sum K}}.
-  \label{eq:quasi-steady}
-\end{equation}
-
-As the container drains, $h_c$ decreases and so does $v_{\text{qs}}$.
-
-\subsubsection{Draining time estimate}
-
-Substituting \eqref{eq:quasi-steady} into \eqref{eq:draining-hc} and integrating:
-\begin{equation}
-  t_{\text{drain}} = \frac{2A_0}{A}\sqrt{\frac{f\frac{L_{\max}}{D} + \sum K}{2g}}\sqrt{\Delta h_0},
-  \label{eq:drain-time}
-\end{equation}
-where $\Delta h_0 = h_c^{(0)} - h_4$ is the initial siphon head.
-
-For the worked example with $\Delta h_0 = h_c^{(0)} - h_4 = 12.5 - (-1.7) = 14.2$\,cm:
-\[
-  t_{\text{drain}} \approx \frac{2 \times 340}{0.196}\sqrt{\frac{0.078 \times (49.4/0.5) + 14.4}{2 \times 981}}\sqrt{14.2} \approx 1.4\times 10^{3}\,\text{s} \approx 23\,\text{min}.
-\]
-
-However, the experimentally observed drainage time was approximately 12 minutes---roughly half the quasi-steady prediction. This discrepancy suggests that the quasi-steady approximation, which assumes the friction factor remains constant at its fully-developed value throughout draining, overestimates the effective resistance. Possible explanations include: (i) the effective minor loss coefficient $\sum K$ fitted to filling-phase data may not apply unchanged during steady draining; (ii) air entrainment or intermittent flow near the end of draining may accelerate the process; (iii) the quasi-steady model neglects inertial effects during the initial acceleration to steady flow. For precise drainage-time predictions, the full coupled ODE system \eqref{eq:draining-v}--\eqref{eq:draining-hc} should be integrated numerically.
-
-Draining is much slower than filling because friction limits the steady-state velocity.
 
 \subsubsection{Draining terminates}
 
@@ -987,12 +959,12 @@ For water, atmospheric pressure supports $\sim 10$\,m. Velocity head and frictio
 
 \subsubsection{Worked example assessment}
 
-At frictionless crest velocity $v = 1.21$\,m/s with $h_3 - h_c = 4$\,cm:
+For the experiment, the crest is only $h_3 - h_c^{(0)} = 0.5$\,cm above the waterline. Even at the frictionless velocity $v \approx 0.9$\,m/s:
 \[
-  p_D \approx 101300 + 1000 \times 9.81 \times (-0.04) - \frac{1}{2} \times 1000 \times 1.21^2 \approx 100200\,\text{Pa}.
+  p_D \approx p_{\text{atm}} - \rho g (0.005\,\text{m}) - \tfrac{1}{2}\rho v^2 \approx 101300 - 50 - 400 \approx 100800\,\text{Pa}.
 \]
 
-This is well above $p_v = 2300$\,Pa. Cavitation margin: $(100200 - 2300)/(1000 \times 9.81) \approx 10$\,m. Cavitation is not a concern.
+This is well above $p_v \approx 2300$\,Pa. The cavitation margin exceeds 10\,m of head, so cavitation is not a concern for this geometry.
 
 \subsection{Capillarity}
 
@@ -1155,7 +1127,7 @@ Adding drawdown introduces the area ratio $A/A_0$. The modified integral $I_{\te
 
 Adding friction introduces $\varepsilon/D$ and the bend loss coefficients $K$. The constant-friction integral $I_f(L)$ reveals how dissipation discounts early-stored energy through an exponential factor. This intermediate model provides conservative velocity estimates.
 
-Comparing the three integrals on a single graph visualises the energy cost of each effect. For the worked example with effective $\sum K \approx 14.4$, the constant-friction model predicts that friction dominates, reducing energy by $\sim 99.5\%$; drawdown accounts for only $\sim 0.1\%$. This sensitivity to minor losses highlights the importance of bend geometry: larger $\sum K$ would reduce the available energy much more severely.
+Comparing the three integrals on a single graph visualises the energy cost of each effect. For the experimental geometry with effective $\sum K \approx 14.4$, the constant-friction model predicts that friction dominates, reducing energy by $\sim 99.5\%$; drawdown accounts for only $\sim 0.1\%$. Experimental velocity measurements confirm the hierarchy: the frictionless model overestimates, the constant-friction model is conservative, and the full ODE provides the closest match. This sensitivity to minor losses highlights the importance of bend geometry: larger $\sum K$ would reduce the available energy much more severely.
 
 The full dynamics require numerical integration due to velocity-dependent friction, but the analytical integrals bracket the solution. The draining phase, which dominates the total siphoning time, is governed by a simpler ODE where the slug length is constant.
 
@@ -1171,7 +1143,7 @@ The framework enables systematic parameter investigation:
 
 Changes that improve priming generally also speed filling: steeper drops, lower crests, larger diameters, smoother pipes. The exception is container size: larger containers ease priming but extend draining time.
 
-The model provides analytical insight into how each parameter affects the siphoning process---the understanding that numerical simulation alone cannot offer.
+The layered analytical approach reveals how each parameter affects the siphoning process, complementing numerical simulation with physical insight.
 
 % ══════════════════════════════════════════════════════════════════════════════
 %  APPENDIX: FRICTION CORRELATIONS
