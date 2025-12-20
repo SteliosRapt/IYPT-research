@@ -3,10 +3,11 @@
 \contentsline {section}{\numberline {2}The Physical Setup}{4}{section.2}%
 \contentsline {subsection}{\numberline {2.1}Coordinate system}{4}{subsection.2.1}%
 \contentsline {subsection}{\numberline {2.2}The five-node geometry}{4}{subsection.2.2}%
-\contentsline {subsection}{\numberline {2.3}The worked example}{5}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.3}The worked example: experimental parameters}{5}{subsection.2.3}%
 \contentsline {subsection}{\numberline {2.4}Centreline elevation function}{7}{subsection.2.4}%
-\contentsline {subsection}{\numberline {2.5}Point $W$: the last waterline crossing}{7}{subsection.2.5}%
-\contentsline {subsection}{\numberline {2.6}State variables and initial conditions}{7}{subsection.2.6}%
+\contentsline {subsection}{\numberline {2.5}Experimental apparatus and data acquisition}{7}{subsection.2.5}%
+\contentsline {subsection}{\numberline {2.6}Point $W$: the last waterline crossing}{7}{subsection.2.6}%
+\contentsline {subsection}{\numberline {2.7}State variables and initial conditions}{7}{subsection.2.7}%
 \contentsline {section}{\numberline {3}The Frictionless Model: Geometry Effects}{9}{section.3}%
 \contentsline {subsection}{\numberline {3.1}The driving force}{9}{subsection.3.1}%
 \contentsline {paragraph}{Pressure at inlet.}{9}{section*.2}%
@@ -17,7 +18,7 @@
 \contentsline {subsection}{\numberline {3.2}The energy integral}{10}{subsection.3.2}%
 \contentsline {subsection}{\numberline {3.3}Priming criterion}{10}{subsection.3.3}%
 \contentsline {subsection}{\numberline {3.4}Evaluation for piecewise-linear geometry}{11}{subsection.3.4}%
-\contentsline {subsection}{\numberline {3.5}Worked example}{11}{subsection.3.5}%
+\contentsline {subsection}{\numberline {3.5}Evaluation for the experimental geometry}{11}{subsection.3.5}%
 \contentsline {paragraph}{Segment 2 ($B \to C$), interval $[12.50, 20.99]$\,cm:}{11}{section*.7}%
 \contentsline {paragraph}{Segment 3 ($C \to D$), interval $[20.99, 32.23]$\,cm:}{11}{section*.8}%
 \contentsline {paragraph}{Segment 4 ($D \to W$), interval $[32.23, 32.81]$\,cm:}{11}{section*.9}%
@@ -26,7 +27,7 @@
 \contentsline {section}{\numberline {4}Adding Container Drawdown: System Size Effects}{13}{section.4}%
 \contentsline {subsection}{\numberline {4.1}The drawdown relation}{13}{subsection.4.1}%
 \contentsline {subsection}{\numberline {4.2}Modified energy integral}{13}{subsection.4.2}%
-\contentsline {subsection}{\numberline {4.3}Worked example}{14}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.3}Evaluation for the experimental geometry}{14}{subsection.4.3}%
 \contentsline {subsection}{\numberline {4.4}When drawdown matters}{14}{subsection.4.4}%
 \contentsline {paragraph}{Key parameter: $A/A_0$.}{14}{section*.11}%
 \contentsline {section}{\numberline {5}Adding Friction: Pipe Effects}{15}{section.5}%
@@ -34,7 +35,7 @@
 \contentsline {subsection}{\numberline {5.2}The constant-friction approximation}{15}{subsection.5.2}%
 \contentsline {subsection}{\numberline {5.3}Friction-corrected energy integral}{16}{subsection.5.3}%
 \contentsline {subsection}{\numberline {5.4}Physical interpretation}{16}{subsection.5.4}%
-\contentsline {subsection}{\numberline {5.5}Worked example}{16}{subsection.5.5}%
+\contentsline {subsection}{\numberline {5.5}Evaluation for the experimental geometry}{16}{subsection.5.5}%
 \contentsline {subsection}{\numberline {5.6}When friction matters}{17}{subsection.5.6}%
 \contentsline {section}{\numberline {6}Comparing the Three Models}{18}{section.6}%
 \contentsline {subsection}{\numberline {6.1}Summary of values at $S_W$}{18}{subsection.6.1}%
@@ -47,13 +48,11 @@
 \contentsline {subsection}{\numberline {7.1}Velocity-dependent friction: the Churchill correlation}{20}{subsection.7.1}%
 \contentsline {subsection}{\numberline {7.2}Filling phase: equation of motion}{20}{subsection.7.2}%
 \contentsline {subsection}{\numberline {7.3}First-order system for numerical integration}{20}{subsection.7.3}%
-\contentsline {subsection}{\numberline {7.4}Comparison to analytical bounds}{21}{subsection.7.4}%
+\contentsline {subsection}{\numberline {7.4}Comparison to experiment and analytical bounds}{21}{subsection.7.4}%
 \contentsline {subsection}{\numberline {7.5}Draining phase}{21}{subsection.7.5}%
 \contentsline {subsubsection}{\numberline {7.5.1}Full-pipe equation of motion}{21}{subsubsection.7.5.1}%
 \contentsline {subsubsection}{\numberline {7.5.2}Container level evolution}{21}{subsubsection.7.5.2}%
-\contentsline {subsubsection}{\numberline {7.5.3}Quasi-steady approximation}{21}{subsubsection.7.5.3}%
-\contentsline {subsubsection}{\numberline {7.5.4}Draining time estimate}{21}{subsubsection.7.5.4}%
-\contentsline {subsubsection}{\numberline {7.5.5}Draining terminates}{22}{subsubsection.7.5.5}%
+\contentsline {subsubsection}{\numberline {7.5.3}Draining terminates}{21}{subsubsection.7.5.3}%
 \contentsline {section}{\numberline {8}Foundations: Derivation from Navier-Stokes}{23}{section.8}%
 \contentsline {subsection}{\numberline {8.1}The full equations}{23}{subsection.8.1}%
 \contentsline {subsection}{\numberline {8.2}Step-by-step reduction}{24}{subsection.8.2}%
