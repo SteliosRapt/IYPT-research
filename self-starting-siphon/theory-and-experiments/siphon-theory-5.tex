@@ -37,7 +37,7 @@
 %  ABSTRACT
 % ══════════════════════════════════════════════════════════════════════════════
 \begin{abstract}
-A self-starting siphon primes spontaneously when partially immersed, without external suction. This paper develops a one-dimensional slug-flow model through layered analysis, progressively adding physical effects to identify how parameters control priming success and filling time.
+A self-starting siphon primes spontaneously when partially immersed, without external suction. This paper develops a one-dimensional slug-flow model through layered analysis, progressively adding physical effects to identify how parameters control priming success and filling time. The theoretical framework is validated against a laboratory experiment using a siphon constructed from drinking straws; the experimental geometry and measurements serve as the worked example throughout.
 
 The analysis begins with the frictionless case, where geometry alone determines the outcome. The driving force $F = \rho g A [h_c - h(L)]$ depends only on the elevation difference between the container surface and the advancing front. This yields an energy integral $I(L)$ computable in closed form for piecewise-linear geometries. The priming criterion $I(S_W) > 0$ provides a geometric screening tool.
 
@@ -80,7 +80,7 @@ This paper develops a theoretical framework through layered analysis:
   \item \textbf{Validity limits} (\cref{sec:validity}): Dimensionless parameters quantify when the model breaks down.
 \end{enumerate}
 
-Each layer introduces one key parameter while preserving analytical tractability as long as possible. The goal is not optimal design but understanding: how does each parameter affect the siphoning process?
+Each layer introduces one key parameter while preserving analytical tractability as long as possible. A laboratory experiment provides the worked example: the experimental geometry and velocity measurements are used throughout to test each successive model. The goal is not optimal design but understanding: how does each parameter affect the siphoning process?
 
 % ══════════════════════════════════════════════════════════════════════════════
 %  SECTION 2: PHYSICAL SETUP
@@ -117,10 +117,10 @@ $E$ & Outlet, at or below container bottom \\
 
 The defining constraint for self-starting is $h_1 < h_c^{(0)} < h_3$: the first crest lies below the waterline, the main crest above it.
 
-\subsection{The worked example}
+\subsection{The worked example: experimental parameters}
 \label{sec:worked-example}
 
-A single geometry illustrates all calculations throughout this paper. \Cref{tab:parameters} defines every parameter; subsequent sections reference this table rather than re-introducing values.
+The theoretical framework is developed around a specific siphon geometry that was constructed and tested in the laboratory. All numerical examples throughout this paper use the parameters from this experiment, allowing direct comparison between theoretical predictions and measured behaviour. \Cref{tab:parameters} defines every parameter; subsequent sections reference this table rather than re-introducing values.
 
 \begin{table}[H]
 \centering
@@ -200,9 +200,9 @@ For the worked example: $c_1 = 1.00$\,cm, $c_2 = 19.84$\,cm, $c_3 = -9.93$\,cm, 
 
 \subsection{Experimental apparatus and data acquisition}
 
-The siphon was constructed from flexible drinking straws arranged in the five-node geometry described above, mounted on simple plastic containers. Video recordings were captured using an iPhone at 4K resolution and 60\,fps. Frame-by-frame motion analysis was performed using free video motion analysis software, available on both mobile and desktop platforms. The water front position was tracked manually in each frame, yielding position-versus-time data from which velocities were computed by numerical differentiation.
+The experiment providing the worked example was conducted as follows. The siphon was constructed from flexible drinking straws arranged in the five-node geometry described above, mounted on simple plastic containers. Video recordings were captured using an iPhone at 4K resolution and 60\,fps. Frame-by-frame motion analysis was performed using free video motion analysis software, available on both mobile and desktop platforms. The water front position was tracked manually in each frame, yielding position-versus-time data from which velocities were computed by numerical differentiation.
 
-This low-cost setup demonstrates that the essential physics of self-starting siphons can be investigated without specialised laboratory equipment.
+The experimental velocity measurements (shown as data points in \cref{fig:comparison,fig:velocity,fig:time}) are compared against model predictions throughout the paper. This low-cost setup demonstrates that the essential physics of self-starting siphons can be investigated without specialised laboratory equipment.
 
 \subsection{Point $W$: the last waterline crossing}
 
@@ -749,9 +749,9 @@ Initial conditions: $L(0) = S_1$, $v(0) = 0$.
 
 At each integration step, compute $\text{Re} = vD/\nu$ and evaluate $f$ from \eqref{eq:churchill}.
 
-\subsection{Comparison to analytical bounds}
+\subsection{Comparison to experiment and analytical bounds}
 
-Numerical integration for the worked example yields:
+Numerical integration for the experimental geometry yields:
 \begin{itemize}[nosep,leftmargin=2em]
   \item Velocity at crest $D$: $\approx 0.08$\,m/s (vs.\ 0.87\,m/s frictionless)
   \item Velocity at $W$: $\approx 0.05$--$0.07$\,m/s (vs.\ 0.87\,m/s frictionless)
@@ -1155,7 +1155,7 @@ Adding drawdown introduces the area ratio $A/A_0$. The modified integral $I_{\te
 
 Adding friction introduces $\varepsilon/D$ and the bend loss coefficients $K$. The constant-friction integral $I_f(L)$ reveals how dissipation discounts early-stored energy through an exponential factor. This intermediate model provides conservative velocity estimates.
 
-Comparing the three integrals on a single graph visualises the energy cost of each effect. For the worked example with effective $\sum K \approx 14.4$, the constant-friction model predicts that friction dominates, reducing energy by $\sim 99.5\%$; drawdown accounts for only $\sim 0.1\%$. This sensitivity to minor losses highlights the importance of bend geometry: larger $\sum K$ would reduce the available energy much more severely.
+Comparing the three integrals on a single graph visualises the energy cost of each effect. For the experimental geometry with effective $\sum K \approx 14.4$, the constant-friction model predicts that friction dominates, reducing energy by $\sim 99.5\%$; drawdown accounts for only $\sim 0.1\%$. Experimental velocity measurements confirm the hierarchy: the frictionless model overestimates, the constant-friction model is conservative, and the full ODE provides the closest match. This sensitivity to minor losses highlights the importance of bend geometry: larger $\sum K$ would reduce the available energy much more severely.
 
 The full dynamics require numerical integration due to velocity-dependent friction, but the analytical integrals bracket the solution. The draining phase, which dominates the total siphoning time, is governed by a simpler ODE where the slug length is constant.
 
