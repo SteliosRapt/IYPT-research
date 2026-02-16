@@ -1,0 +1,334 @@
+\documentclass[11pt,a4paper]{article}
+
+% ── Packages ──────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{booktabs}         % nicer tables
+\usepackage{enumitem}         % list customisation
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{parskip}          % paragraph spacing instead of indent
+\usepackage{float}            % precise float placement
+% microtypographic refinements skipped (font compatibility)
+
+% ── Colours & Hyperlinks ─────────────────────────────────────
+\definecolor{secblue}{HTML}{1a3c6e}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=secblue,
+    urlcolor=secblue,
+    citecolor=secblue,
+}
+
+% ── Section formatting ───────────────────────────────────────
+\titleformat{\section}
+  {\Large\bfseries\color{secblue}}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\large\bfseries\color{secblue!80!black}}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+  {\normalsize\bfseries\color{secblue!60!black}}{\thesubsubsection}{1em}{}
+
+% ── Custom commands ──────────────────────────────────────────
+\newcommand{\cm}{\mathrm{cm}}
+\newcommand{\contact}{\mathrm{contact}}
+\newcommand{\grav}{\mathrm{gravity}}
+\newcommand{\diss}{\mathrm{dissipation}}
+\newcommand{\leading}{\mathrm{leading}}
+\newcommand{\trailing}{\mathrm{trailing}}
+
+% ── Title ────────────────────────────────────────────────────
+\title{%
+  \vspace{-1cm}
+  {\LARGE\bfseries IYPT 2026 --- Problem \#6: Flipo Flip}\\[6pt]
+  {\large Theoretical Framework \& Simulation Model}
+}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+% ═════════════════════════════════════════════════════════════
+\section{Problem Statement}
+% ═════════════════════════════════════════════════════════════
+
+A Flipo Flip toy can roll for multiple turns even though its shape is not circular.
+Investigate how its motion depends on parameters such as geometry and the initial
+release conditions.
+
+% ═════════════════════════════════════════════════════════════
+\section{Geometric Model}
+% ═════════════════════════════════════════════════════════════
+
+We model the Flipo Flip as a square prism (rectangular cross-section) with cylindrical
+caps.  Specifically, the toy's curved surfaces are the two ``outer shells'' of a
+Steinmetz solid---the intersection region of two orthogonal cylinders of radius~$R$.
+These curved caps are attached to opposite faces of the prism.
+
+\subsection{2D Cross-Section}
+
+We work entirely in 2D\@.  In the plane perpendicular to the rolling axis, the toy
+appears as:
+\begin{itemize}[nosep]
+  \item A rectangle of width~$w$ (the prism's face along the rolling direction) and
+        height~$h$ (the prism's face perpendicular to it), where $w \neq h$ in general.
+  \item Two circular arcs of radius~$R$, each capping one of the short ($w$-wide) edges
+        of the rectangle.
+\end{itemize}
+
+\textbf{Note:} The prism is \emph{not} generally inscribed in the cylinder---that would
+be a special case.  In general, two edges of the rectangle lie on the circle of
+radius~$R$, while the other two are interior to it.  The distance from the centre of the
+prism to the cylinder's axis (the ``apothem'') is determined by the prism
+side length and~$R$.
+
+\subsection{Moment of Inertia (Simplifying Approximation)}
+
+For simplicity, we approximate the moment of inertia as that of the rectangular prism
+alone, ignoring the mass of the thin curved caps.  This gives us clean, closed-form
+expressions for $I_{\cm}$ of a uniform rectangular solid, which we then shift to
+whichever contact point or axis is relevant using the parallel axis theorem.  The curved
+caps still define the rolling geometry (radius~$R$), but their contribution to inertia is
+neglected.
+
+% ═════════════════════════════════════════════════════════════
+\section{Phases of Motion}
+% ═════════════════════════════════════════════════════════════
+
+The rolling motion naturally decomposes into two alternating phases.
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Phase 1: Pure Patch Rolling}
+% ─────────────────────────────────────────────────────────────
+
+During this phase, one of the two curved (cylindrical) surfaces is in contact with the
+ground and rolls without slipping.  The other curved surface is in the air and contributes
+only through its inertia.
+
+\begin{description}[style=nextline, leftmargin=1.5cm]
+  \item[Contact geometry]
+    The contact point traces along the circular arc of radius~$R$.
+  \item[Instantaneous axis of rotation]
+    A line parallel to the contact line, passing through the centre of the parent cylinder
+    (i.e.\ the centre of the circle of radius~$R$ from which this curved surface
+    originates).
+  \item[Dynamics]
+    Standard rolling-without-slipping of a circular profile, with the complication that the
+    centre of mass does not coincide with the geometric centre of the rolling circle.
+\end{description}
+
+This phase continues until the flat bottom face of the prism reaches the ground---i.e.\
+until the angle between the prism face and the floor reaches zero.
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Phase 2: Patch Switch}
+% ─────────────────────────────────────────────────────────────
+
+When the curved surface has rolled far enough that the flat prism face becomes tangent
+to the ground, the motion transitions to a rotation about the edges of the rectangle:
+
+\begin{enumerate}[nosep]
+  \item \textbf{Trailing-edge pivot:} The toy pivots about the \emph{trailing edge}---the edge at
+        the rear, where the just-finished arc meets the prism face.  The opposite curved
+        surface swings forward and down.
+  \item \textbf{Leading-edge pivot:} When the full width~$w$ of the prism face contacts the
+        floor, the pivot instantaneously transfers to the \emph{leading edge}---the edge
+        on the far (forward) side of the flat face, where the next arc begins.  This new
+        pivot point is in front of the previous one in the direction of travel.
+\end{enumerate}
+
+These two sub-phases are not equal in duration; their relative timing depends on the
+geometry and the angular velocity at entry.
+
+The leading-edge rotation continues until the new curved surface engages with the ground
+and Pure Patch Rolling resumes.
+
+\begin{description}[style=nextline, leftmargin=1.5cm]
+  \item[Instantaneous axis of rotation]
+    First at the trailing edge, then switches to the leading edge (forward) at the moment
+    the full flat face is flush with the floor.
+  \item[No-slip condition]
+    Must hold at the pivot edge throughout.
+  \item[Critical angle]
+    The transition angle---from Patch Switch back to Pure Patch Rolling---is set by the
+    geometry.  It is the angle at which the next circular arc first becomes tangent to the
+    floor, which depends on~$R$, $w$, and~$h$.
+\end{description}
+
+% ═════════════════════════════════════════════════════════════
+\section{Theoretical Framework}
+% ═════════════════════════════════════════════════════════════
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Equations of Motion}
+% ─────────────────────────────────────────────────────────────
+
+For each phase, we write the rotational equation of motion about the instantaneous
+contact point/axis:
+\begin{equation}
+  I_{\contact}\,\dot{\omega}
+    = \tau_{\grav} - \tau_{\diss}
+\end{equation}
+where $I_{\contact}$ is the moment of inertia about the current contact point (computed
+via the parallel axis theorem from the centre-of-mass value), and $\tau_{\grav}$ is the
+gravitational torque about that point.
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Energy Dissipation}
+% ─────────────────────────────────────────────────────────────
+
+Energy is lost through four mechanisms:
+
+\begin{enumerate}
+  \item \textbf{Rolling friction} during Pure Patch Rolling, modelled as a rolling
+        resistance coefficient~$\mu_r$.
+
+  \item \textbf{Pivot friction} during Patch Switch.  Although the contact point is fixed
+        (an edge, not a rolling arc), the edge is not infinitely sharp: it has an effective
+        radius of curvature~$r_{\mathrm{edge}}$, and presses into the surface under the
+        normal force~$N$.  The resulting asymmetric deformation at the contact produces a
+        resistive torque
+        \begin{equation}
+          \tau_{\mathrm{pivot}} = \mu_p \, N \, r_{\mathrm{edge}}
+        \end{equation}
+        where $\mu_p$ is a pivot friction coefficient.  The physical mechanism is the same
+        as for rolling friction (asymmetric contact deformation) but at the smaller length
+        scale of the edge.  In practice, Flipo Flip toys have visibly rounded edges, so
+        $r_{\mathrm{edge}}$ is a real, measurable geometric parameter---not an abstraction.
+        Combined with $\mu_p$, this makes pivot friction a physically grounded and
+        potentially significant contribution, especially on softer surfaces.
+
+        As with the Pure Patch Rolling phase, the no-slip condition must also be checked at
+        the pivot edge: the simulation computes the tangential force required to prevent
+        slipping and compares it to~$\mu_s N$.  If violated, slip is detected and the
+        physical simulation halts.
+
+  \item \textbf{Impulsive losses at the axis switch}---when the pivot transfers from the
+        trailing edge to the leading edge during Patch Switch, we conserve angular momentum
+        about the new contact point.  That is, $\omega_{\mathrm{after}}$ is determined by:
+        \begin{equation}
+          I_{\leading}\cdot\omega_{\mathrm{after}}
+            = L_{\leading}^{\mathrm{before}}
+        \end{equation}
+        where $L_{\leading}^{\mathrm{before}}$ is the angular momentum about the leading
+        edge computed from the pre-impact state (rotating about the trailing edge).
+        Because $I_{\leading}\neq I_{\trailing}$ and the velocity field changes, this
+        generically implies a kinetic energy loss that is \emph{entirely predicted by
+        geometry}---not a free parameter.
+
+  \item \textbf{Additional impact dissipation} $e\in[0,1]$---a small correction factor
+        applied on top of the angular momentum conservation result, accounting for energy
+        lost to vibrations and sound during the impact.  (Material deformation is
+        negligible for the hard plastic of typical Flipo Flip toys.)  With
+        $e=1$, no extra loss is applied beyond what angular momentum conservation already
+        implies.
+\end{enumerate}
+
+% ─────────────────────────────────────────────────────────────
+\subsection{No-Slip Condition and Slip Detection}
+% ─────────────────────────────────────────────────────────────
+
+Throughout all phases, we assume no-slip at the contact point.  At each time step, the
+simulation computes the required friction force~$f$ to maintain this constraint, and
+compares it to the maximum available static friction~$\mu_s N$ (where $N$ is the normal
+force at the contact).
+
+\begin{itemize}[nosep]
+  \item If $f \leq \mu_s N$: the no-slip model holds and integration continues.
+  \item If $f > \mu_s N$: slip is detected.  The physical simulation halts, because our
+        rolling model cannot describe the post-slip dynamics accurately.  For
+        visualisation purposes only, a simplified ``fall'' animation plays out (e.g.\ the
+        toy sliding and toppling under gravity with some damping), so the user can see the
+        toy come to rest rather than freezing mid-frame.  This visual-only phase makes no
+        physical predictions.
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Matching Conditions Between Phases}
+% ─────────────────────────────────────────────────────────────
+
+At each phase transition, we must match:
+\begin{itemize}[nosep]
+  \item The angular velocity (converting between the two different rotation axes using
+        conservation of angular momentum, with possible impulsive losses).
+  \item The angular position (the critical angle at which the transition occurs, determined
+        purely by geometry).
+\end{itemize}
+
+% ═════════════════════════════════════════════════════════════
+\section{Parameters}
+% ═════════════════════════════════════════════════════════════
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{@{} c l @{}}
+\toprule
+\textbf{Symbol} & \textbf{Meaning} \\
+\midrule
+$R$        & Radius of the parent cylinder (determines curvature of the caps) \\
+$w$        & Width of the prism face along the rolling direction \\
+$h$        & Height of the prism face perpendicular to rolling \\
+$\rho$     & Material density (or equivalently, total mass~$m$) \\
+$\omega_0$ & Initial angular velocity at release \\
+$\mu_r$    & Rolling friction coefficient \\
+$\mu_p$    & Pivot friction coefficient (at edges during Patch Switch) \\
+$r_{\mathrm{edge}}$ & Effective radius of curvature of the prism edges \\
+$\mu_s$    & Static friction coefficient (used for slip detection) \\
+$e$        & Extra energy retention factor at each Patch Switch impact \\
+           & \quad ($e=1$: no extra loss; $e<1$: additional loss to vibrations, etc.) \\
+\bottomrule
+\end{tabular}
+\caption{Summary of model parameters.}
+\label{tab:parameters}
+\end{table}
+
+% ═════════════════════════════════════════════════════════════
+\section{Initial Condition}
+% ═════════════════════════════════════════════════════════════
+
+The simulation begins with the toy standing vertically (balanced on one curved cap),
+given an initial angular velocity~$\omega_0$ that tips it into its rolling motion.
+Experimentally, this velocity is imparted by accelerating the toy as it is brought to
+horizontal, but for the simulation we simply prescribe~$\omega_0$ at~$t=0$.
+
+% ═════════════════════════════════════════════════════════════
+\section{Goal: Interactive Simulation}
+% ═════════════════════════════════════════════════════════════
+
+This model is intended to be complete enough to drive a real-time, interactive simulation
+of the Flipo Flip's motion.  The simulation should:
+
+\begin{enumerate}
+  \item Numerically integrate the differential equations of motion through alternating
+        Pure Patch Rolling and Patch Switch phases, detecting phase transitions by
+        geometric criteria.
+  \item Visualise the 2D cross-section rolling across a flat surface, showing the rectangle
+        and arcs in motion.
+  \item Let the user adjust parameters ($R$, $w$, $h$, $\omega_0$, $\mu_r$, $\mu_p$,
+        $\mu_s$, $e$) with sliders and immediately see the effect on the motion.
+  \item Display diagnostic outputs: number of complete rolls, angular velocity over time,
+        energy over time (showing the stepwise losses at each Patch Switch).
+  \item Detect and report slip: when the required friction exceeds~$\mu_s N$, halt the
+        physical simulation, display a warning, and play a visual-only fall/slide animation
+        so the toy doesn't freeze in mid-air.
+\end{enumerate}
+
+% ═════════════════════════════════════════════════════════════
+\section{Key Predictions the Model Should Capture}
+% ═════════════════════════════════════════════════════════════
+
+\begin{enumerate}
+  \item Number of complete rolls as a function of~$\omega_0$ and geometry.
+  \item Time evolution of angular velocity, showing the stepwise energy loss at each
+        Patch Switch.
+  \item Sensitivity to geometry---how the ratio~$w/R$ and~$h/R$ affect rolling efficiency.
+  \item Dominant dissipation mechanism---whether rolling friction, pivot friction, or
+        impact losses matter more.
+\end{enumerate}
+
+\end{document}
