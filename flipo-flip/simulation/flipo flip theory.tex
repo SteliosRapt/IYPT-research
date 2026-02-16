@@ -1,0 +1,546 @@
+% Flipo Flip – Theoretical Framework
+% IYPT 2026, Problem #6
+% Built on the clean academic template
+
+\documentclass[11pt,a4paper]{article}
+
+% ============================================
+% PACKAGES
+% ============================================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage[numbers]{natbib}
+
+% --- Graphics: TikZ and PGFPlots ---
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepgfplotslibrary{fillbetween,statistics}
+\usetikzlibrary{arrows.meta,shapes,positioning,calc,angles,quotes}
+
+% Hyperref setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor={blue!70!black},
+    urlcolor={blue!70!black}
+}
+
+% ============================================
+% CUSTOM COMMANDS
+% ============================================
+
+% --- Figures ---
+\newcommand{\fig}[3]{%
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{#1}
+        \caption{#2}
+        \label{fig:#3}
+    \end{figure}
+}
+\newcommand{\figw}[4]{%
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=#2\textwidth]{#1}
+        \caption{#3}
+        \label{fig:#4}
+    \end{figure}
+}
+
+% --- Math shortcuts ---
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\td}[2]{\frac{\dd #1}{\dd #2}}
+\newcommand{\vect}[1]{\boldsymbol{#1}}
+\newcommand{\mat}[1]{\mathbf{#1}}
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\abs}[1]{\left| #1 \right|}
+\newcommand{\avg}[1]{\left\langle #1 \right\rangle}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\C}{\mathbb{C}}
+
+% --- Units ---
+\newcommand{\unit}[1]{\,\mathrm{#1}}
+
+% --- References ---
+\newcommand{\eqn}[1]{Eq.~\eqref{#1}}
+\newcommand{\figref}[1]{Fig.~\ref{fig:#1}}
+\newcommand{\tabref}[1]{Table~\ref{tab:#1}}
+\newcommand{\secref}[1]{Section~\ref{sec:#1}}
+
+% --- Physics shortcuts for this document ---
+\newcommand{\cm}{\mathrm{cm}}
+\newcommand{\half}{\tfrac{1}{2}}
+
+% ============================================
+% THEOREM ENVIRONMENTS
+% ============================================
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% ============================================
+% DOCUMENT INFO
+% ============================================
+\newcommand{\doctitle}{IYPT 2026 --- Problem \#6: Flipo Flip}
+\newcommand{\docsubtitle}{Theoretical Framework \& Simulation Model}
+\newcommand{\docauthor}{}
+\newcommand{\docdate}{February 2026}
+
+% ============================================
+% TITLE PAGE FORMATTING
+% ============================================
+\makeatletter
+\renewcommand{\maketitle}{%
+    \begin{center}
+        {\LARGE\bfseries \doctitle \par}
+        \vspace{0.3em}
+        \hrule height 0.5pt
+        \vspace{0.5em}
+        \ifx\docsubtitle\empty\else
+            {\large\itshape \docsubtitle \par}
+            \vspace{0.5em}
+        \fi
+        {\large \docauthor \par}
+        \vspace{0.3em}
+        {\normalsize \docdate \par}
+    \end{center}
+    \vspace{1em}
+}
+\makeatother
+
+% ============================================
+% DOCUMENT
+% ============================================
+\begin{document}
+
+\maketitle
+
+\figw{figures/fig_toy_preview.png}{0.5}{3D view of the Flipo Flip toy: a square prism capped with Steinmetz-solid cylindrical patches.}{toy-preview}
+
+% --- Abstract ---
+\begin{abstract}
+\noindent
+We develop a complete 2D theoretical model for the rolling motion of a Flipo Flip toy---a rectangular prism capped with cylindrical surfaces.  The model derives the cross-section geometry from three parameters ($R$, $w$, $h$), computes the critical angles at which phase transitions occur, and formulates the equations of motion for two alternating phases: pure patch rolling on a circular arc and a patch-switch pivot about the prism edges.  Energy dissipation through rolling friction, pivot friction, and impulsive losses at phase transitions is quantified.  The framework is designed to drive a real-time interactive simulation.
+\end{abstract}
+
+% --- Table of Contents ---
+\tableofcontents
+\newpage
+
+% ============================================
+% SECTIONS
+% ============================================
+
+\section{Problem Statement}
+\label{sec:problem}
+
+A Flipo Flip toy can roll for multiple turns even though its shape is not circular.
+Investigate how its motion depends on parameters such as geometry and the initial release conditions.
+
+
+% ============================================
+\section{Geometric Model}
+\label{sec:geometry}
+% ============================================
+
+\subsection{3D Structure}
+\label{sec:3d}
+
+The Flipo Flip is modelled as a \emph{square prism} (rectangular cross-section of width~$w$ and height~$h$, extruded to depth~$w$) with two cylindrical caps.  Each cap is a patch of a Steinmetz solid---the intersection of two orthogonal cylinders of radius~$R$---clipped to the $w \times w$ square face of the prism and attached to opposite faces.
+
+\fig{figures/fig_steinmetz_caps.png}{The Steinmetz solid (translucent) formed by two orthogonal cylinders of radius~$R$, with the square caps (red) clipped to the $w \times w$ prism faces. Dashed outlines show the parent cylinders.}{steinmetz-caps}
+
+Because the toy rolls along a single axis, the dynamics are fully captured by its 2D cross-section in the plane perpendicular to the rolling axis.
+
+
+\subsection{2D Cross-Section}
+\label{sec:cross-section}
+
+\fig{figures/fig_2d_side_view.pdf}{2D side view at the neutral position ($\varphi = 0$). Dashed circle: rolling parent cylinder. Red dot: contact point. Black dot: cylinder centre.}{2d-side-view}
+
+In the rolling plane, the toy's outline consists of four segments (\figref{cross-section}):
+
+\begin{enumerate}
+    \item A \textbf{top circular arc} of radius~$R$ capping the top edge ($y = +h/2$).
+    \item A \textbf{right straight edge} from the top-right corner to the bottom-right corner.
+    \item A \textbf{bottom circular arc} of radius~$R$ capping the bottom edge ($y = -h/2$).
+    \item A \textbf{left straight edge} from the bottom-left corner to the top-left corner.
+\end{enumerate}
+
+The rectangle has width~$w$ (horizontal, along the rolling direction) and height~$h$ (vertical).  The two arcs bulge outward from the top and bottom edges respectively.
+
+
+\subsection{Cap Geometry: Offset and Arc Angle}
+\label{sec:cap-geometry}
+
+\fig{figures/fig_cross_section.pdf}{Cross-section of the Flipo Flip at the neutral rolling position, with the floor at $y=0$. The rectangle (width~$w$, height~$h$) is capped by circular arcs of radius~$R$ whose centres are offset inward by~$d$. The edge angle~$\theta_e$ sets the arc extent.}{cross-section}
+
+Consider the top cap (the bottom is obtained by symmetry).  The circular arc of radius~$R$ must pass through both top corners of the rectangle, at $(\pm w/2,\; h/2)$.  Let $O_{\mathrm{top}}$ be the centre of this circle, located on the vertical axis of symmetry at $(0,\; y_{\mathrm{top}})$.  The distance from $O_{\mathrm{top}}$ to a top corner must equal~$R$:
+\begin{equation}
+    \sqrt{\left(\frac{w}{2}\right)^{\!2} + \bigl(y_{\mathrm{top}} - \tfrac{h}{2}\bigr)^2\,} = R
+    \label{eq:circle-constraint}
+\end{equation}
+
+Since $O_{\mathrm{top}}$ lies below the top edge (the arc bulges upward), we set $y_{\mathrm{top}} = h/2 - d$ where $d > 0$ is the \textbf{cap offset}.  Substituting and solving:
+\begin{equation}
+    \boxed{\;d = \sqrt{R^2 - \left(\frac{w}{2}\right)^{\!2}}\;}
+    \label{eq:cap-offset}
+\end{equation}
+
+This requires $w < 2R$ (the prism width must be less than the cylinder diameter).
+
+\begin{definition}[Edge angle]
+\label{def:edge-angle}
+The \textbf{edge angle}~$\theta_e$ is the angle at the arc's centre between the downward vertical and the line to a corner of the rectangle:
+\begin{equation}
+    \boxed{\;\theta_e = \arctan\!\left(\frac{w/2}{d}\right) = \arccos\!\left(\frac{w}{2R}\right)\;}
+    \label{eq:edge-angle}
+\end{equation}
+\end{definition}
+
+\noindent
+The arc spans from angle $(\pi - \theta_e)$ to $\theta_e$ (measured from the positive $x$-axis at $O_{\mathrm{top}}$), subtending a total angle of
+\begin{equation}
+    \Delta\theta_{\mathrm{arc}} = \pi - 2\theta_e\,.
+    \label{eq:arc-span}
+\end{equation}
+
+The centres of the two parent cylinders are:
+\begin{align}
+    O_{\mathrm{top}} &= \Bigl(0,\;\; \frac{h}{2} - d\Bigr) \label{eq:Otop}\\[4pt]
+    O_{\mathrm{bot}} &= \Bigl(0,\;\; -\frac{h}{2} + d\Bigr) \label{eq:Obot}
+\end{align}
+
+\begin{remark}
+The special case $w = 2R$ gives $d = 0$, $\theta_e = 0$, and $\Delta\theta_{\mathrm{arc}} = \pi$: each cap is a full semicircle and the cylinder centres coincide with the rectangle edges.  As $w \to 0$, $\theta_e \to \pi/2$ and the arcs shrink to points.
+\end{remark}
+
+\fig{figures/fig_steinmetz_side.png}{Side view of the Steinmetz solid along one cylinder axis. The silhouette matches the overlaid reference circle (red), confirming the circular cross-section that enables rolling.}{steinmetz-side}
+
+
+\subsection{Centre of Mass}
+\label{sec:com}
+
+Approximating the toy as a uniform rectangle of mass~$m$ (neglecting the thin cap shells), the centre of mass is at the geometric centre of the prism:
+\begin{equation}
+    \vect{r}_{\cm} = (0,\; 0) \quad \text{(in the body frame)}
+    \label{eq:com}
+\end{equation}
+
+
+\subsection{Moment of Inertia}
+\label{sec:moi}
+
+Under the same approximation, the moment of inertia about the centre of mass (for rotation in the 2D plane) is that of a uniform rectangle:
+\begin{equation}
+    I_{\cm} = \frac{m}{12}\bigl(w^2 + h^2\bigr)
+    \label{eq:Icm}
+\end{equation}
+
+For rotation about an arbitrary point~$P$ at distance~$\ell$ from the centre of mass, the parallel axis theorem gives:
+\begin{equation}
+    I_P = I_{\cm} + m\,\ell^2
+    \label{eq:parallel-axis}
+\end{equation}
+
+
+% ============================================
+\section{Critical Angles and Phase Transitions}
+\label{sec:critical}
+% ============================================
+
+The motion alternates between two phases: \emph{pure patch rolling} on a circular arc and a \emph{patch switch} pivoting about the prism edges.  The transitions between these phases are determined entirely by geometry.
+
+\subsection{Maximum Pure Rolling Angle}
+\label{sec:max-roll}
+
+Consider rolling on the bottom cap.  The contact point traces along the bottom arc, centred at $O_{\mathrm{bot}}$.  When the toy is in its ``neutral'' position (bottom of the arc touching the ground), the line from $O_{\mathrm{bot}}$ to the contact point points straight down.
+
+As the toy rolls through angle~$\varphi$ (measured at $O_{\mathrm{bot}}$), the contact point moves along the arc.  Rolling can continue until the contact point reaches the edge of the arc---the corner where the arc meets the flat face of the rectangle.  The angular distance from the bottom of the arc to this corner is precisely $\pi/2 - \theta_e$ (since $\theta_e$ is measured from the downward vertical to the corner, and the bottom of the arc is at $-\pi/2$).
+
+Therefore, the \textbf{maximum pure rolling angle} is:
+\begin{equation}
+    \boxed{\;\varphi_{\max} = \frac{\pi}{2} - \theta_e = \frac{\pi}{2} - \arccos\!\left(\frac{w}{2R}\right)\;}
+    \label{eq:phi-max}
+\end{equation}
+
+The toy can roll by $\varphi_{\max}$ in either direction from the neutral position before the flat face becomes tangent to the ground.
+
+\fig{figures/fig_critical_angles.pdf}{(Left) The edge angle~$\theta_e$ at the arc centre~$O_{\mathrm{bot}}$, measured from the downward vertical to the line to the prism corner. (Right) The maximum pure rolling angle~$\varphi_{\max}$ marking the contact range before phase transition.}{critical-angles}
+
+\begin{remark}
+When $w \ll 2R$, $\theta_e \to \pi/2$ and $\varphi_{\max} \to 0$: the arcs are tiny and the toy immediately transitions to pivoting.  When $w \to 2R$, $\theta_e \to 0$ and $\varphi_{\max} \to \pi/2$: the arcs are full semicircles and the toy can roll a quarter turn on each cap.
+\end{remark}
+
+
+\subsection{Transition Geometry}
+\label{sec:transitions}
+
+The full rolling cycle consists of four phase transitions per complete revolution:
+\begin{enumerate}
+    \item \textbf{Arc $\to$ Trailing-edge pivot:} At $\varphi = \varphi_{\max}$, the arc's endpoint meets the ground.  The trailing edge (where the just-finished arc meets the flat face) becomes the pivot.
+    \item \textbf{Trailing-edge $\to$ Leading-edge pivot:} The toy pivots about the trailing edge until the full flat face is flush with the ground.  At that instant, the pivot transfers to the leading edge (the forward edge where the next arc begins).
+    \item \textbf{Leading-edge pivot $\to$ Arc:} The toy continues pivoting about the leading edge until the next circular arc becomes tangent to the ground.  Pure patch rolling resumes.
+    \item Repeat with the opposite cap.
+\end{enumerate}
+
+\noindent
+The angle through which the trailing-edge pivot rotates is determined by the rectangle's aspect ratio.  The angle for the leading-edge pivot is again $\varphi_{\max}$, by symmetry of the arc geometry.
+
+\figw{figures/fig_rotation_phases.pdf}{1.0}{Four phases of a patch switch: (a)~pure arc rolling, (b)~trailing-edge pivot, (c)~flat face on ground (pivot transfer), (d)~leading-edge pivot. Red crosses mark the instantaneous rotation axis.}{rotation-phases}
+
+\figw{figures/fig_rolling_composite.pdf}{1.0}{Composite of 8 snapshots through one half-revolution. Darker shading indicates later time.}{rolling-composite}
+
+
+% ============================================
+\section{Equations of Motion}
+\label{sec:eom}
+% ============================================
+
+\subsection{Phase 1: Pure Patch Rolling}
+\label{sec:phase1}
+
+During this phase, the bottom cap rolls without slipping on the ground.  The instantaneous centre of rotation is the contact point on the ground, directly below the rolling circle's centre.
+
+\subsubsection{Kinematics}
+
+Let $\varphi$ be the rolling angle (zero when the toy is in the neutral position for this cap), and let $\omega = \dot{\varphi}$.  The rolling circle's centre in world coordinates is:
+\begin{equation}
+    O_{\mathrm{bot}}^{(\mathrm{world})} = \bigl(R\varphi,\;\; R\bigr)
+    \label{eq:circle-center-world}
+\end{equation}
+
+The contact point is at $(R\varphi,\; 0)$.  The entire body rotates with angular velocity~$\omega$ about $O_{\mathrm{bot}}^{(\mathrm{world})}$.  The centre of mass in world coordinates is obtained by rotating the body-frame offset $\vect{r}_{\cm} - O_{\mathrm{bot}}^{(\mathrm{body})}$ by the rolling angle.
+
+Let $\vect{d}_{\cm}$ denote the vector from $O_{\mathrm{bot}}$ to the centre of mass in the body frame:
+\begin{equation}
+    \vect{d}_{\cm} = \vect{r}_{\cm} - O_{\mathrm{bot}} = \Bigl(0,\;\; \frac{h}{2} - d\Bigr)
+    \label{eq:dcm}
+\end{equation}
+
+where $d$ is the cap offset (\eqn{eq:cap-offset}).  In world coordinates, after rolling by~$\varphi$:
+\begin{equation}
+    \vect{r}_{\cm}^{(\mathrm{world})} = O_{\mathrm{bot}}^{(\mathrm{world})} + \mat{R}(-\varphi)\,\vect{d}_{\cm}
+    \label{eq:com-world}
+\end{equation}
+where $\mat{R}(\alpha)$ is the 2D rotation matrix through angle~$\alpha$.
+
+\subsubsection{Dynamics}
+
+The equation of motion about the contact point is:
+\begin{equation}
+    I_{\mathrm{contact}}\,\dot{\omega} = \tau_{\mathrm{grav}} - \tau_{\mathrm{roll}}
+    \label{eq:eom-rolling}
+\end{equation}
+
+The moment of inertia about the contact point (a point on the ground, at distance~$\ell$ from the centre of mass) is:
+\begin{equation}
+    I_{\mathrm{contact}} = I_{\cm} + m\,\ell^2
+    \label{eq:I-contact}
+\end{equation}
+where $\ell = \abs{\vect{r}_{\cm}^{(\mathrm{world})} - (R\varphi,\, 0)}$ depends on the current rolling angle~$\varphi$.
+
+The gravitational torque about the contact point is:
+\begin{equation}
+    \tau_{\mathrm{grav}} = -m\,g\,\bigl(x_{\cm}^{(\mathrm{world})} - R\varphi\bigr)
+    \label{eq:tau-grav-rolling}
+\end{equation}
+where $x_{\cm}^{(\mathrm{world})}$ is the horizontal position of the centre of mass and $R\varphi$ is the horizontal position of the contact point.
+
+Rolling friction provides a resistive torque:
+\begin{equation}
+    \tau_{\mathrm{roll}} = \mu_r\, N\, R \cdot \mathrm{sgn}(\omega)
+    \label{eq:tau-roll}
+\end{equation}
+where $N$ is the normal force and $\mu_r$ is the rolling friction coefficient.
+
+
+\subsection{Phase 2: Patch Switch}
+\label{sec:phase2}
+
+When the rolling angle reaches $\pm\varphi_{\max}$, the flat face becomes tangent to the ground and the motion transitions to pivoting about the prism edges.
+
+\subsubsection{Trailing-Edge Pivot}
+
+The trailing edge is the corner at the rear of the flat face (where the just-finished arc meets the rectangle).  The toy rotates about this fixed point.
+
+Let $\alpha$ be the angle of rotation about the trailing edge (measured from the configuration at the transition).  The equation of motion is:
+\begin{equation}
+    I_{\mathrm{trail}}\,\dot{\omega}_{\alpha} = \tau_{\mathrm{grav}}^{(\mathrm{trail})} - \tau_{\mathrm{pivot}}
+    \label{eq:eom-trailing}
+\end{equation}
+where $I_{\mathrm{trail}} = I_{\cm} + m\,\ell_{\mathrm{trail}}^2$ is the moment of inertia about the trailing edge, and the pivot friction torque is:
+\begin{equation}
+    \tau_{\mathrm{pivot}} = \mu_p\, N\, r_{\mathrm{edge}} \cdot \mathrm{sgn}(\omega_\alpha)
+    \label{eq:tau-pivot}
+\end{equation}
+with $\mu_p$ the pivot friction coefficient and $r_{\mathrm{edge}}$ the effective radius of curvature of the edge.
+
+\subsubsection{Leading-Edge Pivot}
+
+When the full flat face contacts the ground, the pivot transfers instantaneously to the leading edge (the forward corner where the next arc begins).  The dynamics take the same form as \eqn{eq:eom-trailing}, but with the moment of inertia and gravitational torque computed about the leading edge.
+
+
+\subsection{Phase-Transition Matching}
+\label{sec:matching}
+
+At each phase transition, the angular velocity must be matched between the old and new rotation axes.
+
+\subsubsection{Arc $\leftrightarrow$ Trailing Edge}
+
+At the transition from pure rolling to trailing-edge pivot (or vice versa), both axes share the same instantaneous contact point (the trailing corner is on the ground).  We conserve angular momentum about this point:
+\begin{equation}
+    L_{\mathrm{new}} = L_{\mathrm{old}} \quad \Longrightarrow \quad \omega_{\mathrm{new}} = \frac{I_{\mathrm{old}}}{I_{\mathrm{new}}}\,\omega_{\mathrm{old}}
+    \label{eq:match-arc-trail}
+\end{equation}
+
+\subsubsection{Trailing Edge $\to$ Leading Edge (Impact)}
+\label{sec:impact}
+
+When the pivot transfers from the trailing edge to the leading edge, the contact point jumps by a distance~$w$ along the ground.  Angular momentum is conserved about the \emph{new} pivot (the leading edge):
+\begin{equation}
+    I_{\mathrm{lead}}\,\omega_{\mathrm{after}} = L_{\mathrm{lead}}^{(\mathrm{before})}
+    \label{eq:impact-conservation}
+\end{equation}
+where $L_{\mathrm{lead}}^{(\mathrm{before})}$ is the angular momentum about the leading edge computed from the pre-impact state (rotating about the trailing edge with angular velocity~$\omega_{\mathrm{before}}$).
+
+Because $I_{\mathrm{lead}} \neq I_{\mathrm{trail}}$ and the velocity field changes, this generically implies a kinetic energy loss that is \emph{entirely predicted by geometry}---not a free parameter.
+
+An additional restitution factor $e \in [0,1]$ may be applied:
+\begin{equation}
+    \omega_{\mathrm{after}} \;\longleftarrow\; e \cdot \omega_{\mathrm{after}}
+    \label{eq:restitution}
+\end{equation}
+to account for energy dissipated in vibrations and sound during the impact.  With $e = 1$, no extra loss beyond the angular-momentum prediction.
+
+
+% ============================================
+\section{Energy Dissipation}
+\label{sec:dissipation}
+% ============================================
+
+Energy is lost through four mechanisms:
+
+\begin{enumerate}
+    \item \textbf{Rolling friction} during pure patch rolling (\eqn{eq:tau-roll}), characterised by the coefficient~$\mu_r$.
+
+    \item \textbf{Pivot friction} during patch switch (\eqn{eq:tau-pivot}), characterised by~$\mu_p$ and the edge radius~$r_{\mathrm{edge}}$.  The physical mechanism is asymmetric contact deformation at the rounded edge of the prism.
+
+    \item \textbf{Geometric impact loss} at each trailing$\to$leading edge transfer (\secref{impact}).  This is fully determined by geometry and carries no free parameters.
+
+    \item \textbf{Additional impact dissipation} via the restitution factor~$e$ (\eqn{eq:restitution}), accounting for vibrations and sound.
+\end{enumerate}
+
+\fig{figures/fig_com_height.pdf}{Centre-of-mass height vs.\ cumulative rotation angle through one half-revolution with zero friction. Vertical dashed lines mark phase transitions. The geometric energy loss at each trailing$\to$leading transfer arises purely from angular momentum conservation.}{com-height}
+
+
+% ============================================
+\section{No-Slip Condition}
+\label{sec:noslip}
+% ============================================
+
+Throughout all phases, we assume rolling/pivoting without slipping.  At each time step, the simulation computes the tangential friction force~$f$ required to maintain the no-slip constraint and compares it to the maximum available static friction:
+\begin{equation}
+    f \leq \mu_s\, N
+    \label{eq:noslip}
+\end{equation}
+
+\begin{itemize}
+    \item If satisfied: integration continues normally.
+    \item If violated: \textbf{slip is detected}.  The physical simulation halts because the rolling model cannot describe post-slip dynamics.  A visual-only fall animation plays for display purposes but makes no physical predictions.
+\end{itemize}
+
+
+% ============================================
+\section{Parameters}
+\label{sec:params}
+% ============================================
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{@{} c l l @{}}
+\toprule
+\textbf{Symbol} & \textbf{Meaning} & \textbf{Type} \\
+\midrule
+$R$        & Radius of the parent cylinder (cap curvature) & Geometric \\
+$w$        & Width of the prism face along the rolling direction & Geometric \\
+$h$        & Height of the prism face perpendicular to rolling & Geometric \\
+\midrule
+$d$        & Cap offset $= \sqrt{R^2 - (w/2)^2}$ & Derived \\
+$\theta_e$ & Edge angle $= \arccos(w/2R)$ & Derived \\
+$\varphi_{\max}$ & Max pure rolling angle $= \pi/2 - \theta_e$ & Derived \\
+\midrule
+$m$        & Total mass (or equivalently density~$\rho$) & Physical \\
+$\omega_0$ & Initial angular velocity at release & Initial cond. \\
+$\mu_r$    & Rolling friction coefficient & Dissipation \\
+$\mu_p$    & Pivot friction coefficient & Dissipation \\
+$r_{\mathrm{edge}}$ & Effective edge radius of curvature & Dissipation \\
+$\mu_s$    & Static friction coefficient (slip detection) & Constraint \\
+$e$        & Restitution factor at trailing$\to$leading impact & Dissipation \\
+\bottomrule
+\end{tabular}
+\caption{Summary of model parameters.  The first three are independent inputs; the next three are derived from them.  The remaining parameters govern physics and dissipation.}
+\label{tab:parameters}
+\end{table}
+
+
+% ============================================
+\section{Initial Conditions}
+\label{sec:initial}
+% ============================================
+
+The simulation begins with the toy balanced at the end of the pure rolling phase
+on one cap---specifically at $\varphi = \varphi_{\max}$, where the trailing-edge
+corner rests on the ground and the circular arc has just ended. An initial angular
+velocity~$\omega_0$ is prescribed, tipping the toy into the trailing-edge pivot
+phase. This corresponds to the experimental scenario in which the toy is released
+from near-horizontal with a gentle push.
+
+
+% ============================================
+\section{Summary of Key Relations}
+\label{sec:summary}
+% ============================================
+
+For reference, the essential geometric and dynamic relations:
+
+\begin{align}
+    d &= \sqrt{R^2 - \tfrac{w^2}{4}} & &\text{(cap offset)} \label{eq:sum-d} \\[4pt]
+    \theta_e &= \arccos\!\Bigl(\frac{w}{2R}\Bigr) & &\text{(edge angle)} \label{eq:sum-theta} \\[4pt]
+    \varphi_{\max} &= \frac{\pi}{2} - \theta_e & &\text{(max rolling angle)} \label{eq:sum-phi} \\[4pt]
+    O_{\mathrm{top/bot}} &= \Bigl(0,\;\pm\bigl(\tfrac{h}{2} - d\bigr)\Bigr) & &\text{(arc centres)} \label{eq:sum-centers} \\[4pt]
+    I_{\cm} &= \tfrac{m}{12}(w^2 + h^2) & &\text{(moment of inertia)} \label{eq:sum-I} \\[4pt]
+    I_P &= I_{\cm} + m\ell_P^2 & &\text{(parallel axis theorem)} \label{eq:sum-parallel}
+\end{align}
+
+
+% ============================================
+% REFERENCES
+% ============================================
+\bibliographystyle{unsrtnat}
+% \bibliography{references}
+
+\end{document}

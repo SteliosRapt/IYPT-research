@@ -1,0 +1,1418 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Flipo Flip Geometry Explorer</title>
+  <style>
+    :root {
+      --bg: #f2f5f9;
+      --panel: #ffffff;
+      --ink: #122038;
+      --muted: #5a6a82;
+      --border: #d8e0eb;
+      --accent: #2f7de1;
+      --danger: #c53030;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 8%, #dce9fa 0%, transparent 32%),
+        radial-gradient(circle at 88% 12%, #e9f0ff 0%, transparent 30%),
+        var(--bg);
+    }
+
+    .app {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 1rem;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .controls {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 0.9rem;
+      box-shadow: 0 8px 20px rgba(22, 36, 66, 0.06);
+      display: grid;
+      gap: 0.8rem;
+    }
+
+    .controls h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      line-height: 1.25;
+    }
+
+    .controls .sub {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .control-grid {
+      display: grid;
+      gap: 0.7rem;
+      grid-template-columns: repeat(3, minmax(150px, 1fr));
+    }
+
+    .slider-row {
+      display: grid;
+      gap: 0.3rem;
+    }
+
+    .slider-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .num-box {
+      width: 7.2rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.34rem 0.5rem;
+      font-size: 0.88rem;
+      color: #1b2d49;
+      background: #fff;
+    }
+
+    .num-box:focus {
+      outline: 2px solid #b8d6ff;
+      outline-offset: 1px;
+      border-color: #a6c6f4;
+    }
+
+    .slider-row input[type="range"] {
+      width: 100%;
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    .settings-panel {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #f8fbff;
+      padding: 0.35rem 0.55rem 0.55rem;
+    }
+
+    .settings-panel summary {
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #1f3459;
+      list-style: none;
+      user-select: none;
+    }
+
+    .settings-panel summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .settings-panel summary::before {
+      content: "▸";
+      display: inline-block;
+      margin-right: 0.45rem;
+      color: #45658f;
+      transform: translateY(-0.01rem);
+    }
+
+    .settings-panel[open] summary::before {
+      content: "▾";
+    }
+
+    .settings-body {
+      margin-top: 0.45rem;
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 0.6rem 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: #dbeafe;
+      color: #17417f;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    #note {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--muted);
+      min-height: 1.1rem;
+    }
+
+    #note.warn {
+      color: var(--danger);
+    }
+
+    .views {
+      display: grid;
+      gap: 0.8rem;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 340px;
+      box-shadow: 0 8px 20px rgba(22, 36, 66, 0.06);
+    }
+
+    .panel h2 {
+      margin: 0;
+      padding: 0.68rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #1f3459;
+      background: #f8fbff;
+    }
+
+    .viewport {
+      width: 100%;
+      height: 100%;
+      display: block;
+      min-height: 270px;
+    }
+
+    .side-controls {
+      padding: 0.55rem 0.7rem 0.75rem;
+      border-top: 1px solid var(--border);
+      background: #fbfdff;
+      display: grid;
+      gap: 0.38rem;
+    }
+
+    .side-controls label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.86rem;
+      color: var(--muted);
+    }
+
+    #rollSlider {
+      width: 100%;
+    }
+
+    @media (max-width: 980px) {
+      .control-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .views {
+        grid-template-columns: 1fr;
+      }
+
+      .panel {
+        min-height: 320px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="controls">
+      <h1>Flipo Flip Geometry Explorer</h1>
+      <p class="sub">Adjust <strong>R</strong>, <strong>w</strong>, and <strong>h</strong> and inspect the source bicylinder, assembled toy, and 2D rolling side view.</p>
+
+      <div class="control-grid">
+        <label class="slider-row" for="radius">
+          <span class="slider-top">
+            <span>R (bicylinder radius, cm)</span>
+            <input class="num-box" id="radiusInput" type="number" min="0.1" step="0.1" />
+          </span>
+          <input id="radius" type="range" min="0.1" max="300" step="0.1" />
+        </label>
+
+        <label class="slider-row" for="width">
+          <span class="slider-top">
+            <span>w (square side, cm)</span>
+            <input class="num-box" id="widthInput" type="number" min="0.1" step="0.1" />
+          </span>
+          <input id="width" type="range" min="0.1" max="300" step="0.1" />
+        </label>
+
+        <label class="slider-row" for="height">
+          <span class="slider-top">
+            <span>h (prism height, cm)</span>
+            <input class="num-box" id="heightInput" type="number" min="0.1" max="10" step="0.01" />
+          </span>
+          <input id="height" type="range" min="0.1" max="10" step="0.01" />
+        </label>
+      </div>
+
+      <div class="buttons">
+        <button id="resetDefaults">Reset to default values</button>
+        <button id="resetView">Reset Cameras</button>
+        <button class="primary" id="downloadStl">Download STL</button>
+      </div>
+
+      <details class="settings-panel">
+        <summary>Settings</summary>
+        <div class="settings-body">
+          <label class="slider-row" for="meshDetail">
+            <span class="slider-top">
+              <span>Mesh detail factor</span>
+              <input class="num-box" id="meshDetailInput" type="number" min="0.5" max="3.0" step="0.1" />
+            </span>
+            <input id="meshDetail" type="range" min="0.5" max="3.0" step="0.1" />
+          </label>
+        </div>
+      </details>
+      <p id="note"></p>
+    </section>
+
+    <section class="views">
+      <article class="panel">
+        <h2>2D Side View (Pure Patch Rolling - Slider Controlled)</h2>
+        <canvas id="sideCanvas" class="viewport"></canvas>
+        <div class="side-controls">
+          <label for="rollSlider">
+            <span>Pure patch phase position</span>
+            <strong id="rollVal">0.0%</strong>
+          </label>
+          <input id="rollSlider" type="range" min="-100" max="100" step="0.1" value="0" />
+        </div>
+      </article>
+
+      <article class="panel">
+        <h2>Toy 3D View (Caps + Square Prism)</h2>
+        <canvas id="toyCanvas" class="viewport"></canvas>
+      </article>
+
+      <article class="panel">
+        <h2>Steinmetz Solid / Bicylinder (Interactive)</h2>
+        <canvas id="steinCanvas" class="viewport"></canvas>
+      </article>
+    </section>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from "three";
+    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+    import { STLExporter } from "three/addons/exporters/STLExporter.js";
+
+    const ui = {
+      radius: document.getElementById("radius"),
+      radiusInput: document.getElementById("radiusInput"),
+      width: document.getElementById("width"),
+      widthInput: document.getElementById("widthInput"),
+      height: document.getElementById("height"),
+      heightInput: document.getElementById("heightInput"),
+      meshDetail: document.getElementById("meshDetail"),
+      meshDetailInput: document.getElementById("meshDetailInput"),
+      rollSlider: document.getElementById("rollSlider"),
+      rollVal: document.getElementById("rollVal"),
+      resetDefaults: document.getElementById("resetDefaults"),
+      resetView: document.getElementById("resetView"),
+      downloadStl: document.getElementById("downloadStl"),
+      note: document.getElementById("note"),
+      sideCanvas: document.getElementById("sideCanvas"),
+      toyCanvas: document.getElementById("toyCanvas"),
+      steinCanvas: document.getElementById("steinCanvas"),
+    };
+
+    const DEFAULT_PARAMS = {
+      R: 18,
+      w: 13,
+      h: 1,
+      detail: 1.8,
+    };
+
+    const params = {
+      R: DEFAULT_PARAMS.R,
+      w: DEFAULT_PARAMS.w,
+      h: DEFAULT_PARAMS.h,
+      detail: DEFAULT_PARAMS.detail,
+    };
+
+    let rollingAngle = 0;
+    let sideFrame = null;
+    let toyGroup = null;
+    let toyExportObject = null;
+    let steinGroup = null;
+
+    const PARAM_MIN = 0.1;
+    const TOY_CAMERA_PADDING = 1.72;
+    const STEIN_CAMERA_PADDING = 1.56;
+
+    const toyScene = new THREE.Scene();
+    toyScene.background = new THREE.Color(0xf8fbff);
+    const steinScene = new THREE.Scene();
+    steinScene.background = new THREE.Color(0xf8fbff);
+
+    const toyRenderer = new THREE.WebGLRenderer({ canvas: ui.toyCanvas, antialias: true, alpha: false });
+    const steinRenderer = new THREE.WebGLRenderer({ canvas: ui.steinCanvas, antialias: true, alpha: false });
+    toyRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    steinRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+    const toyCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 2000);
+    const steinCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 2000);
+
+    const toyControls = new OrbitControls(toyCamera, ui.toyCanvas);
+    toyControls.enablePan = false;
+    toyControls.enableDamping = true;
+    toyControls.dampingFactor = 0.06;
+
+    const steinControls = new OrbitControls(steinCamera, ui.steinCanvas);
+    steinControls.enableDamping = true;
+    steinControls.dampingFactor = 0.06;
+
+    addLights(toyScene);
+    addLights(steinScene);
+
+    function addLights(scene) {
+      const hemi = new THREE.HemisphereLight(0xffffff, 0xb8c6dc, 0.8);
+      scene.add(hemi);
+
+      const key = new THREE.DirectionalLight(0xffffff, 0.95);
+      key.position.set(2.8, 3.3, 2.2);
+      scene.add(key);
+
+      const fill = new THREE.DirectionalLight(0xffffff, 0.35);
+      fill.position.set(-2, 1, -2);
+      scene.add(fill);
+    }
+
+    function roundTenth(value) {
+      return Math.round(value * 10) / 10;
+    }
+
+    function roundHundredth(value) {
+      return Math.round(value * 100) / 100;
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function safeNumber(value, fallback) {
+      const num = Number(value);
+      return Number.isFinite(num) ? num : fallback;
+    }
+
+    function setSliderRanges() {
+      const rMax = 300;
+      const wMax = Math.max(PARAM_MIN, roundTenth(2 * params.R - 0.1));
+      const hMax = 10;
+      ui.radius.max = String(rMax);
+      ui.width.max = String(wMax);
+      ui.height.max = String(hMax);
+      ui.radiusInput.max = String(rMax);
+      ui.widthInput.max = String(wMax);
+      ui.heightInput.max = String(hMax);
+      ui.meshDetail.max = "3.0";
+      ui.meshDetailInput.max = "3.0";
+
+      params.R = clamp(roundTenth(params.R), PARAM_MIN, rMax);
+      params.w = clamp(roundTenth(params.w), PARAM_MIN, wMax);
+      params.h = clamp(roundHundredth(params.h), PARAM_MIN, hMax);
+      params.detail = clamp(roundTenth(params.detail), 0.5, 3.0);
+    }
+
+    function updateControlsFromState() {
+      ui.radius.value = params.R.toFixed(1);
+      ui.radiusInput.value = params.R.toFixed(1);
+      ui.width.value = params.w.toFixed(1);
+      ui.widthInput.value = params.w.toFixed(1);
+      ui.height.value = params.h.toFixed(2);
+      ui.heightInput.value = params.h.toFixed(2);
+      ui.meshDetail.value = params.detail.toFixed(1);
+      ui.meshDetailInput.value = params.detail.toFixed(1);
+    }
+
+    function applyInputState(next) {
+      params.R = safeNumber(next.R, params.R);
+      params.w = safeNumber(next.w, params.w);
+      params.h = safeNumber(next.h, params.h);
+      params.detail = safeNumber(next.detail, params.detail);
+      setSliderRanges();
+      updateControlsFromState();
+    }
+
+    function modelTerms(R, w, h) {
+      const halfW = w / 2;
+      const halfH = h / 2;
+      const capOffset = Math.sqrt(Math.max(1e-6, R * R - halfW * halfW));
+      const thetaEdge = Math.atan2(capOffset, halfW);
+      const yTopCenter = halfH - capOffset;
+      const yBottomCenter = -halfH + capOffset;
+      return {
+        halfW,
+        halfH,
+        capOffset,
+        thetaEdge,
+        yTopCenter,
+        yBottomCenter,
+      };
+    }
+
+    function makeTopCapShape(R, w, h) {
+      const t = modelTerms(R, w, h);
+      const shape = new THREE.Shape();
+      shape.moveTo(-t.halfW, t.halfH);
+      shape.absarc(0, t.yTopCenter, R, Math.PI - t.thetaEdge, t.thetaEdge, true);
+      shape.lineTo(-t.halfW, t.halfH);
+      return shape;
+    }
+
+    function makeBottomCapShape(R, w, h) {
+      const t = modelTerms(R, w, h);
+      const shape = new THREE.Shape();
+      shape.moveTo(t.halfW, -t.halfH);
+      shape.absarc(0, t.yBottomCenter, R, 2 * Math.PI - t.thetaEdge, Math.PI + t.thetaEdge, true);
+      shape.lineTo(t.halfW, -t.halfH);
+      return shape;
+    }
+
+    function makeFullToyShape(R, w, h) {
+      const t = modelTerms(R, w, h);
+      const shape = new THREE.Shape();
+      shape.moveTo(-t.halfW, t.halfH);
+      shape.absarc(0, t.yTopCenter, R, Math.PI - t.thetaEdge, t.thetaEdge, true);
+      shape.lineTo(t.halfW, -t.halfH);
+      shape.absarc(0, t.yBottomCenter, R, 2 * Math.PI - t.thetaEdge, Math.PI + t.thetaEdge, true);
+      shape.lineTo(-t.halfW, t.halfH);
+      return shape;
+    }
+
+    function cloneAndAlignPatchToPrismFace(sourceGeometry, signZ, h) {
+      const geometry = sourceGeometry.clone();
+      const pos = geometry.getAttribute("position");
+      if (!pos || pos.count === 0) {
+        return geometry;
+      }
+      if (!geometry.boundingBox) {
+        geometry.computeBoundingBox();
+      }
+      const box = geometry.boundingBox;
+      const sourceFaceZ = signZ >= 0 ? box.min.z : box.max.z;
+      const targetFaceZ = signZ >= 0 ? h / 2 : -h / 2;
+      geometry.translate(0, 0, targetFaceZ - sourceFaceZ);
+      geometry.computeVertexNormals();
+      return geometry;
+    }
+
+    function makeCapIntersectionOutlines(R, w, sourceGeometry, signZ, h, segments = 64) {
+      if (!sourceGeometry.boundingBox) {
+        sourceGeometry.computeBoundingBox();
+      }
+      const box = sourceGeometry.boundingBox;
+      const sourceFaceZ = signZ >= 0 ? box.min.z : box.max.z;
+      const targetFaceZ = signZ >= 0 ? h / 2 : -h / 2;
+      const zShift = targetFaceZ - sourceFaceZ;
+      const half = w / 2;
+      const pointsA = [];
+      const pointsB = [];
+
+      for (let i = 0; i <= segments; i += 1) {
+        const t = -half + (2 * half * i) / segments;
+        const z = signZ * Math.sqrt(Math.max(0, R * R - t * t)) + zShift;
+        pointsA.push(new THREE.Vector3(t, t, z));
+        pointsB.push(new THREE.Vector3(t, -t, z));
+      }
+
+      const mat = new THREE.LineBasicMaterial({ color: 0x111111, transparent: true, opacity: 0.78 });
+      const lineA = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsA), mat);
+      const lineB = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointsB), mat.clone());
+      return [lineA, lineB];
+    }
+
+    function buildToy(R, w, h, patchInfos) {
+      const group = new THREE.Group();
+      const exportGroup = new THREE.Group();
+
+      const prismMat = new THREE.MeshStandardMaterial({
+        color: 0x8394ab,
+        roughness: 0.52,
+        metalness: 0.08,
+      });
+      const capMat = new THREE.MeshStandardMaterial({
+        color: 0x3d88de,
+        roughness: 0.45,
+        metalness: 0.06,
+        side: THREE.DoubleSide,
+      });
+
+      const prismGeometry = new THREE.BoxGeometry(w, w, h);
+      const prism = new THREE.Mesh(prismGeometry, prismMat);
+      group.add(prism);
+      exportGroup.add(new THREE.Mesh(prismGeometry.clone(), new THREE.MeshBasicMaterial()));
+
+      const prismEdgeLines = new THREE.LineSegments(
+        new THREE.EdgesGeometry(prismGeometry, 1),
+        new THREE.LineBasicMaterial({ color: 0x111111, transparent: true, opacity: 0.78 })
+      );
+      group.add(prismEdgeLines);
+
+      for (const info of patchInfos) {
+        const sourcePos = info.geometry.getAttribute("position");
+        if (!sourcePos || sourcePos.count === 0) {
+          continue;
+        }
+        const alignedGeo = cloneAndAlignPatchToPrismFace(info.geometry, info.signZ, h);
+        const capMesh = new THREE.Mesh(alignedGeo, capMat);
+        group.add(capMesh);
+        const seamLines = makeCapIntersectionOutlines(R, w, info.geometry, info.signZ, h);
+        group.add(seamLines[0]);
+        group.add(seamLines[1]);
+        exportGroup.add(new THREE.Mesh(alignedGeo.clone(), new THREE.MeshBasicMaterial()));
+      }
+
+      return { group, exportObject: exportGroup };
+    }
+
+    function steinmetzPatchY(R, segmentsA = 160, segmentsB = 72) {
+      const positions = [];
+      const normals = [];
+      const indices = [];
+
+      for (let i = 0; i <= segmentsA; i += 1) {
+        const a = (i / segmentsA) * Math.PI * 2;
+        const c = Math.cos(a);
+        const s = Math.sin(a);
+        const limit = R * Math.abs(c);
+
+        for (let j = 0; j <= segmentsB; j += 1) {
+          const t = -1 + (2 * j) / segmentsB;
+          const x = R * c;
+          const y = t * limit;
+          const z = R * s;
+          positions.push(x, y, z);
+          normals.push(c, 0, s);
+        }
+      }
+
+      for (let i = 0; i < segmentsA; i += 1) {
+        for (let j = 0; j < segmentsB; j += 1) {
+          const a = i * (segmentsB + 1) + j;
+          const b = (i + 1) * (segmentsB + 1) + j;
+          const c = b + 1;
+          const d = a + 1;
+          indices.push(a, b, d, b, c, d);
+        }
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+      geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+      geometry.setIndex(indices);
+      return geometry;
+    }
+
+    function steinmetzPatchX(R, segmentsA = 160, segmentsB = 72) {
+      const positions = [];
+      const normals = [];
+      const indices = [];
+
+      for (let i = 0; i <= segmentsA; i += 1) {
+        const a = (i / segmentsA) * Math.PI * 2;
+        const c = Math.cos(a);
+        const s = Math.sin(a);
+        const limit = R * Math.abs(c);
+
+        for (let j = 0; j <= segmentsB; j += 1) {
+          const t = -1 + (2 * j) / segmentsB;
+          const x = t * limit;
+          const y = R * c;
+          const z = R * s;
+          positions.push(x, y, z);
+          normals.push(0, c, s);
+        }
+      }
+
+      for (let i = 0; i < segmentsA; i += 1) {
+        for (let j = 0; j < segmentsB; j += 1) {
+          const a = i * (segmentsB + 1) + j;
+          const b = (i + 1) * (segmentsB + 1) + j;
+          const c = b + 1;
+          const d = a + 1;
+          indices.push(a, b, d, b, c, d);
+        }
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+      geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+      geometry.setIndex(indices);
+      return geometry;
+    }
+
+    function clipPolygonByPlane(vertices, signedDistance, epsilon = 1e-6) {
+      if (vertices.length === 0) {
+        return [];
+      }
+      const out = [];
+      let prev = vertices[vertices.length - 1];
+      let prevDist = signedDistance(prev.p);
+      let prevInside = prevDist >= -epsilon;
+
+      for (const curr of vertices) {
+        const currDist = signedDistance(curr.p);
+        const currInside = currDist >= -epsilon;
+
+        if (currInside !== prevInside) {
+          const denom = prevDist - currDist;
+          const t = Math.abs(denom) < 1e-12 ? 0 : prevDist / denom;
+          const point = prev.p.clone().lerp(curr.p, t);
+          const normal = prev.n.clone().lerp(curr.n, t).normalize();
+          out.push({ p: point, n: normal });
+        }
+
+        if (currInside) {
+          out.push({ p: curr.p.clone(), n: curr.n.clone() });
+        }
+
+        prev = curr;
+        prevDist = currDist;
+        prevInside = currInside;
+      }
+      return out;
+    }
+
+    function extractTrianglesInSquareWindow(sourceGeometry, center, halfSide, signZ, zMin, epsilon = 1e-5) {
+      const positions = sourceGeometry.getAttribute("position");
+      const normals = sourceGeometry.getAttribute("normal");
+      const index = sourceGeometry.getIndex();
+
+      const outPos = [];
+      const outNorm = [];
+      const a = new THREE.Vector3();
+      const b = new THREE.Vector3();
+      const c = new THREE.Vector3();
+      const na = new THREE.Vector3();
+      const nb = new THREE.Vector3();
+      const nc = new THREE.Vector3();
+
+      for (let i = 0; i < index.count; i += 3) {
+        const ia = index.getX(i);
+        const ib = index.getX(i + 1);
+        const ic = index.getX(i + 2);
+        a.fromBufferAttribute(positions, ia);
+        b.fromBufferAttribute(positions, ib);
+        c.fromBufferAttribute(positions, ic);
+
+        na.fromBufferAttribute(normals, ia);
+        nb.fromBufferAttribute(normals, ib);
+        nc.fromBufferAttribute(normals, ic);
+
+        let poly = [
+          { p: a.clone(), n: na.clone() },
+          { p: b.clone(), n: nb.clone() },
+          { p: c.clone(), n: nc.clone() },
+        ];
+
+        poly = clipPolygonByPlane(poly, (p) => p.x - (center.x - halfSide), epsilon);
+        poly = clipPolygonByPlane(poly, (p) => (center.x + halfSide) - p.x, epsilon);
+        poly = clipPolygonByPlane(poly, (p) => p.y - (center.y - halfSide), epsilon);
+        poly = clipPolygonByPlane(poly, (p) => (center.y + halfSide) - p.y, epsilon);
+        poly = clipPolygonByPlane(poly, (p) => signZ * p.z - zMin, epsilon);
+
+        if (poly.length < 3) {
+          continue;
+        }
+
+        for (let k = 1; k < poly.length - 1; k += 1) {
+          const p0 = poly[0];
+          const p1 = poly[k];
+          const p2 = poly[k + 1];
+          outPos.push(
+            p0.p.x, p0.p.y, p0.p.z,
+            p1.p.x, p1.p.y, p1.p.z,
+            p2.p.x, p2.p.y, p2.p.z
+          );
+          outNorm.push(
+            p0.n.x, p0.n.y, p0.n.z,
+            p1.n.x, p1.n.y, p1.n.z,
+            p2.n.x, p2.n.y, p2.n.z
+          );
+        }
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.Float32BufferAttribute(outPos, 3));
+      geometry.setAttribute("normal", new THREE.Float32BufferAttribute(outNorm, 3));
+      if (outPos.length > 0) {
+        geometry.computeBoundingBox();
+        geometry.computeBoundingSphere();
+      }
+      return geometry;
+    }
+
+    function mergeTriangleSoup(geometries) {
+      const mergedPos = [];
+      const mergedNorm = [];
+
+      for (const geometry of geometries) {
+        if (!geometry) {
+          continue;
+        }
+        const pos = geometry.getAttribute("position");
+        const norm = geometry.getAttribute("normal");
+        if (!pos || pos.count === 0) {
+          continue;
+        }
+        if (!norm) {
+          geometry.computeVertexNormals();
+        }
+        const n = geometry.getAttribute("normal");
+        for (let i = 0; i < pos.count; i += 1) {
+          mergedPos.push(pos.getX(i), pos.getY(i), pos.getZ(i));
+          mergedNorm.push(n.getX(i), n.getY(i), n.getZ(i));
+        }
+      }
+
+      const merged = new THREE.BufferGeometry();
+      merged.setAttribute("position", new THREE.Float32BufferAttribute(mergedPos, 3));
+      merged.setAttribute("normal", new THREE.Float32BufferAttribute(mergedNorm, 3));
+      if (mergedPos.length > 0) {
+        merged.computeBoundingBox();
+        merged.computeBoundingSphere();
+      }
+      return merged;
+    }
+
+    function buildIntersectionSquarePatch(R, w, signZ, patchYGeometry, patchXGeometry) {
+      const patchSide = Math.max(PARAM_MIN, w);
+      const halfSide = patchSide / 2;
+      const center = new THREE.Vector3(0, 0, signZ >= 0 ? R : -R);
+      const zMin = Math.sqrt(Math.max(0, R * R - halfSide * halfSide));
+      const partY = extractTrianglesInSquareWindow(patchYGeometry, center, halfSide, signZ >= 0 ? 1 : -1, zMin);
+      const partX = extractTrianglesInSquareWindow(patchXGeometry, center, halfSide, signZ >= 0 ? 1 : -1, zMin);
+      const geometry = mergeTriangleSoup([partY, partX]);
+      partY.dispose();
+      partX.dispose();
+
+      return {
+        geometry,
+        center,
+        patchSide,
+        signZ: signZ >= 0 ? 1 : -1,
+      };
+    }
+
+    function cutMeshResolution(R, w, detail) {
+      const d = clamp(detail, 0.5, 3.0);
+      const targetEdge = Math.max(0.04, Math.min(0.9, w / (8 * d)));
+      return {
+        segA: Math.max(180, Math.min(420, Math.ceil((2 * Math.PI * R) / targetEdge))),
+        segB: Math.max(84, Math.min(220, Math.ceil((2 * R) / targetEdge))),
+      };
+    }
+
+    function displayMeshResolution(detail) {
+      const d = clamp(detail, 0.5, 3.0);
+      return {
+        segA: Math.max(96, Math.min(360, Math.round(150 * d))),
+        segB: Math.max(44, Math.min(180, Math.round(72 * d))),
+      };
+    }
+
+    function makeCenterDot(center, radius, color = 0xd72222) {
+      const geometry = new THREE.SphereGeometry(radius, 16, 16);
+      const material = new THREE.MeshStandardMaterial({
+        color,
+        emissive: 0x520909,
+        emissiveIntensity: 0.32,
+      });
+      const dot = new THREE.Mesh(geometry, material);
+      dot.position.copy(center);
+      return dot;
+    }
+
+    function makeDashedCylinderOutline(radius, length, axis = "y", color = 0x647892) {
+      function makeDashedLine(points) {
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        const material = new THREE.LineDashedMaterial({
+          color,
+          transparent: true,
+          opacity: 0.72,
+          dashSize: Math.max(0.4, radius * 0.1),
+          gapSize: Math.max(0.24, radius * 0.06),
+        });
+        const line = new THREE.Line(geometry, material);
+        line.computeLineDistances();
+        return line;
+      }
+
+      function makeRing(yPos, segments = 24) {
+        const points = [];
+        for (let i = 0; i <= segments; i += 1) {
+          const a = (i / segments) * Math.PI * 2;
+          points.push(new THREE.Vector3(radius * Math.cos(a), yPos, radius * Math.sin(a)));
+        }
+        return makeDashedLine(points);
+      }
+
+      const group = new THREE.Group();
+      const half = length / 2;
+      group.add(makeRing(-half));
+      group.add(makeRing(half));
+
+      const generatrixPoints = [
+        new THREE.Vector3(radius, -half, 0),
+        new THREE.Vector3(radius, half, 0),
+        new THREE.Vector3(-radius, -half, 0),
+        new THREE.Vector3(-radius, half, 0),
+      ];
+
+      for (let i = 0; i < generatrixPoints.length; i += 2) {
+        group.add(makeDashedLine([generatrixPoints[i], generatrixPoints[i + 1]]));
+      }
+
+      if (axis === "x") {
+        group.rotation.z = -Math.PI / 2;
+      }
+      if (axis === "z") {
+        group.rotation.x = Math.PI / 2;
+      }
+      return group;
+    }
+
+    function makeDashedCenterCircle(radius, color = 0x111111, segments = 88) {
+      const points = [];
+      for (let i = 0; i <= segments; i += 1) {
+        const a = (i / segments) * Math.PI * 2;
+        points.push(new THREE.Vector3(0, radius * Math.cos(a), radius * Math.sin(a)));
+      }
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+      const material = new THREE.LineDashedMaterial({
+        color,
+        transparent: true,
+        opacity: 0.82,
+        dashSize: Math.max(0.5, radius * 0.06),
+        gapSize: Math.max(0.24, radius * 0.032),
+        depthTest: false,
+        depthWrite: false,
+      });
+      const circle = new THREE.Line(geometry, material);
+      circle.computeLineDistances();
+      circle.renderOrder = 35;
+      return circle;
+    }
+
+    function buildSteinmetz(R, w, detail) {
+      const group = new THREE.Group();
+
+      const shellMat = new THREE.MeshStandardMaterial({
+        color: 0x6f88ac,
+        transparent: true,
+        opacity: 0.34,
+        side: THREE.DoubleSide,
+        roughness: 0.52,
+        metalness: 0.08,
+      });
+
+      const displayRes = displayMeshResolution(detail);
+      const patchYGeometry = steinmetzPatchY(R, displayRes.segA, displayRes.segB);
+      const patchXGeometry = steinmetzPatchX(R, displayRes.segA, displayRes.segB);
+      const patchY = new THREE.Mesh(patchYGeometry, shellMat);
+      const patchX = new THREE.Mesh(patchXGeometry, shellMat.clone());
+      group.add(patchY);
+      group.add(patchX);
+
+      // Dashed outlines of the two parent right cylinders (finite length 2R for context).
+      const cylOutlineY = makeDashedCylinderOutline(R, 2 * R, "y", 0x6f8199);
+      const cylOutlineX = makeDashedCylinderOutline(R, 2 * R, "x", 0x6f8199);
+      group.add(cylOutlineY);
+      group.add(cylOutlineX);
+
+      // Dashed central cross-section (yz-plane).
+      group.add(makeDashedCenterCircle(R));
+
+      // Extract caps from a denser triangulation so small w remains geometrically consistent.
+      const cutRes = cutMeshResolution(R, w, detail);
+      const patchYCut = steinmetzPatchY(R, cutRes.segA, cutRes.segB);
+      const patchXCut = steinmetzPatchX(R, cutRes.segA, cutRes.segB);
+
+      // Red square caps centered at opposite intersection-side points (+z and -z).
+      const squareAInfo = buildIntersectionSquarePatch(R, w, 1, patchYCut, patchXCut);
+      const squareBInfo = buildIntersectionSquarePatch(R, w, -1, patchYCut, patchXCut);
+      patchYCut.dispose();
+      patchXCut.dispose();
+
+      const redMat = new THREE.MeshStandardMaterial({
+        color: 0xda3b3b,
+        emissive: 0x4a0909,
+        emissiveIntensity: 0.25,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.9,
+      });
+
+      const squareA = new THREE.Mesh(squareAInfo.geometry, redMat);
+      const squareB = new THREE.Mesh(squareBInfo.geometry, redMat.clone());
+      group.add(squareA);
+      group.add(squareB);
+
+      const edgeA = new THREE.LineSegments(
+        new THREE.EdgesGeometry(squareAInfo.geometry, 36),
+        new THREE.LineBasicMaterial({ color: 0x801212 })
+      );
+      const edgeB = new THREE.LineSegments(
+        new THREE.EdgesGeometry(squareBInfo.geometry, 36),
+        new THREE.LineBasicMaterial({ color: 0x801212 })
+      );
+      group.add(edgeA);
+      group.add(edgeB);
+
+      const dotRadius = Math.max(0.15, w * 0.03);
+      group.add(makeCenterDot(squareAInfo.center, dotRadius));
+      group.add(makeCenterDot(squareBInfo.center, dotRadius));
+
+      return {
+        group,
+        patchInfos: [
+          {
+            center: squareAInfo.center.clone(),
+            signZ: squareAInfo.signZ,
+            patchSide: squareAInfo.patchSide,
+            geometry: squareAInfo.geometry.clone(),
+          },
+          {
+            center: squareBInfo.center.clone(),
+            signZ: squareBInfo.signZ,
+            patchSide: squareBInfo.patchSide,
+            geometry: squareBInfo.geometry.clone(),
+          },
+        ],
+      };
+    }
+
+    function fitCameraToObject(camera, renderer, controls, object, padding = 1.2) {
+      if (!object) {
+        return;
+      }
+
+      const width = Math.max(1, renderer.domElement.clientWidth);
+      const height = Math.max(1, renderer.domElement.clientHeight);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+
+      const box = new THREE.Box3().setFromObject(object);
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+
+      const fov = THREE.MathUtils.degToRad(camera.fov);
+      const fovh = 2 * Math.atan(Math.tan(fov / 2) * camera.aspect);
+      const dx = size.x / (2 * Math.tan(fovh / 2));
+      const dy = size.y / (2 * Math.tan(fov / 2));
+      const dz = size.z * 0.9;
+      const distance = padding * Math.max(dx, dy, dz);
+
+      const viewDir = new THREE.Vector3(1, 0.82, 1).normalize();
+      camera.position.copy(center).add(viewDir.multiplyScalar(distance + 0.001));
+      camera.near = Math.max(0.01, distance / 120);
+      camera.far = Math.max(1000, distance * 120);
+      camera.updateProjectionMatrix();
+
+      controls.target.copy(center);
+      controls.minDistance = Math.max(5, distance * 0.28);
+      controls.maxDistance = Math.max(20, distance * 9);
+      controls.update();
+    }
+
+    function sampleOutlinePoints(R, w, h, arcSegments = 64, edgeSegments = 20) {
+      const t = modelTerms(R, w, h);
+      const points = [];
+
+      for (let i = 0; i <= arcSegments; i += 1) {
+        const f = i / arcSegments;
+        const a = Math.PI - t.thetaEdge - (Math.PI - 2 * t.thetaEdge) * f;
+        points.push({ x: R * Math.cos(a), y: t.yTopCenter + R * Math.sin(a) });
+      }
+
+      for (let i = 1; i <= edgeSegments; i += 1) {
+        const f = i / edgeSegments;
+        points.push({ x: t.halfW, y: t.halfH - h * f });
+      }
+
+      for (let i = 0; i <= arcSegments; i += 1) {
+        const f = i / arcSegments;
+        const a = 2 * Math.PI - t.thetaEdge - (Math.PI - 2 * t.thetaEdge) * f;
+        points.push({ x: R * Math.cos(a), y: t.yBottomCenter + R * Math.sin(a) });
+      }
+
+      for (let i = 1; i <= edgeSegments; i += 1) {
+        const f = i / edgeSegments;
+        points.push({ x: -t.halfW, y: -t.halfH + h * f });
+      }
+
+      return points;
+    }
+
+    function maxPureRollingAngle(R, w, h) {
+      const t = modelTerms(R, w, h);
+      return Math.max(0, Math.PI / 2 - t.thetaEdge - 0.02);
+    }
+
+    function currentRollFraction() {
+      return clamp(safeNumber(ui.rollSlider.value, 0) / 100, -1, 1);
+    }
+
+    function updateRollReadout(maxAngle) {
+      const fraction = currentRollFraction();
+      const angleDeg = THREE.MathUtils.radToDeg(fraction * maxAngle);
+      ui.rollVal.textContent = `${(fraction * 100).toFixed(1)}% | ${angleDeg.toFixed(1)}°`;
+    }
+
+    function worldPoseForRolling(points, R, w, h, angle) {
+      const t = modelTerms(R, w, h);
+      const circleCenterLocal = { x: 0, y: t.yBottomCenter };
+      const circleCenterWorld = { x: R * angle, y: R };
+      const bodyAngle = -angle;
+      const c = Math.cos(bodyAngle);
+      const s = Math.sin(bodyAngle);
+
+      return points.map((p) => {
+        const dx = p.x - circleCenterLocal.x;
+        const py = p.y - circleCenterLocal.y;
+        const xr = c * dx - s * py + circleCenterWorld.x;
+        const yr = s * dx + c * py + circleCenterWorld.y;
+        return { x: xr, y: yr };
+      });
+    }
+
+    function computeSideFrameBounds(R, w, h) {
+      const localPoints = sampleOutlinePoints(R, w, h);
+      const maxAngle = maxPureRollingAngle(R, w, h);
+      const samples = 42;
+      let xMin = Infinity;
+      let xMax = -Infinity;
+      let yMin = Infinity;
+      let yMax = -Infinity;
+
+      for (let i = 0; i <= samples; i += 1) {
+        const f = -1 + (2 * i) / samples;
+        const angle = f * maxAngle;
+        const worldPoints = worldPoseForRolling(localPoints, R, w, h, angle);
+        const cx = R * angle;
+        for (const p of worldPoints) {
+          xMin = Math.min(xMin, p.x);
+          xMax = Math.max(xMax, p.x);
+          yMin = Math.min(yMin, p.y);
+          yMax = Math.max(yMax, p.y);
+        }
+        xMin = Math.min(xMin, cx - R);
+        xMax = Math.max(xMax, cx + R);
+        yMin = Math.min(yMin, 0, R - R);
+        yMax = Math.max(yMax, R + R);
+      }
+
+      const xAbs = Math.max(Math.abs(xMin), Math.abs(xMax));
+      const spanX = Math.max(1e-6, 2 * xAbs);
+      const floorY = Math.min(0, yMin);
+      const spanY = Math.max(1e-6, yMax - floorY);
+      const padX = Math.max(0.8, spanX * 0.14);
+      const padY = Math.max(0.8, spanY * 0.2);
+
+      return {
+        maxAngle,
+        xMin: -xAbs - padX,
+        xMax: xAbs + padX,
+        yMin: floorY - padY * 0.2,
+        yMax: yMax + padY,
+      };
+    }
+
+    function drawSideView() {
+      const canvas = ui.sideCanvas;
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const width = Math.max(30, Math.floor(rect.width));
+      const height = Math.max(30, Math.floor(rect.height));
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+
+      if (!sideFrame) {
+        sideFrame = computeSideFrameBounds(params.R, params.w, params.h);
+      }
+
+      updateRollReadout(sideFrame.maxAngle);
+      rollingAngle = sideFrame.maxAngle * currentRollFraction();
+
+      const localPoints = sampleOutlinePoints(params.R, params.w, params.h);
+      const worldPoints = worldPoseForRolling(localPoints, params.R, params.w, params.h, rollingAngle);
+      const circleCenter = { x: params.R * rollingAngle, y: params.R };
+
+      const innerPad = 18;
+      const sx = (width - 2 * innerPad) / Math.max(1e-6, sideFrame.xMax - sideFrame.xMin);
+      const sy = (height - 2 * innerPad) / Math.max(1e-6, sideFrame.yMax - sideFrame.yMin);
+      const scale = Math.min(sx, sy);
+
+      const tx = innerPad - sideFrame.xMin * scale;
+      const ty = height - innerPad + sideFrame.yMin * scale;
+
+      function mapX(x) {
+        return tx + x * scale;
+      }
+      function mapY(y) {
+        return ty - y * scale;
+      }
+
+      const groundY = mapY(0);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#495b75";
+      ctx.beginPath();
+      ctx.moveTo(0, groundY);
+      ctx.lineTo(width, groundY);
+      ctx.stroke();
+
+      ctx.setLineDash([6, 6]);
+      ctx.strokeStyle = "#9aa8bd";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(mapX(-params.R * sideFrame.maxAngle), groundY);
+      ctx.lineTo(mapX(params.R * sideFrame.maxAngle), groundY);
+      ctx.stroke();
+
+      ctx.setLineDash([8, 7]);
+      ctx.strokeStyle = "#7a8aa2";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.arc(mapX(circleCenter.x), mapY(circleCenter.y), params.R * scale, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(mapX(circleCenter.x), mapY(circleCenter.y - params.R));
+      ctx.lineTo(mapX(circleCenter.x), mapY(circleCenter.y + params.R));
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.beginPath();
+      ctx.moveTo(mapX(worldPoints[0].x), mapY(worldPoints[0].y));
+      for (let i = 1; i < worldPoints.length; i += 1) {
+        ctx.lineTo(mapX(worldPoints[i].x), mapY(worldPoints[i].y));
+      }
+      ctx.closePath();
+      ctx.fillStyle = "#6fa7e5";
+      ctx.strokeStyle = "#1f4f88";
+      ctx.lineWidth = 2;
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "#c81f1f";
+      ctx.beginPath();
+      ctx.arc(mapX(circleCenter.x), mapY(0), 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#111111";
+      ctx.beginPath();
+      ctx.arc(mapX(circleCenter.x), mapY(circleCenter.y), 3.4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#314766";
+      ctx.font = "12px Segoe UI, sans-serif";
+      ctx.fillText("Dashed circle: rolling parent cylinder", 12, 18);
+      ctx.fillText("Red point: instantaneous contact", 12, 34);
+      ctx.fillText("Black point: cylinder center", 12, 50);
+    }
+
+    function disposeNode(node) {
+      if (!node) {
+        return;
+      }
+      node.traverse((obj) => {
+        if (obj.geometry) {
+          obj.geometry.dispose();
+        }
+        if (obj.material) {
+          if (Array.isArray(obj.material)) {
+            obj.material.forEach((m) => m.dispose());
+          } else {
+            obj.material.dispose();
+          }
+        }
+      });
+    }
+
+    function rebuildModels() {
+      sideFrame = computeSideFrameBounds(params.R, params.w, params.h);
+      const hasRollingRange = sideFrame.maxAngle > 1e-4;
+      ui.rollSlider.disabled = !hasRollingRange;
+      if (!hasRollingRange) {
+        ui.rollSlider.value = "0";
+      }
+      rollingAngle = sideFrame.maxAngle * currentRollFraction();
+
+      if (toyGroup) {
+        toyScene.remove(toyGroup);
+        disposeNode(toyGroup);
+      }
+      if (steinGroup) {
+        steinScene.remove(steinGroup);
+        disposeNode(steinGroup);
+      }
+      if (toyExportObject) {
+        disposeNode(toyExportObject);
+      }
+
+      const stein = buildSteinmetz(params.R, params.w, params.detail);
+      steinGroup = stein.group;
+      steinScene.add(steinGroup);
+
+      const toy = buildToy(params.R, params.w, params.h, stein.patchInfos);
+      toyGroup = toy.group;
+      toyExportObject = toy.exportObject;
+      toyScene.add(toyGroup);
+      for (const patch of stein.patchInfos) {
+        patch.geometry.dispose();
+      }
+
+      fitCameraToObject(toyCamera, toyRenderer, toyControls, toyGroup, TOY_CAMERA_PADDING);
+      fitCameraToObject(steinCamera, steinRenderer, steinControls, steinGroup, STEIN_CAMERA_PADDING);
+      drawSideView();
+
+      ui.note.textContent = `Red caps are clipped to side w with triangle clipping; toy uses those exact 3D caps. Center dashed circle marks the cylinder reference at the solid center. Mesh detail factor: ${params.detail.toFixed(1)}.`;
+      ui.note.className = "";
+    }
+
+    function resizeRendererToDisplaySize(renderer, camera, controls, targetObject, padding) {
+      const canvas = renderer.domElement;
+      const width = Math.max(1, Math.floor(canvas.clientWidth));
+      const height = Math.max(1, Math.floor(canvas.clientHeight));
+      const pixelRatio = renderer.getPixelRatio();
+      const targetWidth = Math.floor(width * pixelRatio);
+      const targetHeight = Math.floor(height * pixelRatio);
+      const resized = canvas.width !== targetWidth || canvas.height !== targetHeight;
+      if (resized) {
+        renderer.setSize(width, height, false);
+        fitCameraToObject(camera, renderer, controls, targetObject, padding);
+      }
+      return resized;
+    }
+
+    function updateParam(key, rawValue) {
+      const next = { R: params.R, w: params.w, h: params.h, detail: params.detail };
+      next[key] = safeNumber(rawValue, next[key]);
+      applyInputState(next);
+      rebuildModels();
+    }
+
+    function bindParamControls(rangeInput, numberInput, key) {
+      rangeInput.addEventListener("input", () => {
+        updateParam(key, rangeInput.value);
+      });
+      numberInput.addEventListener("change", () => {
+        updateParam(key, numberInput.value);
+      });
+    }
+
+    bindParamControls(ui.radius, ui.radiusInput, "R");
+    bindParamControls(ui.width, ui.widthInput, "w");
+    bindParamControls(ui.height, ui.heightInput, "h");
+    bindParamControls(ui.meshDetail, ui.meshDetailInput, "detail");
+
+    ui.rollSlider.addEventListener("input", () => {
+      drawSideView();
+    });
+
+    ui.resetDefaults.addEventListener("click", () => {
+      applyInputState({
+        R: DEFAULT_PARAMS.R,
+        w: DEFAULT_PARAMS.w,
+        h: DEFAULT_PARAMS.h,
+        detail: DEFAULT_PARAMS.detail,
+      });
+      ui.rollSlider.value = "0";
+      rebuildModels();
+    });
+
+    ui.resetView.addEventListener("click", () => {
+      fitCameraToObject(toyCamera, toyRenderer, toyControls, toyGroup, TOY_CAMERA_PADDING);
+      fitCameraToObject(steinCamera, steinRenderer, steinControls, steinGroup, STEIN_CAMERA_PADDING);
+      drawSideView();
+    });
+
+    ui.downloadStl.addEventListener("click", () => {
+      try {
+        if (!toyExportObject) {
+          return;
+        }
+        toyExportObject.updateMatrixWorld(true);
+        const exporter = new STLExporter();
+        const stl = exporter.parse(toyExportObject, { binary: false });
+        const blob = stl instanceof DataView
+          ? new Blob([stl], { type: "application/octet-stream" })
+          : new Blob([stl], { type: "model/stl" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `flipo_flip_R${params.R}_w${params.w}_h${params.h}.stl`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        ui.note.textContent = `STL export failed: ${String(err)}`;
+        ui.note.className = "warn";
+      }
+    });
+
+    window.addEventListener("resize", () => {
+      fitCameraToObject(toyCamera, toyRenderer, toyControls, toyGroup, TOY_CAMERA_PADDING);
+      fitCameraToObject(steinCamera, steinRenderer, steinControls, steinGroup, STEIN_CAMERA_PADDING);
+      drawSideView();
+    });
+
+    setSliderRanges();
+    updateControlsFromState();
+    rebuildModels();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      resizeRendererToDisplaySize(toyRenderer, toyCamera, toyControls, toyGroup, TOY_CAMERA_PADDING);
+      resizeRendererToDisplaySize(steinRenderer, steinCamera, steinControls, steinGroup, STEIN_CAMERA_PADDING);
+
+      toyControls.update();
+      steinControls.update();
+      toyRenderer.render(toyScene, toyCamera);
+      steinRenderer.render(steinScene, steinCamera);
+    }
+
+    animate();
+  </script>
+</body>
+</html>

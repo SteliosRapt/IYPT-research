@@ -1,0 +1,926 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Flipo Flip Phase Intuition (2D)</title>
+  <style>
+    :root {
+      --bg: #f2f5f9;
+      --panel: #ffffff;
+      --ink: #122038;
+      --muted: #5a6a82;
+      --border: #d8e0eb;
+      --accent: #2f7de1;
+      --warn: #a32b2b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 8%, #dce9fa 0%, transparent 32%),
+        radial-gradient(circle at 88% 12%, #e9f0ff 0%, transparent 30%),
+        var(--bg);
+    }
+
+    .app {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 1rem;
+      display: grid;
+      gap: 0.9rem;
+    }
+
+    .controls {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 0.9rem;
+      box-shadow: 0 8px 20px rgba(22, 36, 66, 0.06);
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .controls h1 {
+      margin: 0;
+      font-size: 1.08rem;
+      line-height: 1.25;
+    }
+
+    .sub {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .grid3 {
+      display: grid;
+      gap: 0.65rem;
+      grid-template-columns: repeat(3, minmax(150px, 1fr));
+    }
+
+    .grid2 {
+      display: grid;
+      gap: 0.65rem;
+      grid-template-columns: repeat(2, minmax(150px, 1fr));
+    }
+
+    .slider-row {
+      display: grid;
+      gap: 0.28rem;
+    }
+
+    .slider-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.86rem;
+      color: var(--muted);
+    }
+
+    .num-box {
+      width: 7rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.33rem 0.5rem;
+      font-size: 0.86rem;
+      color: #1b2d49;
+      background: #fff;
+    }
+
+    .num-box:focus {
+      outline: 2px solid #b8d6ff;
+      outline-offset: 1px;
+      border-color: #a6c6f4;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    .phase-box {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.6rem 0.7rem;
+      background: #f8fbff;
+      display: grid;
+      gap: 0.55rem;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 0.55rem 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: #dbeafe;
+      color: #17417f;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .status {
+      display: grid;
+      gap: 0.24rem;
+      font-size: 0.87rem;
+      color: #2f4769;
+    }
+
+    .status strong {
+      color: #1d3558;
+    }
+
+    .warn {
+      color: var(--warn);
+      font-size: 0.85rem;
+      min-height: 1.05rem;
+      margin: 0;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(22, 36, 66, 0.06);
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 430px;
+    }
+
+    .panel h2 {
+      margin: 0;
+      padding: 0.65rem 0.78rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.94rem;
+      font-weight: 600;
+      color: #1f3459;
+      background: #f8fbff;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      min-height: 360px;
+    }
+
+    @media (max-width: 920px) {
+      .grid3,
+      .grid2 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="controls">
+      <h1>Flipo Flip Intuition View (2D, Phase-Based)</h1>
+      <p class="sub">Kinematic phase playback only (no equations of motion integration). Initial state is upright with a flat side on the floor. The dashed parent-cylinder outline is shown only in pure patch rolling phases.</p>
+
+      <div class="grid3">
+        <label class="slider-row" for="radius">
+          <span class="slider-top">
+            <span>R (cm)</span>
+            <input class="num-box" id="radiusInput" type="number" min="0.2" step="0.1" />
+          </span>
+          <input id="radius" type="range" min="0.2" max="300" step="0.1" />
+        </label>
+
+        <label class="slider-row" for="width">
+          <span class="slider-top">
+            <span>w (cm)</span>
+            <input class="num-box" id="widthInput" type="number" min="0.2" step="0.1" />
+          </span>
+          <input id="width" type="range" min="0.2" max="300" step="0.1" />
+        </label>
+
+        <label class="slider-row" for="height">
+          <span class="slider-top">
+            <span>h (cm)</span>
+            <input class="num-box" id="heightInput" type="number" min="0.1" step="0.01" />
+          </span>
+          <input id="height" type="range" min="0.1" max="25" step="0.01" />
+        </label>
+      </div>
+
+      <div class="phase-box">
+        <label class="slider-row" for="phaseSlider">
+          <span class="slider-top">
+            <span>Cycle phase slider</span>
+            <strong id="phasePercent">0.0%</strong>
+          </span>
+          <input id="phaseSlider" type="range" min="0" max="1000" step="0.1" value="0" />
+        </label>
+
+        <div class="grid2">
+          <div class="row">
+            <button id="playPause" class="primary">Play</button>
+            <label class="row" for="loopToggle">
+              <input id="loopToggle" type="checkbox" checked />
+              <span>Loop</span>
+            </label>
+            <button id="resetCycle">Reset Cycle</button>
+          </div>
+
+          <label class="slider-row" for="speed">
+            <span class="slider-top">
+              <span>Playback speed</span>
+              <input class="num-box" id="speedInput" type="number" min="0.1" max="4" step="0.1" />
+            </span>
+            <input id="speed" type="range" min="0.1" max="4" step="0.1" />
+          </label>
+        </div>
+
+        <div class="status">
+          <div><strong>Current phase:</strong> <span id="phaseName">Pure patch rolling (bottom cap)</span></div>
+          <div><strong>Phase index:</strong> <span id="phaseIndex">1 / 6</span></div>
+          <div><strong>Geometry:</strong> <span id="geomInfo"></span></div>
+        </div>
+      </div>
+
+      <p id="note" class="warn"></p>
+    </section>
+
+    <section class="panel">
+      <h2>2D Motion Phase View</h2>
+      <canvas id="sideCanvas"></canvas>
+    </section>
+  </div>
+
+  <script>
+    const ui = {
+      radius: document.getElementById("radius"),
+      radiusInput: document.getElementById("radiusInput"),
+      width: document.getElementById("width"),
+      widthInput: document.getElementById("widthInput"),
+      height: document.getElementById("height"),
+      heightInput: document.getElementById("heightInput"),
+      phaseSlider: document.getElementById("phaseSlider"),
+      phasePercent: document.getElementById("phasePercent"),
+      playPause: document.getElementById("playPause"),
+      resetCycle: document.getElementById("resetCycle"),
+      loopToggle: document.getElementById("loopToggle"),
+      speed: document.getElementById("speed"),
+      speedInput: document.getElementById("speedInput"),
+      phaseName: document.getElementById("phaseName"),
+      phaseIndex: document.getElementById("phaseIndex"),
+      geomInfo: document.getElementById("geomInfo"),
+      note: document.getElementById("note"),
+      sideCanvas: document.getElementById("sideCanvas"),
+    };
+
+    const DEFAULTS = {
+      R: 18,
+      w: 13,
+      h: 1,
+      speed: 1.0,
+    };
+
+    const params = {
+      R: DEFAULTS.R,
+      w: DEFAULTS.w,
+      h: DEFAULTS.h,
+    };
+
+    const playback = {
+      playhead: 0,
+      playing: false,
+      loop: true,
+      speed: DEFAULTS.speed,
+      lastTs: null,
+      secondsPerCycle: 8.0,
+    };
+
+    const END_EPS = 1e-6;
+
+    let outlineLocal = [];
+    let cycle = null;
+    let frameBounds = null;
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function safeNumber(value, fallback) {
+      const num = Number(value);
+      return Number.isFinite(num) ? num : fallback;
+    }
+
+    function lerp(a, b, u) {
+      return a + (b - a) * u;
+    }
+
+    function modelTerms(R, w, h) {
+      const halfW = w / 2;
+      const halfH = h / 2;
+      const capOffset = Math.sqrt(Math.max(1e-8, R * R - halfW * halfW));
+      const thetaEdge = Math.atan2(capOffset, halfW);
+      const yTopCenter = halfH - capOffset;
+      const yBottomCenter = -halfH + capOffset;
+      return {
+        halfW,
+        halfH,
+        capOffset,
+        thetaEdge,
+        yTopCenter,
+        yBottomCenter,
+      };
+    }
+
+    function maxPureRollingAngle(R, w, h) {
+      const t = modelTerms(R, w, h);
+      return Math.max(0, Math.PI / 2 - t.thetaEdge);
+    }
+
+    function sampleOutlinePoints(R, w, h, arcSegments = 72, edgeSegments = 32) {
+      const t = modelTerms(R, w, h);
+      const points = [];
+
+      for (let i = 0; i <= arcSegments; i += 1) {
+        const f = i / arcSegments;
+        const a = Math.PI - t.thetaEdge - (Math.PI - 2 * t.thetaEdge) * f;
+        points.push({ x: R * Math.cos(a), y: t.yTopCenter + R * Math.sin(a) });
+      }
+
+      for (let i = 1; i <= edgeSegments; i += 1) {
+        const f = i / edgeSegments;
+        points.push({ x: t.halfW, y: t.halfH - h * f });
+      }
+
+      for (let i = 0; i <= arcSegments; i += 1) {
+        const f = i / arcSegments;
+        const a = 2 * Math.PI - t.thetaEdge - (Math.PI - 2 * t.thetaEdge) * f;
+        points.push({ x: R * Math.cos(a), y: t.yBottomCenter + R * Math.sin(a) });
+      }
+
+      for (let i = 1; i <= edgeSegments; i += 1) {
+        const f = i / edgeSegments;
+        points.push({ x: -t.halfW, y: -t.halfH + h * f });
+      }
+
+      return points;
+    }
+
+    function rotatePoint(point, theta) {
+      const c = Math.cos(theta);
+      const s = Math.sin(theta);
+      return {
+        x: c * point.x - s * point.y,
+        y: s * point.x + c * point.y,
+      };
+    }
+
+    function poseFromPivot(theta, pivotLocal, pivotWorld) {
+      const rotatedPivot = rotatePoint(pivotLocal, theta);
+      return {
+        theta,
+        tx: pivotWorld.x - rotatedPivot.x,
+        ty: pivotWorld.y - rotatedPivot.y,
+      };
+    }
+
+    function poseFromCenter(theta, centerLocal, centerWorld) {
+      const rotatedCenter = rotatePoint(centerLocal, theta);
+      return {
+        theta,
+        tx: centerWorld.x - rotatedCenter.x,
+        ty: centerWorld.y - rotatedCenter.y,
+      };
+    }
+
+    function worldPoint(localPoint, pose) {
+      const r = rotatePoint(localPoint, pose.theta);
+      return { x: r.x + pose.tx, y: r.y + pose.ty };
+    }
+
+    function buildCycle(R, w, h) {
+      const t = modelTerms(R, w, h);
+      const phiRaw = maxPureRollingAngle(R, w, h);
+      const phi = Math.max(1e-6, phiRaw);
+
+      const p = {
+        rb: { x: t.halfW, y: -t.halfH },
+        rt: { x: t.halfW, y: t.halfH },
+        lt: { x: -t.halfW, y: t.halfH },
+        lb: { x: -t.halfW, y: -t.halfH },
+        cBot: { x: 0, y: t.yBottomCenter },
+        cTop: { x: 0, y: t.yTopCenter },
+      };
+
+      function poseBottomRolling(phiValue, startContactX = 0) {
+        const theta = -phiValue;
+        const cx = startContactX + R * (phiValue + phi);
+        return poseFromCenter(theta, p.cBot, { x: cx, y: R });
+      }
+
+      function poseTopRolling(phiValue, startContactX) {
+        const theta = -Math.PI + phiValue;
+        const cx = startContactX + R * (phi - phiValue);
+        return poseFromCenter(theta, p.cTop, { x: cx, y: R });
+      }
+
+      const poseAEnd = poseBottomRolling(phi, 0);
+      const rbWorld = worldPoint(p.rb, poseAEnd);
+
+      const thetaBEnd = -Math.PI / 2;
+      const poseBEnd = poseFromPivot(thetaBEnd, p.rb, rbWorld);
+      const rtWorld = worldPoint(p.rt, poseBEnd);
+
+      const thetaCEnd = -Math.PI + phi;
+      const poseCEnd = poseFromPivot(thetaCEnd, p.rt, rtWorld);
+
+      const poseDEnd = poseTopRolling(-phi, rtWorld.x);
+      const ltWorld = worldPoint(p.lt, poseDEnd);
+
+      const thetaEEnd = -1.5 * Math.PI;
+      const poseEEnd = poseFromPivot(thetaEEnd, p.lt, ltWorld);
+      const lbWorld = worldPoint(p.lb, poseEEnd);
+
+      const thetaFEnd = -2 * Math.PI + phi;
+      const poseFEnd = poseFromPivot(thetaFEnd, p.lb, lbWorld);
+      const cycleShift = worldPoint(p.lb, poseFEnd).x;
+
+      const phaseSpecs = [
+        {
+          name: "Pure patch rolling (bottom cap)",
+          mode: "roll",
+          weight: 2 * phi,
+          sample: (u) => {
+            const phiValue = lerp(-phi, phi, u);
+            const pose = poseBottomRolling(phiValue, 0);
+            const circleCenter = worldPoint(p.cBot, pose);
+            return {
+              pose,
+              contactPoint: { x: circleCenter.x, y: 0 },
+              circleCenter,
+            };
+          },
+        },
+        {
+          name: "Patch switch: trailing-edge pivot",
+          mode: "pivot",
+          weight: Math.abs(-Math.PI / 2 - (-phi)),
+          sample: (u) => {
+            const theta = lerp(-phi, -Math.PI / 2, u);
+            const pose = poseFromPivot(theta, p.rb, rbWorld);
+            return {
+              pose,
+              contactPoint: { x: rbWorld.x, y: rbWorld.y },
+              circleCenter: null,
+            };
+          },
+        },
+        {
+          name: "Patch switch: leading-edge pivot",
+          mode: "pivot",
+          weight: Math.abs((-Math.PI + phi) - (-Math.PI / 2)),
+          sample: (u) => {
+            const theta = lerp(-Math.PI / 2, -Math.PI + phi, u);
+            const pose = poseFromPivot(theta, p.rt, rtWorld);
+            return {
+              pose,
+              contactPoint: { x: rtWorld.x, y: rtWorld.y },
+              circleCenter: null,
+            };
+          },
+        },
+        {
+          name: "Pure patch rolling (top cap)",
+          mode: "roll",
+          weight: 2 * phi,
+          sample: (u) => {
+            const phiValue = lerp(phi, -phi, u);
+            const pose = poseTopRolling(phiValue, rtWorld.x);
+            const circleCenter = worldPoint(p.cTop, pose);
+            return {
+              pose,
+              contactPoint: { x: circleCenter.x, y: 0 },
+              circleCenter,
+            };
+          },
+        },
+        {
+          name: "Patch switch: trailing-edge pivot",
+          mode: "pivot",
+          weight: Math.abs(-1.5 * Math.PI - (-Math.PI - phi)),
+          sample: (u) => {
+            const theta = lerp(-Math.PI - phi, -1.5 * Math.PI, u);
+            const pose = poseFromPivot(theta, p.lt, ltWorld);
+            return {
+              pose,
+              contactPoint: { x: ltWorld.x, y: ltWorld.y },
+              circleCenter: null,
+            };
+          },
+        },
+        {
+          name: "Patch switch: leading-edge pivot",
+          mode: "pivot",
+          weight: Math.abs((-2 * Math.PI + phi) - (-1.5 * Math.PI)),
+          sample: (u) => {
+            const theta = lerp(-1.5 * Math.PI, -2 * Math.PI + phi, u);
+            const pose = poseFromPivot(theta, p.lb, lbWorld);
+            return {
+              pose,
+              contactPoint: { x: lbWorld.x, y: lbWorld.y },
+              circleCenter: null,
+            };
+          },
+        },
+      ];
+
+      const totalWeight = phaseSpecs.reduce((sum, item) => sum + item.weight, 0);
+      let cursor = 0;
+      for (const segment of phaseSpecs) {
+        const span = totalWeight > 0 ? segment.weight / totalWeight : 1 / phaseSpecs.length;
+        segment.start = cursor;
+        segment.end = cursor + span;
+        cursor = segment.end;
+      }
+      phaseSpecs[phaseSpecs.length - 1].end = 1;
+      // Start the cycle at the upright configuration where a flat side is on the floor.
+      const initialSegmentIndex = 2;
+      const startOffset = phaseSpecs[initialSegmentIndex].start;
+
+      function stateAt(playhead) {
+        const nonNegative = Math.max(0, playhead);
+        const displayU = nonNegative - Math.floor(nonNegative);
+        const shiftedPlayhead = nonNegative + startOffset;
+        const cycleIndex = Math.floor(shiftedPlayhead);
+        const cycleU = shiftedPlayhead - cycleIndex;
+        let picked = phaseSpecs[phaseSpecs.length - 1];
+        for (const segment of phaseSpecs) {
+          if (cycleU <= segment.end) {
+            picked = segment;
+            break;
+          }
+        }
+        const span = Math.max(1e-9, picked.end - picked.start);
+        const segmentLocalU = clamp((cycleU - picked.start) / span, 0, 1);
+        const sampled = picked.sample(segmentLocalU);
+        const xShift = cycleIndex * cycleShift;
+        const rawPhaseIndex = phaseSpecs.indexOf(picked);
+        const phaseIndex = ((rawPhaseIndex - initialSegmentIndex + phaseSpecs.length) % phaseSpecs.length) + 1;
+        const pose = {
+          theta: sampled.pose.theta,
+          tx: sampled.pose.tx + xShift,
+          ty: sampled.pose.ty,
+        };
+        const contactPoint = {
+          x: sampled.contactPoint.x + xShift,
+          y: sampled.contactPoint.y,
+        };
+        const circleCenter = sampled.circleCenter
+          ? { x: sampled.circleCenter.x + xShift, y: sampled.circleCenter.y }
+          : null;
+
+        return {
+          pose,
+          contactPoint,
+          circleCenter,
+          mode: picked.mode,
+          phaseName: picked.name,
+          phaseIndex,
+          phaseCount: phaseSpecs.length,
+          displayU,
+          cycleIndex,
+        };
+      }
+
+      return {
+        phiMax: phiRaw,
+        thetaEdge: t.thetaEdge,
+        cycleShift,
+        stateAt,
+      };
+    }
+
+    function computeFrameBounds() {
+      const samples = 360;
+      let xMin = Infinity;
+      let xMax = -Infinity;
+      let yMin = Infinity;
+      let yMax = -Infinity;
+
+      for (let i = 0; i <= samples; i += 1) {
+        const u = i / samples;
+        const state = cycle.stateAt(u * (1 - END_EPS));
+        for (const local of outlineLocal) {
+          const wp = worldPoint(local, state.pose);
+          xMin = Math.min(xMin, wp.x);
+          xMax = Math.max(xMax, wp.x);
+          yMin = Math.min(yMin, wp.y);
+          yMax = Math.max(yMax, wp.y);
+        }
+        xMin = Math.min(xMin, state.contactPoint.x);
+        xMax = Math.max(xMax, state.contactPoint.x);
+        yMin = Math.min(yMin, 0);
+        if (state.circleCenter) {
+          xMin = Math.min(xMin, state.circleCenter.x - params.R);
+          xMax = Math.max(xMax, state.circleCenter.x + params.R);
+          yMin = Math.min(yMin, state.circleCenter.y - params.R);
+          yMax = Math.max(yMax, state.circleCenter.y + params.R);
+        }
+      }
+
+      const spanX = Math.max(1e-6, xMax - xMin);
+      const spanY = Math.max(1e-6, yMax - yMin);
+      const padX = Math.max(0.9, spanX * 0.12);
+      const padY = Math.max(0.9, spanY * 0.16);
+
+      return {
+        xMin: xMin - padX,
+        xMax: xMax + padX,
+        yMin: Math.min(-0.25 * padY, yMin - 0.12 * padY),
+        yMax: yMax + padY,
+      };
+    }
+
+    function resizeCanvasToDisplaySize(canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const width = Math.max(40, Math.floor(rect.width));
+      const height = Math.max(40, Math.floor(rect.height));
+      const targetW = Math.floor(width * dpr);
+      const targetH = Math.floor(height * dpr);
+      if (canvas.width !== targetW || canvas.height !== targetH) {
+        canvas.width = targetW;
+        canvas.height = targetH;
+      }
+      return { width, height, dpr };
+    }
+
+    function draw() {
+      const canvas = ui.sideCanvas;
+      const { width, height, dpr } = resizeCanvasToDisplaySize(canvas);
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+
+      if (!cycle || !frameBounds) {
+        return;
+      }
+
+      const state = cycle.stateAt(playback.playhead);
+      const innerPad = 18;
+      const sx = (width - 2 * innerPad) / Math.max(1e-9, frameBounds.xMax - frameBounds.xMin);
+      const sy = (height - 2 * innerPad) / Math.max(1e-9, frameBounds.yMax - frameBounds.yMin);
+      const scale = Math.min(sx, sy);
+      const tx = innerPad - frameBounds.xMin * scale;
+      const ty = height - innerPad + frameBounds.yMin * scale;
+
+      function mapX(x) {
+        return tx + x * scale;
+      }
+      function mapY(y) {
+        return ty - y * scale;
+      }
+
+      const groundY = mapY(0);
+      ctx.fillStyle = "#f8fbff";
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.strokeStyle = "#4a5e79";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, groundY);
+      ctx.lineTo(width, groundY);
+      ctx.stroke();
+
+      const worldPoints = outlineLocal.map((pt) => worldPoint(pt, state.pose));
+      const displayPoints = worldPoints;
+      const contactDisplay = state.contactPoint;
+      const circleDisplay = state.circleCenter;
+
+      if (circleDisplay) {
+        ctx.setLineDash([8, 7]);
+        ctx.strokeStyle = "#7a8aa2";
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.arc(mapX(circleDisplay.x), mapY(circleDisplay.y), params.R * scale, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(mapX(circleDisplay.x), mapY(circleDisplay.y - params.R));
+        ctx.lineTo(mapX(circleDisplay.x), mapY(circleDisplay.y + params.R));
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(mapX(displayPoints[0].x), mapY(displayPoints[0].y));
+      for (let i = 1; i < displayPoints.length; i += 1) {
+        ctx.lineTo(mapX(displayPoints[i].x), mapY(displayPoints[i].y));
+      }
+      ctx.closePath();
+      ctx.fillStyle = "#6fa7e5";
+      ctx.strokeStyle = "#1f4f88";
+      ctx.lineWidth = 2;
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "#c81f1f";
+      ctx.beginPath();
+      ctx.arc(mapX(contactDisplay.x), mapY(contactDisplay.y), 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (circleDisplay) {
+        ctx.fillStyle = "#111111";
+        ctx.beginPath();
+        ctx.arc(mapX(circleDisplay.x), mapY(circleDisplay.y), 3.4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = "#314766";
+      ctx.font = "12px Segoe UI, sans-serif";
+      if (state.mode === "roll") {
+        ctx.fillText("Dashed circle: active parent cylinder (pure patch rolling)", 12, 18);
+      } else {
+        ctx.fillText("Patch-switch pivot phase (cylinder outline hidden)", 12, 18);
+      }
+      ctx.fillText("Red point: instantaneous contact/pivot", 12, 34);
+
+      ui.phaseName.textContent = state.phaseName;
+      ui.phaseIndex.textContent = `${state.phaseIndex} / ${state.phaseCount}`;
+      ui.phasePercent.textContent = `${(state.displayU * 100).toFixed(1)}%`;
+
+      const sliderPct = state.displayU * 1000;
+      if (Math.abs(safeNumber(ui.phaseSlider.value, 0) - sliderPct) > 0.35) {
+        ui.phaseSlider.value = sliderPct.toFixed(1);
+      }
+    }
+
+    function applyControlLimits() {
+      const rMin = 0.2;
+      const rMax = 300;
+      const hMin = 0.1;
+      const hMax = 25;
+      params.R = clamp(params.R, rMin, rMax);
+      const wMax = Math.max(0.2, 2 * params.R - 0.1);
+      params.w = clamp(params.w, 0.2, wMax);
+      params.h = clamp(params.h, hMin, hMax);
+
+      ui.radius.min = String(rMin);
+      ui.radius.max = String(rMax);
+      ui.radiusInput.min = String(rMin);
+      ui.radiusInput.max = String(rMax);
+      ui.width.min = "0.2";
+      ui.width.max = String(wMax);
+      ui.widthInput.min = "0.2";
+      ui.widthInput.max = String(wMax);
+      ui.height.min = String(hMin);
+      ui.height.max = String(hMax);
+      ui.heightInput.min = String(hMin);
+      ui.heightInput.max = String(hMax);
+    }
+
+    function syncGeometryControls() {
+      ui.radius.value = params.R.toFixed(1);
+      ui.radiusInput.value = params.R.toFixed(1);
+      ui.width.value = params.w.toFixed(1);
+      ui.widthInput.value = params.w.toFixed(1);
+      ui.height.value = params.h.toFixed(2);
+      ui.heightInput.value = params.h.toFixed(2);
+      ui.speed.value = playback.speed.toFixed(1);
+      ui.speedInput.value = playback.speed.toFixed(1);
+      ui.loopToggle.checked = playback.loop;
+    }
+
+    function setPlayButtonLabel() {
+      ui.playPause.textContent = playback.playing ? "Pause" : "Play";
+      ui.playPause.className = playback.playing ? "" : "primary";
+    }
+
+    function rebuild() {
+      applyControlLimits();
+      syncGeometryControls();
+
+      outlineLocal = sampleOutlinePoints(params.R, params.w, params.h);
+      cycle = buildCycle(params.R, params.w, params.h);
+      frameBounds = computeFrameBounds();
+
+      const phiDeg = (cycle.phiMax * 180) / Math.PI;
+      const thetaEdgeDeg = (cycle.thetaEdge * 180) / Math.PI;
+      ui.geomInfo.textContent =
+        `theta_e = ${thetaEdgeDeg.toFixed(2)} deg, phi_max = ${phiDeg.toFixed(2)} deg, cycle shift = ${cycle.cycleShift.toFixed(2)} cm`;
+
+      if (cycle.phiMax < 1e-4) {
+        ui.note.textContent = "w is very small relative to R, so pure rolling phases are nearly zero-duration.";
+      } else {
+        ui.note.textContent = "";
+      }
+
+      draw();
+    }
+
+    function updateParam(key, value) {
+      params[key] = safeNumber(value, params[key]);
+      playback.playhead = Math.min(playback.playhead, 1 - END_EPS);
+      rebuild();
+    }
+
+    function bindParam(rangeEl, inputEl, key) {
+      rangeEl.addEventListener("input", () => {
+        updateParam(key, rangeEl.value);
+      });
+      inputEl.addEventListener("change", () => {
+        updateParam(key, inputEl.value);
+      });
+    }
+
+    bindParam(ui.radius, ui.radiusInput, "R");
+    bindParam(ui.width, ui.widthInput, "w");
+    bindParam(ui.height, ui.heightInput, "h");
+
+    ui.speed.addEventListener("input", () => {
+      playback.speed = clamp(safeNumber(ui.speed.value, playback.speed), 0.1, 4);
+      ui.speedInput.value = playback.speed.toFixed(1);
+    });
+
+    ui.speedInput.addEventListener("change", () => {
+      playback.speed = clamp(safeNumber(ui.speedInput.value, playback.speed), 0.1, 4);
+      ui.speed.value = playback.speed.toFixed(1);
+      ui.speedInput.value = playback.speed.toFixed(1);
+    });
+
+    ui.phaseSlider.addEventListener("input", () => {
+      const raw = clamp(safeNumber(ui.phaseSlider.value, 0), 0, 1000) / 1000;
+      playback.playhead = raw >= 1 ? 1 - END_EPS : raw;
+      playback.playing = false;
+      setPlayButtonLabel();
+      draw();
+    });
+
+    ui.playPause.addEventListener("click", () => {
+      if (!playback.loop && playback.playhead >= 1 - END_EPS) {
+        playback.playhead = 0;
+      }
+      playback.playing = !playback.playing;
+      setPlayButtonLabel();
+    });
+
+    ui.resetCycle.addEventListener("click", () => {
+      playback.playhead = 0;
+      playback.playing = false;
+      setPlayButtonLabel();
+      draw();
+    });
+
+    ui.loopToggle.addEventListener("change", () => {
+      playback.loop = ui.loopToggle.checked;
+    });
+
+    window.addEventListener("resize", () => {
+      draw();
+    });
+
+    function animate(ts) {
+      if (playback.lastTs === null) {
+        playback.lastTs = ts;
+      }
+      const dt = Math.max(0, (ts - playback.lastTs) * 0.001);
+      playback.lastTs = ts;
+
+      if (playback.playing) {
+        playback.playhead += (dt * playback.speed) / playback.secondsPerCycle;
+        if (playback.loop) {
+          if (playback.playhead >= 1) {
+            playback.playhead -= Math.floor(playback.playhead);
+          }
+        } else if (playback.playhead >= 1 - END_EPS) {
+          playback.playhead = 1 - END_EPS;
+          playback.playing = false;
+          setPlayButtonLabel();
+        }
+      }
+
+      draw();
+      requestAnimationFrame(animate);
+    }
+
+    applyControlLimits();
+    syncGeometryControls();
+    setPlayButtonLabel();
+    rebuild();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

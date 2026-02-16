@@ -1,0 +1,220 @@
+% LaTeX Report Template
+% Clean academic style: Title, subtitle, author, date, abstract, TOC, sections, references
+% All figures generated externally via Python scripts
+
+\documentclass[11pt,a4paper]{article}
+
+% ============================================
+% PACKAGES
+% ============================================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage[numbers]{natbib}
+
+% --- Graphics: TikZ and PGFPlots ---
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepgfplotslibrary{fillbetween,statistics}
+\usetikzlibrary{arrows.meta,shapes,positioning,calc}
+
+% Hyperref setup: only citations [1] and URLs in blue, TOC/internal links black
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor={blue!70!black},
+    urlcolor={blue!70!black}
+}
+
+% ============================================
+% CUSTOM COMMANDS (SHORTCUTS)
+% ============================================
+
+% --- Figures ---
+% \fig{filename}{caption}{label} - Simple centered figure
+\newcommand{\fig}[3]{%
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{#1}
+        \caption{#2}
+        \label{fig:#3}
+    \end{figure}
+}
+
+% \figw{filename}{width}{caption}{label} - Figure with custom width
+\newcommand{\figw}[4]{%
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=#2\textwidth]{#1}
+        \caption{#3}
+        \label{fig:#4}
+    \end{figure}
+}
+
+% --- Math shortcuts ---
+\newcommand{\dd}{\mathrm{d}}                    % Differential d
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}  % Partial derivative
+\newcommand{\td}[2]{\frac{\dd #1}{\dd #2}}     % Total derivative
+\newcommand{\vect}[1]{\boldsymbol{#1}}         % Vector notation
+\newcommand{\mat}[1]{\mathbf{#1}}              % Matrix notation
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}  % Norm
+\newcommand{\abs}[1]{\left| #1 \right|}        % Absolute value
+\newcommand{\avg}[1]{\left\langle #1 \right\rangle} % Average/expectation
+\newcommand{\R}{\mathbb{R}}                    % Real numbers
+\newcommand{\N}{\mathbb{N}}                    % Natural numbers
+\newcommand{\Z}{\mathbb{Z}}                    % Integers
+\newcommand{\C}{\mathbb{C}}                    % Complex numbers
+
+% --- Units (simple) ---
+\newcommand{\unit}[1]{\,\mathrm{#1}}           % Unit with thin space
+
+% --- References ---
+\newcommand{\eqn}[1]{Eq.~\eqref{#1}}           % Equation reference
+\newcommand{\figref}[1]{Fig.~\ref{fig:#1}}     % Figure reference
+\newcommand{\tabref}[1]{Table~\ref{tab:#1}}    % Table reference
+\newcommand{\secref}[1]{Section~\ref{sec:#1}}  % Section reference
+
+% ============================================
+% THEOREM ENVIRONMENTS
+% ============================================
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% ============================================
+% DOCUMENT INFO (EDIT THESE)
+% ============================================
+\newcommand{\doctitle}{Report Title}
+\newcommand{\docsubtitle}{}  % Leave empty if no subtitle
+\newcommand{\docauthor}{Author Name}
+\newcommand{\docdate}{January 2026}
+
+% ============================================
+% TITLE PAGE FORMATTING
+% ============================================
+\makeatletter
+\renewcommand{\maketitle}{%
+    \begin{center}
+        {\LARGE\bfseries \doctitle \par}
+        \vspace{0.3em}
+        \hrule height 0.5pt
+        \vspace{0.5em}
+        \ifx\docsubtitle\empty\else
+            {\large\itshape \docsubtitle \par}
+            \vspace{0.5em}
+        \fi
+        {\large \docauthor \par}
+        \vspace{0.3em}
+        {\normalsize \docdate \par}
+    \end{center}
+    \vspace{1em}
+}
+\makeatother
+
+% ============================================
+% DOCUMENT
+% ============================================
+\begin{document}
+
+\maketitle
+
+% --- Abstract ---
+\begin{abstract}
+\noindent
+Your abstract text here. Summarize the main objectives, methods, results, and conclusions of your report in a concise paragraph.
+\end{abstract}
+
+% --- Table of Contents ---
+\tableofcontents
+\newpage
+
+% ============================================
+% SECTIONS
+% ============================================
+
+\section{Introduction}
+\label{sec:intro}
+
+Introduction text here. Provide background, motivation, and outline of the report.
+
+
+\section{Methods}
+\label{sec:methods}
+
+Describe your methodology here.
+
+% Example equation:
+% \begin{equation}
+%     F = m \td{v}{t}
+%     \label{eq:newton}
+% \end{equation}
+
+% Example figure (generated by Python):
+% \fig{figures/plot1.pdf}{Description of the figure.}{plot1}
+
+
+\section{Results}
+\label{sec:results}
+
+Present your results here.
+
+% Example table:
+% \begin{table}[H]
+%     \centering
+%     \caption{Sample results.}
+%     \label{tab:results}
+%     \begin{tabular}{lcc}
+%         \toprule
+%         Parameter & Value & Uncertainty \\
+%         \midrule
+%         $a$ & 1.23 & 0.05 \\
+%         $b$ & 4.56 & 0.10 \\
+%         \bottomrule
+%     \end{tabular}
+% \end{table}
+
+
+\section{Discussion}
+\label{sec:discussion}
+
+Discuss the implications of your results.
+
+
+\section{Conclusions}
+\label{sec:conclusions}
+
+Summarize key findings and future work.
+
+
+% ============================================
+% REFERENCES
+% ============================================
+\bibliographystyle{unsrtnat}  % Numbered [1], [2], ... in citation order
+% \bibliography{references}   % Uncomment and use references.bib
+
+% Or use manual references:
+% \begin{thebibliography}{9}
+% \bibitem{einstein1905}
+%     A. Einstein,
+%     \textit{Ann. Phys.} \textbf{17}, 891 (1905).
+% \end{thebibliography}
+
+\end{document}
