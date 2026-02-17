@@ -76,10 +76,12 @@ export function drawSideView(canvas, params, sideFrame, rollingAngle) {
   const worldPoints = worldPoseForRolling(localPoints, params.R, params.w, params.h, rollingAngle);
   const circleCenter = { x: params.R * rollingAngle, y: params.R };
 
-  const innerPad = 18;
-  const sx = (width - 2 * innerPad) / Math.max(1e-6, frame.xMax - frame.xMin);
-  const sy = (height - 2 * innerPad) / Math.max(1e-6, frame.yMax - frame.yMin);
-  const scale = Math.min(sx, sy);
+  const innerPad = Math.max(3, Math.min(18, Math.floor(Math.min(width, height) * 0.2)));
+  const innerWidth = Math.max(1, width - 2 * innerPad);
+  const innerHeight = Math.max(1, height - 2 * innerPad);
+  const sx = innerWidth / Math.max(1e-6, frame.xMax - frame.xMin);
+  const sy = innerHeight / Math.max(1e-6, frame.yMax - frame.yMin);
+  const scale = Math.max(1e-6, Math.min(sx, sy));
 
   const tx = innerPad - frame.xMin * scale;
   const ty = height - innerPad + frame.yMin * scale;
@@ -110,8 +112,9 @@ export function drawSideView(canvas, params, sideFrame, rollingAngle) {
   ctx.setLineDash([8, 7]);
   ctx.strokeStyle = "#7a8aa2";
   ctx.lineWidth = 1.4;
+  const circleRadiusPx = Math.max(0, params.R * scale);
   ctx.beginPath();
-  ctx.arc(mapX(circleCenter.x), mapY(circleCenter.y), params.R * scale, 0, Math.PI * 2);
+  ctx.arc(mapX(circleCenter.x), mapY(circleCenter.y), circleRadiusPx, 0, Math.PI * 2);
   ctx.stroke();
   ctx.beginPath();
   ctx.moveTo(mapX(circleCenter.x), mapY(circleCenter.y - params.R));

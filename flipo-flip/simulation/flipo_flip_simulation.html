@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Flipo flips</title>
+  <style>
+    :root {
+      --bg: #f2f5f9;
+      --panel: #ffffff;
+      --ink: #122038;
+      --muted: #5a6a82;
+      --border: #d8e0eb;
+      --accent: #2f7de1;
+      --warn: #a32b2b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 8%, #dce9fa 0%, transparent 32%),
+        radial-gradient(circle at 88% 12%, #e9f0ff 0%, transparent 30%),
+        var(--bg);
+    }
+
+    .app {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 1rem;
+      display: grid;
+      gap: 0.9rem;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+      padding: 0 0.2rem;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      color: #1d2d47;
+    }
+
+    .settings-menu {
+      position: relative;
+    }
+
+    .settings-menu summary {
+      list-style: none;
+      width: 2.2rem;
+      height: 2.2rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      background: #f8fbff;
+      color: #244269;
+      font-size: 1.05rem;
+      user-select: none;
+    }
+
+    .settings-menu summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .settings-content {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 0.45rem);
+      width: min(320px, 84vw);
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 14px 30px rgba(18, 32, 56, 0.14);
+      padding: 0.65rem;
+      z-index: 20;
+      display: grid;
+      gap: 0.55rem;
+    }
+
+    .settings-content h3 {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #244269;
+    }
+
+    .slider-row {
+      display: grid;
+      gap: 0.28rem;
+    }
+
+    .slider-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.86rem;
+      color: var(--muted);
+    }
+
+    .num-box {
+      width: 7rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.33rem 0.5rem;
+      font-size: 0.86rem;
+      color: #1b2d49;
+      background: #fff;
+    }
+
+    .num-box:focus {
+      outline: 2px solid #b8d6ff;
+      outline-offset: 1px;
+      border-color: #a6c6f4;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    .panel-menu {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 0.55rem 0.72rem;
+      box-shadow: 0 8px 20px rgba(22, 36, 66, 0.06);
+    }
+
+    .panel-menu summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: #1f3459;
+      user-select: none;
+    }
+
+    .panel-toggle-grid {
+      margin-top: 0.55rem;
+      display: grid;
+      gap: 0.48rem;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      font-size: 0.88rem;
+      color: #2f4769;
+    }
+
+    .panel-toggle-grid label {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .layout-grid {
+      display: grid;
+      gap: 0.9rem;
+      grid-template-columns: repeat(2, minmax(320px, 1fr));
+      align-items: start;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 8px 20px rgba(22, 36, 66, 0.06);
+      overflow: hidden;
+    }
+
+    .card-header {
+      margin: 0;
+      padding: 0.65rem 0.78rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.94rem;
+      font-weight: 600;
+      color: #1f3459;
+      background: #f8fbff;
+    }
+
+    .card-body {
+      padding: 0.75rem;
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .grid3 {
+      display: grid;
+      gap: 0.65rem;
+      grid-template-columns: repeat(3, minmax(140px, 1fr));
+    }
+
+    .grid2 {
+      display: grid;
+      gap: 0.65rem;
+      grid-template-columns: repeat(2, minmax(140px, 1fr));
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 0.55rem 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: #dbeafe;
+      color: #17417f;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .status {
+      display: grid;
+      gap: 0.24rem;
+      font-size: 0.87rem;
+      color: #2f4769;
+    }
+
+    .status strong {
+      color: #1d3558;
+    }
+
+    .warn {
+      color: var(--warn);
+      font-size: 0.85rem;
+      min-height: 1.05rem;
+      margin: 0;
+    }
+
+    .panel {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 360px;
+    }
+
+    .viewport {
+      width: 100%;
+      height: 100%;
+      min-height: 300px;
+      display: block;
+    }
+
+    .panel[hidden],
+    .playback-panel[hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 980px) {
+      .layout-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .grid3,
+      .grid2 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <h1 class="title">Flipo flips</h1>
+      <details class="settings-menu">
+        <summary title="Settings" aria-label="Settings">&#9881;</summary>
+        <div class="settings-content">
+          <h3>Settings</h3>
+          <label class="slider-row" for="meshDetail">
+            <span class="slider-top">
+              <span>Mesh detail factor</span>
+              <input class="num-box" id="meshDetailInput" type="number" min="0.5" max="3.0" step="0.1" />
+            </span>
+            <input id="meshDetail" type="range" min="0.5" max="3.0" step="0.1" />
+          </label>
+        </div>
+      </details>
+    </header>
+
+    <details class="panel-menu" open>
+      <summary>Panel Visibility</summary>
+      <div class="panel-toggle-grid">
+        <label>
+          <input type="checkbox" data-target-panel="panel-geo-toy" checked />
+          Toy 3D View
+        </label>
+        <label>
+          <input type="checkbox" data-target-panel="panel-geo-stein" checked />
+          Bicylinder
+        </label>
+        <label>
+          <input type="checkbox" data-target-panel="panel-phase-2d" checked />
+          2D Phases
+        </label>
+        <label>
+          <input type="checkbox" data-target-panel="panel-phase-3d" checked />
+          3D Phases
+        </label>
+      </div>
+    </details>
+
+    <section class="layout-grid">
+      <section class="card">
+        <h2 class="card-header">Geometry Init Panel</h2>
+        <div class="card-body">
+          <div class="grid3">
+            <label class="slider-row" for="radius">
+              <span class="slider-top">
+                <span>R (cm)</span>
+                <input class="num-box" id="radiusInput" type="number" min="0.2" step="0.1" />
+              </span>
+              <input id="radius" type="range" min="0.2" max="300" step="0.1" />
+            </label>
+
+            <label class="slider-row" for="width">
+              <span class="slider-top">
+                <span>w (cm)</span>
+                <input class="num-box" id="widthInput" type="number" min="0.2" step="0.1" />
+              </span>
+              <input id="width" type="range" min="0.2" max="300" step="0.1" />
+            </label>
+
+            <label class="slider-row" for="height">
+              <span class="slider-top">
+                <span>h (cm)</span>
+                <input class="num-box" id="heightInput" type="number" min="0.1" step="0.01" />
+              </span>
+              <input id="height" type="range" min="0.1" max="25" step="0.01" />
+            </label>
+          </div>
+
+          <div class="row">
+            <button id="resetDefaults">Reset Defaults</button>
+            <button id="resetView">Reset Cameras</button>
+            <button class="primary" id="downloadStl">Download STL</button>
+          </div>
+
+          <p id="note" class="warn"></p>
+        </div>
+      </section>
+
+      <aside class="card playback-panel" id="playbackDock">
+        <h2 class="card-header">Phase Playback</h2>
+        <div class="card-body">
+          <label class="slider-row" for="phaseSlider">
+            <span class="slider-top">
+              <span>Cycle phase slider</span>
+              <strong id="phasePercent">0.0%</strong>
+            </span>
+            <input id="phaseSlider" type="range" min="0" max="1000" step="0.1" value="0" />
+          </label>
+
+          <div class="grid2">
+            <div class="row">
+              <button id="playPause" class="primary">Play</button>
+              <label class="row" for="loopToggle">
+                <input id="loopToggle" type="checkbox" checked />
+                <span>Loop</span>
+              </label>
+              <button id="resetCycle">Reset Cycle</button>
+            </div>
+
+            <label class="slider-row" for="speed">
+              <span class="slider-top">
+                <span>Playback speed</span>
+                <input class="num-box" id="speedInput" type="number" min="0.1" max="4" step="0.1" />
+              </span>
+              <input id="speed" type="range" min="0.1" max="4" step="0.1" />
+            </label>
+          </div>
+
+          <div class="status">
+            <div><strong>Current phase:</strong> <span id="phaseName">Pure patch rolling (bottom cap)</span></div>
+            <div><strong>Phase index:</strong> <span id="phaseIndex">1 / 6</span></div>
+            <div><strong>Geometry:</strong> <span id="geomInfo"></span></div>
+          </div>
+        </div>
+      </aside>
+
+      <article class="card panel" id="panel-phase-2d">
+        <h2 class="card-header">2D Phases</h2>
+        <canvas id="phaseSideCanvas" class="viewport"></canvas>
+      </article>
+
+      <article class="card panel" id="panel-phase-3d">
+        <h2 class="card-header">3D Phases</h2>
+        <canvas id="phaseToyCanvas" class="viewport"></canvas>
+      </article>
+
+      <article class="card panel" id="panel-geo-toy">
+        <h2 class="card-header">Toy 3D View</h2>
+        <canvas id="geoToyCanvas" class="viewport"></canvas>
+      </article>
+
+      <article class="card panel" id="panel-geo-stein">
+        <h2 class="card-header">Bicylinder</h2>
+        <canvas id="geoSteinCanvas" class="viewport"></canvas>
+      </article>
+    </section>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module" src="./js/simulation-app.js"></script>
+</body>
+</html>
