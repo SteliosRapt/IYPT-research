@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Experimental Setup — 3D Configurator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: #0a0a0f; color: #e0e0e0;
+    overflow: hidden; height: 100vh; display: flex;
+  }
+  #sidebar {
+    width: 370px; min-width: 370px; height: 100vh; overflow-y: auto;
+    background: #111118; border-right: 1px solid #2a2a35; padding: 14px;
+    scrollbar-width: thin; scrollbar-color: #333 #111118;
+  }
+  #sidebar h1 {
+    font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600;
+    color: #7eb8ff; letter-spacing: 1px; text-transform: uppercase;
+    margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #2a2a35;
+  }
+  .section-title {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600;
+    color: #9a7bff; letter-spacing: 1.5px; text-transform: uppercase; margin: 14px 0 6px 0;
+  }
+  .param-row { display: flex; align-items: center; margin: 3px 0; gap: 6px; }
+  .param-row label {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #aaa;
+    width: 44px; flex-shrink: 0; text-align: right;
+  }
+  .param-row input[type="range"] {
+    flex: 1; height: 3px; -webkit-appearance: none; background: #2a2a35;
+    border-radius: 2px; outline: none;
+  }
+  .param-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%;
+    background: #7eb8ff; cursor: pointer; border: 2px solid #0a0a0f;
+  }
+  .param-row .val {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #7eb8ff;
+    width: 46px; text-align: left; flex-shrink: 0;
+  }
+  #constraints-box, #calculated-box {
+    margin-top: 8px; padding: 8px; background: #0d0d14;
+    border: 1px solid #2a2a35; border-radius: 5px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 9px; line-height: 1.6;
+    max-height: 180px; overflow-y: auto;
+  }
+  .constraint-ok { color: #4ade80; }
+  .constraint-fail { color: #f87171; font-weight: 600; }
+  .calc-label { color: #9a7bff; }
+  .calc-val { color: #7eb8ff; }
+  button#export-btn {
+    margin-top: 12px; width: 100%; padding: 9px; background: #7eb8ff; color: #0a0a0f;
+    border: none; border-radius: 5px; font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600; cursor: pointer; letter-spacing: 1px; text-transform: uppercase;
+  }
+  button#export-btn:hover { background: #a0d0ff; }
+  #viewport { flex: 1; position: relative; }
+  #info-overlay {
+    position: absolute; top: 10px; left: 10px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #444; pointer-events: none;
+  }
+  .toggle-row { display: flex; align-items: center; gap: 6px; margin: 3px 0; }
+  .toggle-row label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #aaa; cursor: pointer; }
+  .toggle-row input[type="checkbox"] { accent-color: #7eb8ff; }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <h1>Setup Configurator</h1>
+  <div class="section-title">Primary Geometry</div>
+  <div id="params-primary"></div>
+  <div class="section-title">Structural Constants</div>
+  <div id="params-structural"></div>
+  <div class="section-title">Bend Radius</div>
+  <div id="params-bend"></div>
+  <div class="section-title">Visibility</div>
+  <div id="toggles"></div>
+  <div class="section-title">Calculated Values</div>
+  <div id="calculated-box"></div>
+  <div class="section-title">Constraints</div>
+  <div id="constraints-box"></div>
+  <button id="export-btn">Export STL</button>
+</div>
+
+<div id="viewport">
+  <div id="info-overlay">Drag: orbit · Shift+drag: pan · Scroll: zoom</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════
+// STL Exporter
+// ═══════════════════════════════════════════════════
+class STLExporter {
+  parse(scene) {
+    const objects = []; let triangles = 0;
+    scene.traverse(o => {
+      if (o.isMesh) {
+        let g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry;
+        triangles += g.attributes.position.count / 3;
+        objects.push({ g, matrixWorld: o.matrixWorld });
+      }
+    });
+    const buf = new ArrayBuffer(80 + 4 + triangles * 50);
+    const dv = new DataView(buf);
+    let off = 80;
+    dv.setUint32(off, triangles, true); off += 4;
+    const vA = new THREE.Vector3(), vB = new THREE.Vector3(), vC = new THREE.Vector3();
+    const cb = new THREE.Vector3(), ab = new THREE.Vector3(), n = new THREE.Vector3();
+    for (const { g, matrixWorld } of objects) {
+      const pos = g.attributes.position;
+      for (let i = 0; i < pos.count; i += 3) {
+        vA.fromBufferAttribute(pos, i).applyMatrix4(matrixWorld);
+        vB.fromBufferAttribute(pos, i+1).applyMatrix4(matrixWorld);
+        vC.fromBufferAttribute(pos, i+2).applyMatrix4(matrixWorld);
+        cb.subVectors(vC, vB); ab.subVectors(vA, vB); n.crossVectors(cb, ab).normalize();
+        for (const v of [n, vA, vB, vC]) {
+          dv.setFloat32(off, v.x, true); off += 4;
+          dv.setFloat32(off, v.y, true); off += 4;
+          dv.setFloat32(off, v.z, true); off += 4;
+        }
+        dv.setUint16(off, 0, true); off += 2;
+      }
+    }
+    return buf;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// Parameters
+// ═══════════════════════════════════════════════════
+const paramDefs = {
+  primary: [
+    { id:'A0',    label:'A₀',  min:0.01, max:0.5,  step:0.001, default:0.1050 },
+    { id:'h0',    label:'h₀',  min:0.05, max:0.6,  step:0.005, default:0.3000 },
+    { id:'h1',    label:'h₁',  min:0.01, max:0.25, step:0.005, default:0.0400 },
+    { id:'h3',    label:'h₃',  min:0.01, max:0.25, step:0.005, default:0.1200 },
+    { id:'h5',    label:'h₅',  min:0.01, max:0.25, step:0.005, default:0.0650 },
+    { id:'Y2',    label:'Y₂',  min:0.005, max:0.2, step:0.005, default:0.0150 },
+    { id:'Y4',    label:'Y₄',  min:0.005, max:0.3, step:0.005, default:0.0350 },
+    { id:'W1p',   label:'W₁',  min:0.01, max:0.3,  step:0.005, default:0.0600 },
+    { id:'W2p',   label:'W₂',  min:0.01, max:0.3,  step:0.005, default:0.0300 },
+    { id:'L1',    label:'L₁',  min:0.05, max:0.8,  step:0.005, default:0.3000 },
+    { id:'L2',    label:'L₂',  min:0.05, max:0.6,  step:0.005, default:0.1800 },
+    { id:'L3',    label:'L₃',  min:0.05, max:0.8,  step:0.005, default:0.2450 },
+    { id:'L4',    label:'L₄',  min:0.05, max:0.8,  step:0.005, default:0.3250 },
+    { id:'A_tube',label:'A',   min:0.0001, max:0.005, step:0.0001, default:0.0002 },
+    { id:'Wc',    label:'W',   min:0.03, max:0.5,  step:0.005, default:0.3000 },
+  ],
+  structural: [
+    { id:'alpha', label:'α',    min:0.005, max:0.06, step:0.001, default:0.0200 },
+    { id:'Ct',    label:'Ct',   min:0.001, max:0.02, step:0.001, default:0.0040 },
+    { id:'ht',    label:'ht',   min:0.001, max:0.02, step:0.001, default:0.0030 },
+    { id:'P24t',  label:'P24t', min:0.001, max:0.06, step:0.001, default:0.0150 },
+    { id:'hw',    label:'hw',   min:0.005, max:0.06, step:0.001, default:0.0200 },
+    { id:'ha',    label:'h_a',  min:0.0,   max:0.05, step:0.001, default:0.0100 },
+  ],
+  bend: [
+    { id:'bendR', label:'R_b',  min:0.005, max:0.08, step:0.001, default:0.0240 },
+  ],
+};
+
+const params = {};
+
+function buildSliders(defs, containerId) {
+  const c = document.getElementById(containerId);
+  for (const d of defs) {
+    params[d.id] = d.default;
+    const row = document.createElement('div'); row.className = 'param-row';
+    const lbl = document.createElement('label'); lbl.textContent = d.label;
+    const inp = document.createElement('input');
+    inp.type='range'; inp.min=d.min; inp.max=d.max; inp.step=d.step; inp.value=d.default;
+    const val = document.createElement('span'); val.className='val'; val.textContent=d.default.toFixed(4);
+    inp.addEventListener('input', () => {
+      params[d.id] = parseFloat(inp.value);
+      val.textContent = params[d.id].toFixed(4);
+      rebuild();
+    });
+    row.append(lbl, inp, val); c.appendChild(row);
+  }
+}
+buildSliders(paramDefs.primary, 'params-primary');
+buildSliders(paramDefs.structural, 'params-structural');
+buildSliders(paramDefs.bend, 'params-bend');
+
+// Toggles
+const visibility = { container:true, tube:true, holders:true, columns:true, labels:true };
+const togC = document.getElementById('toggles');
+for (const [k, v] of Object.entries(visibility)) {
+  const row = document.createElement('div'); row.className='toggle-row';
+  const cb = document.createElement('input'); cb.type='checkbox'; cb.checked=v; cb.id='vis-'+k;
+  const lbl = document.createElement('label'); lbl.htmlFor=cb.id;
+  lbl.textContent = k.charAt(0).toUpperCase()+k.slice(1);
+  cb.addEventListener('change', () => { visibility[k]=cb.checked; rebuild(); });
+  row.append(cb, lbl); togC.appendChild(row);
+}
+
+// ═══════════════════════════════════════════════════
+// Compute derived
+// ═══════════════════════════════════════════════════
+function compute() {
+  const p = params;
+  const r = Math.sqrt(p.A_tube / Math.PI);
+  const h2 = p.h0 - p.Y2;
+  const h4 = p.h0 + p.Y4;
+  const sq = v => v > 0 ? Math.sqrt(v) : 0;
+  const arg1 = p.L1*p.L1 - (h2-p.h1)*(h2-p.h1);
+  const X2 = sq(arg1);
+  const arg2 = p.L2*p.L2 - (p.h3-h2)*(p.h3-h2);
+  const X3 = sq(arg2) + X2;
+  const arg3 = p.L3*p.L3 - (h4-p.h3)*(h4-p.h3);
+  const X4 = sq(arg3) + X3;
+  const arg4 = p.L4*p.L4 - (p.h5-h4)*(p.h5-h4);
+  const X5 = sq(arg4) + X4;
+  const S1 = p.W1p;
+  const S2 = X5 - p.W2p;
+  const S0 = X2 - p.A0 / p.Wc;
+  const C1 = X2 > 0 ? ((h2-p.h1)/X2)*S1 + p.h1 : p.h1;
+  const C2 = (X5-X4) > 0 ? ((p.h5-h4)/(X5-X4))*(S2-X4)+h4 : h4;
+  return { r, h2, h4, X2, X3, X4, X5, S0, S1, S2, C1, C2, arg1, arg2, arg3, arg4 };
+}
+
+function checkConstraints(c) {
+  const p = params, r = c.r, res = [];
+  const chk = (n, ok) => res.push({name:n, ok});
+  chk('S₀ < 0', c.S0 < 0);
+  chk('0 < S₁ < X₂ < X₃ < X₄ < S₂ < X₅',
+    0 < c.S1 && c.S1 < c.X2 && c.X2 < c.X3 && c.X3 < c.X4 && c.X4 < c.S2 && c.S2 < c.X5);
+  chk('h₁,h₂,h₃,h₅ < h₀', p.h1<p.h0 && c.h2<p.h0 && p.h3<p.h0 && p.h5<p.h0);
+  chk('h₁,h₃ < h₂', p.h1<c.h2 && p.h3<c.h2);
+  chk('h₂ < h₄', c.h2 < c.h4);
+  chk('|S₀| ≥ √(A/π)+Ct/2', Math.abs(c.S0) >= r + p.Ct/2);
+  chk('S₁ ≥ √(A/π)+α/2', c.S1 >= r + p.alpha/2);
+  chk('X₂ ≥ S₁+α/2+Ct/2', c.X2 >= c.S1 + p.alpha/2 + p.Ct/2);
+  chk('X₃ ≥ X₂+α/2+Ct/2', c.X3 >= c.X2 + p.alpha/2 + p.Ct/2);
+  chk('X₄ ≥ X₃+α', c.X4 >= c.X3 + p.alpha);
+  chk('S₂ ≥ X₄+α+√(A/π)', c.S2 >= c.X4 + p.alpha + r);
+  chk('X₅ ≥ α/2+S₂', c.X5 >= p.alpha/2 + c.S2);
+  chk('α ≥ Ct', p.alpha >= p.Ct);
+  chk('α ≥ (5/2)√(A/π)', p.alpha >= 2.5 * r);
+  chk('P24t ≤ α', p.P24t <= p.alpha);
+  chk('L₁²≥(h₂−h₁)²', c.arg1 >= 0);
+  chk('L₂²≥(h₃−h₂)²', c.arg2 >= 0);
+  chk('L₃²≥(h₄−h₃)²', c.arg3 >= 0);
+  chk('L₄²≥(h₅−h₄)²', c.arg4 >= 0);
+  return res;
+}
+
+// ═══════════════════════════════════════════════════
+// Three.js
+// ═══════════════════════════════════════════════════
+const viewport = document.getElementById('viewport');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setClearColor(0x0a0a0f);
+viewport.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, 1, 0.001, 100);
+
+// Orbit
+let isDrag = false, isShift = false, prevX = 0, prevY = 0;
+let sph = { theta: 0.8, phi: 1.0, radius: 0.8 };
+let target = new THREE.Vector3(0.15, 0.15, 0);
+function updateCam() {
+  const sp = Math.sin(sph.phi), cp = Math.cos(sph.phi);
+  const st = Math.sin(sph.theta), ct = Math.cos(sph.theta);
+  camera.position.set(target.x+sph.radius*sp*ct, target.y+sph.radius*cp, target.z+sph.radius*sp*st);
+  camera.lookAt(target);
+}
+renderer.domElement.addEventListener('mousedown', e => { isDrag=true; isShift=e.shiftKey; prevX=e.clientX; prevY=e.clientY; });
+window.addEventListener('mouseup', () => isDrag=false);
+renderer.domElement.addEventListener('mousemove', e => {
+  if (!isDrag) return;
+  const dx = e.clientX-prevX, dy = e.clientY-prevY;
+  prevX = e.clientX; prevY = e.clientY;
+  if (isShift) {
+    const r = new THREE.Vector3(); camera.getWorldDirection(r); r.cross(camera.up).normalize();
+    target.addScaledVector(r, -dx*0.001);
+    target.y += dy*0.001;
+  } else {
+    sph.theta -= dx*0.005;
+    sph.phi = Math.max(0.1, Math.min(Math.PI-0.1, sph.phi - dy*0.005));
+  }
+  updateCam();
+});
+renderer.domElement.addEventListener('wheel', e => {
+  sph.radius *= (1 + e.deltaY*0.001);
+  sph.radius = Math.max(0.05, Math.min(5, sph.radius));
+  updateCam(); e.preventDefault();
+}, { passive: false });
+
+// Lights
+scene.add(new THREE.AmbientLight(0x404050, 0.8));
+const d1 = new THREE.DirectionalLight(0xffffff, 0.9); d1.position.set(1,2,1); scene.add(d1);
+const d2 = new THREE.DirectionalLight(0x8090ff, 0.4); d2.position.set(-1,0.5,-1); scene.add(d2);
+scene.add(new THREE.GridHelper(2, 40, 0x1a1a25, 0x1a1a25));
+
+// Materials
+const matContainerSolid = new THREE.MeshPhysicalMaterial({ color:0x3a5a8a, transparent:true, opacity:0.18, side:THREE.DoubleSide, roughness:0.4, depthWrite: false });
+const matContainerEdge = new THREE.LineBasicMaterial({ color:0x5588bb });
+const matTube = new THREE.MeshPhysicalMaterial({ color:0xddeeff, roughness:0.05, metalness:0.0, transparent: true, opacity: 0.35, side: THREE.DoubleSide, clearcoat: 1.0, clearcoatRoughness: 0.05, depthWrite: false });
+const matTubeInner = new THREE.MeshPhysicalMaterial({ color:0xccddff, roughness:0.1, metalness:0.0, transparent: true, opacity: 0.2, side: THREE.DoubleSide, depthWrite: false });
+const matHolder = new THREE.MeshStandardMaterial({ color:0x50bb70, roughness:0.5 });
+const matColumn = new THREE.MeshStandardMaterial({ color:0x9a7bff, roughness:0.5 });
+const matLabel = new THREE.LineBasicMaterial({ color: 0xff6644 });
+
+// Groups
+const groups = {};
+['container','tube','holders','columns','labels'].forEach(k => {
+  groups[k] = new THREE.Group(); scene.add(groups[k]);
+});
+
+// ═══════════════════════════════════════════════════
+// Geometry helpers
+// ═══════════════════════════════════════════════════
+
+function addContainerWall(group, x, y, z, sx, sy, sz) {
+  const g = new THREE.BoxGeometry(sx, sy, sz);
+  const m = new THREE.Mesh(g, matContainerSolid);
+  m.position.set(x, y, z);
+  group.add(m);
+  const eg = new THREE.EdgesGeometry(g);
+  const l = new THREE.LineSegments(eg, matContainerEdge);
+  l.position.set(x, y, z);
+  group.add(l);
+}
+
+// Create a wall (thin slab) with a circular hole for tube pass-through
+// wallW, wallH = dimensions of the wall face; thickness = extrusion depth
+// holeY = vertical centre of hole on the wall; holeR = hole radius
+// The shape is drawn in the wall's face plane then extruded.
+function addWallWithHole(group, cx, cy, cz, wallW, wallH, thickness, holeY, holeR, orientation) {
+  // orientation: 'yz' = wall face in YZ (normal along X), 'xy' = wall face in XY (normal along Z)
+  const shape = new THREE.Shape();
+  shape.moveTo(-wallW / 2, -wallH / 2);
+  shape.lineTo(wallW / 2, -wallH / 2);
+  shape.lineTo(wallW / 2, wallH / 2);
+  shape.lineTo(-wallW / 2, wallH / 2);
+  shape.closePath();
+
+  // holeY is in world coords; convert to shape-local (centre of shape is at cy)
+  const localHoleY = holeY - cy;
+  if (holeR > 0) {
+    const hole = new THREE.Path();
+    const segs = 32;
+    for (let i = 0; i <= segs; i++) {
+      const theta = (i / segs) * Math.PI * 2;
+      const hx = holeR * Math.cos(theta);
+      const hy = localHoleY + holeR * Math.sin(theta);
+      if (i === 0) hole.moveTo(hx, hy);
+      else hole.lineTo(hx, hy);
+    }
+    shape.holes.push(hole);
+  }
+
+  const geom = new THREE.ExtrudeGeometry(shape, { depth: thickness, bevelEnabled: false });
+  geom.translate(0, 0, -thickness / 2);
+  const mesh = new THREE.Mesh(geom, matContainerSolid);
+  mesh.position.set(cx, cy, cz);
+
+  if (orientation === 'yz') {
+    // Face in YZ plane (normal along X): rotate 90° around Y
+    mesh.rotation.y = Math.PI / 2;
+  }
+  // Default (no rotation): face in XY, normal along Z — for front/back walls
+
+  group.add(mesh);
+
+  const eg = new THREE.EdgesGeometry(geom);
+  const line = new THREE.LineSegments(eg, matContainerEdge);
+  line.position.copy(mesh.position);
+  line.rotation.copy(mesh.rotation);
+  group.add(line);
+}
+
+function makeTriPrism(base, height, depth, segments) {
+  const s = new THREE.Shape();
+  s.moveTo(-base/2, 0); s.lineTo(base/2, 0); s.lineTo(0, height); s.closePath();
+  const g = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: false, steps: segments || 1 });
+  g.translate(0, 0, -depth/2);
+  return g;
+}
+
+// Brute-force subtract a cylinder (axis along X) from a BufferGeometry
+// Removes all triangles whose centroid is inside the cylinder at (y=cylY, z=cylZ) with radius cylR
+// Works in the geometry's own coordinate space
+function subtractCylinderFromGeom(geom, cylY, cylZ, cylR) {
+  // Convert to non-indexed for simplicity
+  const niGeom = geom.index ? geom.toNonIndexed() : geom.clone();
+  const pos = niGeom.attributes.position;
+  const norm = niGeom.attributes.normal;
+  const uv = niGeom.attributes.uv;
+
+  const keepPositions = [];
+  const keepNormals = [];
+  const keepUVs = [];
+  const cylR2 = cylR * cylR;
+
+  for (let i = 0; i < pos.count; i += 3) {
+    // Centroid of this triangle
+    const cy = (pos.getY(i) + pos.getY(i+1) + pos.getY(i+2)) / 3;
+    const cz = (pos.getZ(i) + pos.getZ(i+1) + pos.getZ(i+2)) / 3;
+
+    const dy = cy - cylY;
+    const dz = cz - cylZ;
+    const dist2 = dy * dy + dz * dz;
+
+    if (dist2 > cylR2) {
+      // Keep this triangle
+      for (let j = 0; j < 3; j++) {
+        keepPositions.push(pos.getX(i+j), pos.getY(i+j), pos.getZ(i+j));
+        if (norm) keepNormals.push(norm.getX(i+j), norm.getY(i+j), norm.getZ(i+j));
+        if (uv) keepUVs.push(uv.getX(i+j), uv.getY(i+j));
+      }
+    }
+  }
+
+  const newGeom = new THREE.BufferGeometry();
+  newGeom.setAttribute('position', new THREE.Float32BufferAttribute(keepPositions, 3));
+  if (keepNormals.length) newGeom.setAttribute('normal', new THREE.Float32BufferAttribute(keepNormals, 3));
+  if (keepUVs.length) newGeom.setAttribute('uv', new THREE.Float32BufferAttribute(keepUVs, 2));
+  return newGeom;
+}
+
+// Apply subtraction to all meshes in a group, accounting for each mesh's local transforms
+// cylY, cylZ are in the GROUP's local coordinate space
+function subtractCylinderFromGroup(group, cylY, cylZ, cylR) {
+  const meshes = [];
+  group.traverse(child => { if (child.isMesh) meshes.push(child); });
+
+  for (const mesh of meshes) {
+    // Transform cylinder coords into mesh-local space
+    // We need to invert the mesh's local transform
+    const invMat = new THREE.Matrix4().copy(mesh.matrix).invert();
+    const cylLocal = new THREE.Vector3(0, cylY, cylZ).applyMatrix4(invMat);
+
+    // Determine which axes correspond to Y and Z in mesh space
+    // Since meshes may be rotated, transform the cylinder axis direction too
+    // The cylinder axis is along X in group space — transform to mesh local
+    const axisX = new THREE.Vector3(1, 0, 0).applyMatrix4(
+      new THREE.Matrix4().extractRotation(invMat)
+    ).normalize();
+
+    // For a general rotation, we need to check distance from the cylinder axis line
+    // Point on axis: cylLocal + t * axisX
+    // Distance from a vertex V to this line:
+    // d = ||(V - cylLocal) × axisX||
+
+    const niGeom = mesh.geometry.index ? mesh.geometry.toNonIndexed() : mesh.geometry.clone();
+    const pos = niGeom.attributes.position;
+    const norm = niGeom.attributes.normal;
+
+    const keepPos = [], keepNorm = [];
+    const cylR2 = cylR * cylR;
+    const clP = cylLocal;
+
+    for (let i = 0; i < pos.count; i += 3) {
+      const cx = (pos.getX(i) + pos.getX(i+1) + pos.getX(i+2)) / 3;
+      const cy = (pos.getY(i) + pos.getY(i+1) + pos.getY(i+2)) / 3;
+      const cz = (pos.getZ(i) + pos.getZ(i+1) + pos.getZ(i+2)) / 3;
+
+      // Vector from cylinder origin to centroid
+      const dx = cx - clP.x, dy = cy - clP.y, dz = cz - clP.z;
+      // Cross product with axis
+      const crX = dy * axisX.z - dz * axisX.y;
+      const crY = dz * axisX.x - dx * axisX.z;
+      const crZ = dx * axisX.y - dy * axisX.x;
+      const dist2 = crX * crX + crY * crY + crZ * crZ;
+
+      if (dist2 > cylR2) {
+        for (let j = 0; j < 3; j++) {
+          keepPos.push(pos.getX(i+j), pos.getY(i+j), pos.getZ(i+j));
+          if (norm) keepNorm.push(norm.getX(i+j), norm.getY(i+j), norm.getZ(i+j));
+        }
+      }
+    }
+
+    const newGeom = new THREE.BufferGeometry();
+    newGeom.setAttribute('position', new THREE.Float32BufferAttribute(keepPos, 3));
+    if (keepNorm.length) newGeom.setAttribute('normal', new THREE.Float32BufferAttribute(keepNorm, 3));
+    mesh.geometry.dispose();
+    mesh.geometry = newGeom;
+  }
+}
+
+// Create a holder assembly: two edge triangles + central vertical plate, then subtract tube cylinder
+function makeHolder(alpha, hw, ht, plateThick, tubeR, pointH, tubeArea) {
+  const group = new THREE.Group();
+  const plateH = pointH;
+  if (plateH <= 0 || alpha <= 0) return group;
+
+  // Resolution: very fine subdivision so cut edges appear smooth
+  const res = Math.max(80, Math.ceil(alpha / (tubeR * 0.08)));
+
+  // 1. Two triangular supports at edges of width (z = ±hw/2)
+  //    Base = α (x-dir), Height = α (y-dir), thickness = ht (z-dir)
+  //    Built as a subdivided triangle mesh for clean cuts
+  for (const sign of [-1, 1]) {
+    const triGeom = createSubdividedTriangle(alpha, alpha, ht, res);
+    const triMesh = new THREE.Mesh(triGeom, matHolder);
+    triMesh.position.set(0, 0, sign * (hw / 2 - ht / 2));
+    group.add(triMesh);
+  }
+
+  // 2. Vertical plate: thin slab in x (plateThick), tall in y (plateH), wide in z (hw)
+  //    Using BoxGeometry with many segments for clean cylinder subtraction
+  const segsX = 2;
+  const segsY = res;
+  const segsZ = Math.max(res, Math.ceil(hw / (tubeR * 0.08)));
+  const plateGeom = new THREE.BoxGeometry(plateThick, plateH, hw, segsX, segsY, segsZ);
+  const plateMesh = new THREE.Mesh(plateGeom, matHolder);
+  plateMesh.position.set(0, plateH / 2, 0); // centre the box vertically
+  group.add(plateMesh);
+
+  // 3. Compute matrices
+  group.updateMatrixWorld(true);
+  for (const child of group.children) {
+    if (child.isMesh) child.updateMatrix();
+  }
+
+  // 4. Brute-force subtract tube cylinder from ALL components
+  //    Cylinder axis along X at (y=pointH, z=0) in group-local coords
+  if (tubeR > 0) {
+    subtractCylinderFromGroup(group, pointH, 0, tubeR);
+  }
+
+  return group;
+}
+
+// Create a subdivided triangular prism: triangle face (base × height) in XY, extruded in Z
+// The triangle face itself is subdivided into a grid of small triangles
+function createSubdividedTriangle(base, height, depth, subdivs) {
+  const positions = [];
+  const normals = [];
+  const n = subdivs;
+
+  // Helper: barycentric grid point on triangle
+  // Triangle: A=(-base/2, 0), B=(base/2, 0), C=(0, height)
+  // We parameterize rows from bottom (row=0) to top (row=n)
+  // At each row r, x ranges from x_left(r) to x_right(r)
+  const rows = [];
+  for (let r = 0; r <= n; r++) {
+    const t = r / n; // 0 at bottom, 1 at top
+    const y = t * height;
+    const halfW = (base / 2) * (1 - t);
+    const cols = n - r + 1;
+    const row = [];
+    for (let c = 0; c < cols; c++) {
+      const s = cols > 1 ? c / (cols - 1) : 0.5;
+      const x = -halfW + s * 2 * halfW;
+      row.push({ x, y });
+    }
+    rows.push(row);
+  }
+
+  // Front face (z = +depth/2) and back face (z = -depth/2)
+  for (const zSign of [-1, 1]) {
+    const z = zSign * depth / 2;
+    const nz = zSign;
+    for (let r = 0; r < n; r++) {
+      const top = rows[r + 1];
+      const bot = rows[r];
+      // Connect row r to row r+1
+      let ti = 0, bi = 0;
+      while (bi < bot.length - 1 || ti < top.length - 1) {
+        if (bi < bot.length - 1 && (ti >= top.length - 1 || bot[bi + 1].x <= top[ti].x + 1e-9)) {
+          // Upward triangle
+          const a = bot[bi], b = bot[bi + 1], c = top[Math.min(ti, top.length - 1)];
+          if (zSign > 0) {
+            positions.push(a.x, a.y, z, b.x, b.y, z, c.x, c.y, z);
+          } else {
+            positions.push(a.x, a.y, z, c.x, c.y, z, b.x, b.y, z);
+          }
+          normals.push(0, 0, nz, 0, 0, nz, 0, 0, nz);
+          bi++;
+        } else if (ti < top.length - 1) {
+          // Downward triangle
+          const a = top[ti], b = top[ti + 1], c = bot[Math.min(bi, bot.length - 1)];
+          if (zSign > 0) {
+            positions.push(a.x, a.y, z, c.x, c.y, z, b.x, b.y, z);
+          } else {
+            positions.push(a.x, a.y, z, b.x, b.y, z, c.x, c.y, z);
+          }
+          normals.push(0, 0, nz, 0, 0, nz, 0, 0, nz);
+          ti++;
+        } else break;
+      }
+    }
+  }
+
+  // Side faces: bottom edge, left edge, right edge — simple quads extruded in Z
+  // Bottom edge: y=0, x from -base/2 to base/2
+  const sideSegs = Math.max(n, 10);
+  // Bottom
+  for (let i = 0; i < sideSegs; i++) {
+    const x0 = -base / 2 + (i / sideSegs) * base;
+    const x1 = -base / 2 + ((i + 1) / sideSegs) * base;
+    addQuad(positions, normals, x0, 0, -depth/2, x1, 0, -depth/2, x1, 0, depth/2, x0, 0, depth/2, 0, -1, 0);
+  }
+  // Left edge: from (-base/2, 0) to (0, height)
+  for (let i = 0; i < sideSegs; i++) {
+    const t0 = i / sideSegs, t1 = (i + 1) / sideSegs;
+    const x0 = -base / 2 + t0 * (base / 2), y0 = t0 * height;
+    const x1 = -base / 2 + t1 * (base / 2), y1 = t1 * height;
+    const nx = -height, ny = -base / 2;
+    const nl = Math.sqrt(nx * nx + ny * ny) || 1;
+    addQuad(positions, normals, x0, y0, -depth/2, x0, y0, depth/2, x1, y1, depth/2, x1, y1, -depth/2, nx/nl, ny/nl, 0);
+  }
+  // Right edge: from (base/2, 0) to (0, height)
+  for (let i = 0; i < sideSegs; i++) {
+    const t0 = i / sideSegs, t1 = (i + 1) / sideSegs;
+    const x0 = base / 2 - t0 * (base / 2), y0 = t0 * height;
+    const x1 = base / 2 - t1 * (base / 2), y1 = t1 * height;
+    const nx = height, ny = -base / 2;
+    const nl = Math.sqrt(nx * nx + ny * ny) || 1;
+    addQuad(positions, normals, x0, y0, depth/2, x0, y0, -depth/2, x1, y1, -depth/2, x1, y1, depth/2, nx/nl, ny/nl, 0);
+  }
+
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+  return geom;
+}
+
+function addQuad(positions, normals, x0,y0,z0, x1,y1,z1, x2,y2,z2, x3,y3,z3, nx,ny,nz) {
+  positions.push(x0,y0,z0, x1,y1,z1, x2,y2,z2);
+  positions.push(x0,y0,z0, x2,y2,z2, x3,y3,z3);
+  for (let i = 0; i < 6; i++) normals.push(nx, ny, nz);
+}
+
+// ═══════════════════════════════════════════════════
+// Tube path with high-quality bends
+// ═══════════════════════════════════════════════════
+
+// Build tube centreline: straight segments connected by circular arcs
+// The arc at each bend passes exactly through the bend point at its midpoint
+function buildTubePath(pts, bendRadius) {
+  // pts = [{x,y}, ...] for P1, P2, P3, P4, P5
+  const allPts = [];
+  const ARC_SEGMENTS = 24; // segments per arc for smoothness
+
+  for (let i = 0; i < pts.length; i++) {
+    const curr = pts[i];
+
+    if (i === 0 || i === pts.length - 1) {
+      allPts.push(new THREE.Vector3(curr.x, curr.y, 0));
+      continue;
+    }
+
+    // Interior point: create a circular arc bend
+    const prev = pts[i - 1], next = pts[i + 1];
+    const dxA = curr.x - prev.x, dyA = curr.y - prev.y;
+    const dxB = next.x - curr.x, dyB = next.y - curr.y;
+    const lenA = Math.sqrt(dxA * dxA + dyA * dyA);
+    const lenB = Math.sqrt(dxB * dxB + dyB * dyB);
+
+    if (lenA < 1e-8 || lenB < 1e-8) {
+      allPts.push(new THREE.Vector3(curr.x, curr.y, 0));
+      continue;
+    }
+
+    // Unit vectors along incoming and outgoing segments
+    const uAx = dxA / lenA, uAy = dyA / lenA;
+    const uBx = dxB / lenB, uBy = dyB / lenB;
+
+    // Half-angle between the two directions
+    // The bisector direction gives us the arc geometry
+    const dot = uAx * uBx + uAy * uBy;
+    const cross = uAx * uBy - uAy * uBx;
+    const halfAngle = Math.acos(Math.max(-1, Math.min(1, dot))) / 2;
+
+    if (Math.abs(halfAngle) < 1e-6 || Math.abs(Math.PI - halfAngle * 2) < 1e-6) {
+      // Nearly straight or 180° — just add the point
+      allPts.push(new THREE.Vector3(curr.x, curr.y, 0));
+      continue;
+    }
+
+    // For a circular arc tangent to both segments:
+    // The tangent points are at distance d = R / tan(halfAngle) from the corner
+    // But we want the arc midpoint to pass through the actual corner point.
+    //
+    // Strategy: use a quadratic Bezier where we ADJUST the control point
+    // so that the curve at t=0.5 passes exactly through (curr.x, curr.y).
+    //
+    // Bezier: B(t) = (1-t)²·P0 + 2t(1-t)·Pc + t²·P1
+    // At t=0.5: B(0.5) = 0.25·P0 + 0.5·Pc + 0.25·P1
+    // We want B(0.5) = curr, so: Pc = 2·curr - 0.5·(P0 + P1)
+
+    // The tangent points (P0, P1) are offset from curr along each segment
+    const offset = Math.min(bendRadius, lenA * 0.45, lenB * 0.45);
+
+    // P0 = point before bend (on incoming segment)
+    const p0x = curr.x - uAx * offset, p0y = curr.y - uAy * offset;
+    // P1 = point after bend (on outgoing segment)
+    const p1x = curr.x + uBx * offset, p1y = curr.y + uBy * offset;
+
+    // Adjusted control point so curve passes through curr at t=0.5
+    const pcx = 2 * curr.x - 0.5 * (p0x + p1x);
+    const pcy = 2 * curr.y - 0.5 * (p0y + p1y);
+
+    // Generate arc points using quadratic Bezier
+    allPts.push(new THREE.Vector3(p0x, p0y, 0));
+    for (let t = 1; t < ARC_SEGMENTS; t++) {
+      const s = t / ARC_SEGMENTS;
+      const s1 = 1 - s;
+      const qx = s1 * s1 * p0x + 2 * s1 * s * pcx + s * s * p1x;
+      const qy = s1 * s1 * p0y + 2 * s1 * s * pcy + s * s * p1y;
+      allPts.push(new THREE.Vector3(qx, qy, 0));
+    }
+    allPts.push(new THREE.Vector3(p1x, p1y, 0));
+  }
+  return allPts;
+}
+
+// Create a hollow tube (pipe) mesh along a path — watertight with constant cross-section
+function createHollowTube(pathPoints, outerR, wallThickness, radialSegs, pathSegs) {
+  wallThickness = Math.min(wallThickness, outerR * 0.8);
+  const innerR = Math.max(outerR - wallThickness, outerR * 0.1);
+  radialSegs = radialSegs || 24;
+  pathSegs = pathSegs || 200;
+
+  // Use CatmullRom with low tension for near-linear interpolation between dense points
+  const curve = new THREE.CatmullRomCurve3(pathPoints, false, 'catmullrom', 0.0);
+
+  const outerGeom = new THREE.TubeGeometry(curve, pathSegs, outerR, radialSegs, false);
+  const innerGeom = new THREE.TubeGeometry(curve, pathSegs, innerR, radialSegs, false);
+
+  // Flip inner normals and faces for correct inside-out rendering
+  const iNorm = innerGeom.attributes.normal;
+  for (let i = 0; i < iNorm.count; i++) {
+    iNorm.setXYZ(i, -iNorm.getX(i), -iNorm.getY(i), -iNorm.getZ(i));
+  }
+  const iIdx = innerGeom.index.array;
+  for (let i = 0; i < iIdx.length; i += 3) {
+    const tmp = iIdx[i]; iIdx[i] = iIdx[i + 1]; iIdx[i + 1] = tmp;
+  }
+
+  // Annular end caps for watertight seal
+  const makeAnnularCap = (tParam, sign) => {
+    const verts = [], indices = [], norms = [];
+    const p = curve.getPointAt(tParam);
+    const tangent = curve.getTangentAt(tParam).normalize();
+    const up = Math.abs(tangent.y) < 0.99 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0);
+    const right = new THREE.Vector3().crossVectors(tangent, up).normalize();
+    const realUp = new THREE.Vector3().crossVectors(right, tangent).normalize();
+
+    for (let i = 0; i <= radialSegs; i++) {
+      const theta = (i / radialSegs) * Math.PI * 2;
+      const cos = Math.cos(theta), sin = Math.sin(theta);
+      // Outer vertex
+      verts.push(
+        p.x + outerR * (cos * right.x + sin * realUp.x),
+        p.y + outerR * (cos * right.y + sin * realUp.y),
+        p.z + outerR * (cos * right.z + sin * realUp.z)
+      );
+      norms.push(tangent.x * sign, tangent.y * sign, tangent.z * sign);
+      // Inner vertex
+      verts.push(
+        p.x + innerR * (cos * right.x + sin * realUp.x),
+        p.y + innerR * (cos * right.y + sin * realUp.y),
+        p.z + innerR * (cos * right.z + sin * realUp.z)
+      );
+      norms.push(tangent.x * sign, tangent.y * sign, tangent.z * sign);
+    }
+    for (let i = 0; i < radialSegs; i++) {
+      const a = i * 2, b = i * 2 + 1, c = (i + 1) * 2, d = (i + 1) * 2 + 1;
+      if (sign > 0) indices.push(a, b, c, b, d, c);
+      else indices.push(a, c, b, b, c, d);
+    }
+    const bg = new THREE.BufferGeometry();
+    bg.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+    bg.setAttribute('normal', new THREE.Float32BufferAttribute(norms, 3));
+    bg.setIndex(indices);
+    return bg;
+  };
+
+  const group = new THREE.Group();
+  group.add(new THREE.Mesh(outerGeom, matTube));
+  group.add(new THREE.Mesh(innerGeom, matTubeInner));
+  group.add(new THREE.Mesh(makeAnnularCap(0, -1), matTube));
+  group.add(new THREE.Mesh(makeAnnularCap(1, 1), matTube));
+  return group;
+}
+
+// Point label (small sphere + vertical line)
+function makeLabel(x, y, color) {
+  const g = new THREE.Group();
+  const sg = new THREE.SphereGeometry(0.004, 8, 6);
+  const sm = new THREE.Mesh(sg, new THREE.MeshBasicMaterial({ color }));
+  sm.position.set(x, y, 0);
+  g.add(sm);
+  // Vertical dashed line to ground
+  const lg = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(x, 0, 0), new THREE.Vector3(x, y, 0)
+  ]);
+  g.add(new THREE.Line(lg, new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.4 })));
+  return g;
+}
+
+// ═══════════════════════════════════════════════════
+// Rebuild
+// ═══════════════════════════════════════════════════
+function rebuild() {
+  const c = compute();
+  const p = params;
+
+  // Clear
+  for (const g of Object.values(groups)) {
+    while (g.children.length) {
+      const ch = g.children[0];
+      if (ch.geometry) ch.geometry.dispose();
+      g.remove(ch);
+    }
+  }
+
+  const W = p.Wc;
+  const totalH = p.h0 + p.ha;
+  const leftX = c.S0;
+  const rightX = c.X2; // Container stops at X2
+
+  // ── Container (S0 to X2) — open top, hole in right wall for tube ──
+  if (visibility.container && (rightX - leftX) > 0) {
+    const cLen = rightX - leftX;
+    const cx = leftX + cLen/2;
+    // Bottom
+    addContainerWall(groups.container, cx, 0, 0, cLen+p.Ct, p.Ct, W);
+    // NO top wall — container is open on top
+    // Left wall (solid — tube starts at P1 inside, doesn't pass through)
+    addContainerWall(groups.container, leftX, totalH/2, 0, p.Ct, totalH, W);
+    // Right wall (at X2) — tube passes through at height h2, hole = full tube outer radius
+    addWallWithHole(groups.container, rightX, totalH/2, 0, W, totalH, p.Ct, c.h2, c.r, 'yz');
+    // Front wall
+    addContainerWall(groups.container, cx, totalH/2, W/2, cLen+p.Ct, totalH, p.Ct);
+    // Back wall
+    addContainerWall(groups.container, cx, totalH/2, -W/2, cLen+p.Ct, totalH, p.Ct);
+  }
+
+  // ── Tube path: P1 → P2 → P3 → P4 → P5 ──
+  const tubePts2D = [
+    { x: 0,    y: p.h1 },
+    { x: c.X2, y: c.h2 },
+    { x: c.X3, y: p.h3 },
+    { x: c.X4, y: c.h4 },
+    { x: c.X5, y: p.h5 },
+  ];
+
+  if (visibility.tube) {
+    const pathPts = buildTubePath(tubePts2D, p.bendR);
+    if (pathPts.length >= 2) {
+      const tubeWall = c.r * 0.2;
+      const tubeGroup = createHollowTube(pathPts, c.r, tubeWall, 24, 250);
+      groups.tube.add(tubeGroup);
+    }
+  }
+
+  // ── Holders at: W1, P3, W2 (ground level), P4 (on platform) ──
+  // P2 has no holder (stuck on container wall). No holders at P1 or P5.
+  const groundHolderPts = [
+    { x: c.S1, h: c.C1 },  // W₁
+    { x: c.X3, h: p.h3 },  // P₃
+    { x: c.S2, h: c.C2 },  // W₂
+  ];
+
+  if (visibility.holders) {
+    // Ground-level holders using new design
+    for (const hp of groundHolderPts) {
+      const holder = makeHolder(p.alpha, p.hw, p.ht, p.Ct, c.r, hp.h, p.A_tube);
+      holder.position.set(hp.x, 0, 0);
+      groups.holders.add(holder);
+    }
+    // P4 holder — base on platform at h₀
+    // pointH relative to platform = h₄ - h₀ = Y₄
+    const p4Holder = makeHolder(p.alpha, p.hw, p.ht, p.Ct, c.r, p.Y4, p.A_tube);
+    p4Holder.position.set(c.X4, p.h0, 0);
+    groups.holders.add(p4Holder);
+  }
+
+  // ── P4 Column & Support Structure ──
+  if (visibility.columns) {
+    const a = p.alpha;
+    const platThick = p.Ct; // platform thickness
+    const platY = p.h0;     // platform at h₀
+
+    // --- P4 Platform at h₀ ---
+    // Width α (x-dir), thickness Ct (y-dir), spans full container width W (z-dir)
+    const platMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(a, platThick, W),
+      matColumn
+    );
+    platMesh.position.set(c.X4, platY, 0);
+    groups.columns.add(platMesh);
+
+    // --- Two columns from container width edges, coming inward ---
+    // Each: width α (x), height h₀ (y), length α (z, from edge inward)
+    // Front column: z from W/2 inward to W/2 - α
+    const frontColZ = W/2 - a/2;
+    const backColZ = -(W/2 - a/2);
+    const colH = platY; // ground to h₀
+
+    if (colH > 0) {
+      // Front column
+      const fc = new THREE.Mesh(new THREE.BoxGeometry(a, colH, a), matColumn);
+      fc.position.set(c.X4, colH/2, frontColZ);
+      groups.columns.add(fc);
+      // Back column
+      const bc = new THREE.Mesh(new THREE.BoxGeometry(a, colH, a), matColumn);
+      bc.position.set(c.X4, colH/2, backColZ);
+      groups.columns.add(bc);
+    }
+
+    // --- Connecting beams from container (X₂) to P4 columns, at h₀ level ---
+    // Width α (z), same thickness as platform (Ct), at same z-positions as columns
+    // Also identical structure on floor level (y = 0)
+    if (c.X4 > c.X2) {
+      const beamLen = c.X4 - a/2 - c.X2; // from container wall to column edge
+      if (beamLen > 0) {
+        const beamCenterX = c.X2 + beamLen/2;
+        for (const zp of [frontColZ, backColZ]) {
+          // Top beam at h₀
+          const tb = new THREE.Mesh(new THREE.BoxGeometry(beamLen, platThick, a), matColumn);
+          tb.position.set(beamCenterX, platY, zp);
+          groups.columns.add(tb);
+          // Floor beam (mirror at y = 0)
+          const fb = new THREE.Mesh(new THREE.BoxGeometry(beamLen, platThick, a), matColumn);
+          fb.position.set(beamCenterX, 0, zp);
+          groups.columns.add(fb);
+        }
+      }
+    }
+
+    // --- Floor platform (mirror of h₀ platform) at y = 0 ---
+    const floorPlat = new THREE.Mesh(
+      new THREE.BoxGeometry(a, platThick, W),
+      matColumn
+    );
+    floorPlat.position.set(c.X4, 0, 0);
+    groups.columns.add(floorPlat);
+
+    // --- Horizontal centre rail from X₂ to X₅ at floor level ---
+    // Runs through z = 0 (centre), holds P₃ and W₂ holders in place
+    const railLen = c.X5 - c.X2;
+    if (railLen > 0) {
+      const rail = new THREE.Mesh(
+        new THREE.BoxGeometry(railLen, platThick, a),
+        matColumn
+      );
+      rail.position.set(c.X2 + railLen/2, 0, 0);
+      groups.columns.add(rail);
+    }
+  }
+
+  // ── Labels ──
+  if (visibility.labels) {
+    const labelData = [
+      { x: 0,    y: p.h1, c: 0xff4444 }, // P1
+      { x: c.S1, y: c.C1, c: 0x44ff44 }, // W1
+      { x: c.X2, y: c.h2, c: 0xff4444 }, // P2
+      { x: c.X3, y: p.h3, c: 0xff4444 }, // P3
+      { x: c.X4, y: c.h4, c: 0xff4444 }, // P4
+      { x: c.S2, y: c.C2, c: 0x44ff44 }, // W2
+      { x: c.X5, y: p.h5, c: 0xff4444 }, // P5
+    ];
+    for (const ld of labelData) {
+      groups.labels.add(makeLabel(ld.x, ld.y, ld.c));
+    }
+  }
+
+  // ── UI updates ──
+  document.getElementById('calculated-box').innerHTML = [
+    ['S₀', c.S0], ['S₁', c.S1], ['S₂', c.S2],
+    ['h₂', c.h2], ['h₄', c.h4], ['r', c.r],
+    ['X₂', c.X2], ['X₃', c.X3], ['X₄', c.X4], ['X₅', c.X5],
+    ['C₁', c.C1], ['C₂', c.C2],
+  ].map(([k,v]) => `<span class="calc-label">${k}</span>=<span class="calc-val">${v.toFixed(4)}</span>`).join(' · ');
+
+  const res = checkConstraints(c);
+  document.getElementById('constraints-box').innerHTML = res.map(r =>
+    `<span class="${r.ok ? 'constraint-ok' : 'constraint-fail'}">${r.ok ? '✓' : '✗'} ${r.name}</span>`
+  ).join('<br>');
+}
+
+// ═══════════════════════════════════════════════════
+// STL Export
+// ═══════════════════════════════════════════════════
+document.getElementById('export-btn').addEventListener('click', () => {
+  const exp = new STLExporter();
+  const buf = exp.parse(scene);
+  const blob = new Blob([buf], { type: 'application/octet-stream' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'experimental_setup.stl';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+// ═══════════════════════════════════════════════════
+// Render
+// ═══════════════════════════════════════════════════
+function onResize() {
+  const w = viewport.clientWidth, h = viewport.clientHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', onResize);
+onResize(); updateCam(); rebuild();
+
+(function animate() {
+  requestAnimationFrame(animate);
+  renderer.render(scene, camera);
+})();
+</script>
+</body>
+</html>
