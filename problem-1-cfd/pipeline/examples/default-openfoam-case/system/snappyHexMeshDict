@@ -1,0 +1,48 @@
+FoamFile
+{
+    version 2.0;
+    format ascii;
+    class dictionary;
+    object snappyHexMeshDict;
+}
+
+castellatedMesh true;
+snap true;
+addLayers false;
+
+geometry
+{
+    fluid_geometry.json
+    {
+        type triSurfaceMesh;
+        name walls;
+    }
+}
+
+castellatedMeshControls
+{
+    maxLocalCells 100000;
+    maxGlobalCells 200000;
+    minRefinementCells 0;
+    nCellsBetweenLevels 3;
+    resolveFeatureAngle 30;
+    locationInMesh (0 0.05 0);
+}
+
+snapControls
+{
+    nSmoothPatch 3;
+    tolerance 2.0;
+    nSolveIter 30;
+    nRelaxIter 5;
+}
+
+meshQualityControls {}
+
+refinementRegions
+{
+    openingBox { mode inside; levels ((1E15 2)); }
+    bendBoxes { mode inside; levels ((1E15 2)); }
+    outletBox { mode inside; levels ((1E15 2)); }
+    freeSurfaceBox { mode inside; levels ((1E15 2)); }
+}

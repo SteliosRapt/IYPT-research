@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fixed-geometry.local/schemas/run-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "caseId",
+    "displayName",
+    "timeSteps",
+    "chartSeries",
+    "geometryAssets",
+    "fluidAssets",
+    "events",
+    "status",
+    "paraview",
+    "metadata"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "caseId": { "type": "string", "minLength": 1 },
+    "displayName": { "type": "string", "minLength": 1 },
+    "timeSteps": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "chartSeries": { "type": "object" },
+    "geometryAssets": { "type": "object" },
+    "fluidAssets": { "type": "object" },
+    "events": { "type": "object" },
+    "status": { "enum": ["mock", "solver_generated"] },
+    "paraview": { "type": "object" },
+    "metadata": { "type": "object" }
+  }
+}
+

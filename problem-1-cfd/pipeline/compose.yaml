@@ -1,0 +1,10 @@
+services:
+  openfoam:
+    build:
+      context: ./solver/openfoam-template
+      dockerfile: Dockerfile
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+    command: /bin/bash
+

@@ -1,0 +1,20 @@
+{
+  "name": "@fixed-geometry/shared-schema",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./schemas/*": "./src/schemas/*"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run src/index.test.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2"
+  }
+}

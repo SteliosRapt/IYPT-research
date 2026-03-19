@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fixed-geometry.local/schemas/case.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "caseId",
+    "displayName",
+    "parameters",
+    "derived",
+    "geometry",
+    "meshing",
+    "solver",
+    "forcing",
+    "eventThresholds",
+    "outputs",
+    "runStatus",
+    "provenance"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "caseId": { "type": "string", "minLength": 1 },
+    "displayName": { "type": "string", "minLength": 1 },
+    "parameters": { "$ref": "parameters.schema.json" },
+    "derived": { "type": "object" },
+    "geometry": {
+      "type": "object",
+      "required": ["fluidBoundaryPatches", "fixedGeometryGroups"],
+      "properties": {
+        "fluidBoundaryPatches": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "fixedGeometryGroups": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "meshing": { "type": "object" },
+    "solver": { "type": "object" },
+    "forcing": { "type": "object" },
+    "eventThresholds": { "type": "object" },
+    "outputs": { "type": "object" },
+    "runStatus": { "type": "object" },
+    "provenance": { "type": "object" }
+  }
+}
+
