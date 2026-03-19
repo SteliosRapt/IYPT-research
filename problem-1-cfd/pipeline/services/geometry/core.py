@@ -437,12 +437,28 @@ def build_fixed_geometry_descriptors(parameters: dict[str, float], derived: dict
     }
 
 
-def build_fluid_geometry_descriptors(parameters: dict[str, float], derived: dict[str, Any], forcing: dict[str, Any]) -> dict[str, Any]:
+def build_fluid_geometry_descriptors(
+    parameters: dict[str, float],
+    derived: dict[str, Any],
+    forcing: dict[str, Any],
+    fixed_geometry: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     patch_fraction = max(min(forcing.get("topPatchFraction", 0.18), 0.9), 0.05)
     container_length = derived["X2"] - derived["S0"]
     patch_length = container_length * patch_fraction
     patch_width = parameters["W"] * patch_fraction
     inlet_center_x = derived["S0"] + container_length / 2
+    inner_radius = max(derived["r"] * (1 - parameters["wallThicknessRatio"]), derived["r"] * 0.1)
+
+    # Solid obstacles are any fixed-geometry surfaces that protrude into the fluid
+    # domain and must be subtracted from the fluid volume.  Holders and columns are
+    # the primary culprits — their structural members pass through the tube interior
+    # or sit inside the container.  snappyHexMesh uses these surfaces to carve solid
+    # regions out of the background mesh, so all of them must be listed here.
+    solid_obstacles: list[Any] = []
+    if fixed_geometry is not None:
+        solid_obstacles.extend(fixed_geometry.get("holders", []))
+        solid_obstacles.extend(fixed_geometry.get("columns", []))
 
     return {
         "walls": {
@@ -457,9 +473,10 @@ def build_fluid_geometry_descriptors(parameters: dict[str, float], derived: dict
             },
             "tubeInterior": {
                 "path": [[point["x"], point["y"], 0.0] for point in derived["tubePolyline"]],
-                "radius": max(derived["r"] * (1 - parameters["wallThicknessRatio"]), derived["r"] * 0.1),
+                "radius": inner_radius,
             },
         },
+        "solidObstructions": solid_obstacles,
         "topAtmosphere": {
             "type": "rect",
             "center": [inlet_center_x, parameters["h0"] + parameters["h_a"], 0.0],
@@ -474,7 +491,7 @@ def build_fluid_geometry_descriptors(parameters: dict[str, float], derived: dict
         "tubeOutlet": {
             "type": "tubeOutlet",
             "center": [derived["X5"], parameters["h5"], 0.0],
-            "radius": max(derived["r"] * (1 - parameters["wallThicknessRatio"]), derived["r"] * 0.1),
+            "radius": inner_radius,
         },
     }
 

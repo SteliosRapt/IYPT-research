@@ -90,8 +90,14 @@ mergePatchPairs ();
 """
 
 
-def build_snappy_hex_mesh_dict(case_file: dict[str, Any]) -> str:
+def build_snappy_hex_mesh_dict(case_file: dict[str, Any], snapshot: dict[str, Any]) -> str:
     refinement = case_file["meshing"]["refinementLevels"]
+    derived = snapshot["derived"]
+    parameters = snapshot["parameters"]
+    # A point guaranteed inside the container fluid domain: horizontal centre,
+    # half container height, z=0.
+    loc_x = round((derived["S0"] + derived["X2"]) / 2, 6)
+    loc_y = round(parameters["h0"] * 0.5, 6)
     return f"""
 FoamFile
 {{
@@ -107,10 +113,18 @@ addLayers false;
 
 geometry
 {{
+    // Fluid domain boundaries: container interior + tube interior
     fluid_geometry.json
     {{
         type triSurfaceMesh;
-        name walls;
+        name fluidWalls;
+    }}
+    // Solid obstacles inside the fluid domain: holders and structural columns.
+    // snappyHexMesh carves these out of the fluid mesh so flow is not blocked.
+    fixed_geometry.json
+    {{
+        type triSurfaceMesh;
+        name solidObstructions;
     }}
 }}
 
@@ -121,7 +135,7 @@ castellatedMeshControls
     minRefinementCells 0;
     nCellsBetweenLevels 3;
     resolveFeatureAngle 30;
-    locationInMesh (0 0.05 0);
+    locationInMesh ({loc_x} {loc_y} 0);
 }}
 
 snapControls
@@ -137,8 +151,8 @@ meshQualityControls {{}}
 refinementRegions
 {{
     openingBox {{ mode inside; levels ((1E15 {refinement["opening"]})); }}
-    bendBoxes {{ mode inside; levels ((1E15 {refinement["bends"]})); }}
-    outletBox {{ mode inside; levels ((1E15 {refinement["outlet"]})); }}
+    bendBoxes  {{ mode inside; levels ((1E15 {refinement["bends"]})); }}
+    outletBox  {{ mode inside; levels ((1E15 {refinement["outlet"]})); }}
     freeSurfaceBox {{ mode inside; levels ((1E15 {refinement["freeSurface"]})); }}
 }}
 """
@@ -192,33 +206,39 @@ boundaryField
 """
 
 
-def build_transport_properties() -> str:
-    return """
+def build_transport_properties(case_file: dict[str, Any]) -> str:
+    t = case_file.get("transport", {})
+    water_nu = t.get("waterNu", 1e-6)
+    water_rho = t.get("waterRho", 998.2)
+    air_nu = t.get("airNu", 1.5e-5)
+    air_rho = t.get("airRho", 1.2)
+    sigma = t.get("sigma", 0.072)
+    return f"""
 FoamFile
-{
+{{
     version 2.0;
     format ascii;
     class dictionary;
     object transportProperties;
-}
+}}
 
 phases (water air);
 
 water
-{
+{{
     transportModel Newtonian;
-    nu 1e-06;
-    rho 998.2;
-}
+    nu {water_nu};
+    rho {water_rho};
+}}
 
 air
-{
+{{
     transportModel Newtonian;
-    nu 1.5e-05;
-    rho 1.2;
-}
+    nu {air_nu};
+    rho {air_rho};
+}}
 
-sigma 0.072;
+sigma {sigma};
 """
 
 
@@ -330,7 +350,7 @@ def generate_case(case_file: dict[str, Any], output_dir: Path) -> Path:
     (output_dir / "postProcessing").mkdir(exist_ok=True)
 
     fixed_geometry = build_fixed_geometry_descriptors(snapshot["parameters"], snapshot["derived"])
-    fluid_geometry = build_fluid_geometry_descriptors(snapshot["parameters"], snapshot["derived"], case_file["forcing"])
+    fluid_geometry = build_fluid_geometry_descriptors(snapshot["parameters"], snapshot["derived"], case_file["forcing"], fixed_geometry)
     write_json(output_dir / "case.json", case_file)
     write_json(output_dir / "geometry_snapshot.json", snapshot)
     write_json(output_dir / "fixed_geometry.json", fixed_geometry)
@@ -338,12 +358,12 @@ def generate_case(case_file: dict[str, Any], output_dir: Path) -> Path:
     write_json(output_dir / "run_metadata.json", build_run_metadata(case_file, snapshot))
 
     write_text(output_dir / "system" / "blockMeshDict", build_block_mesh_dict(case_file, snapshot))
-    write_text(output_dir / "system" / "snappyHexMeshDict", build_snappy_hex_mesh_dict(case_file))
+    write_text(output_dir / "system" / "snappyHexMeshDict", build_snappy_hex_mesh_dict(case_file, snapshot))
     write_text(output_dir / "system" / "controlDict", build_control_dict(case_file))
     write_text(output_dir / "system" / "fvSchemes", build_fv_schemes())
     write_text(output_dir / "system" / "fvSolution", build_fv_solution())
     write_text(output_dir / "system" / "topoSetDict", build_topo_set_dict(case_file, snapshot))
-    write_text(output_dir / "constant" / "transportProperties", build_transport_properties())
+    write_text(output_dir / "constant" / "transportProperties", build_transport_properties(case_file))
     write_text(output_dir / "constant" / "g", "dimensions [0 1 -2 0 0 0 0];\nvalue (0 -9.81 0);")
 
     alpha_boundary = """

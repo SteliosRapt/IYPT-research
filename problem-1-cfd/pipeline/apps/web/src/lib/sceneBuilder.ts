@@ -4,6 +4,8 @@ import {
   createGeometrySnapshot,
   type CanonicalParameters,
   type FixedGeometryDescriptor,
+  type MeshingConfig,
+  type TransportConfig,
 } from "@fixed-geometry/shared-schema";
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
 import { STLExporter } from "three/examples/jsm/exporters/STLExporter.js";
@@ -88,9 +90,76 @@ function makeTube(
   return mesh;
 }
 
+function buildMeshDomainWireframe(
+  parameters: CanonicalParameters,
+  snapshot: ReturnType<typeof createGeometrySnapshot>
+): THREE.LineSegments {
+  const { derived } = snapshot;
+  const margin = Math.max(parameters.W, parameters.h0 + parameters.h_a, derived.X5 - derived.S0) * 0.25;
+  const xMin = derived.S0 - margin;
+  const xMax = derived.X5 + margin;
+  const yMin = -margin * 0.5;
+  const yMax = parameters.h0 + parameters.h_a + margin;
+  const zMin = -parameters.W / 2 - margin * 0.5;
+  const zMax = parameters.W / 2 + margin * 0.5;
+
+  const box = new THREE.Box3(new THREE.Vector3(xMin, yMin, zMin), new THREE.Vector3(xMax, yMax, zMax));
+  const helper = new THREE.Box3Helper(box, new THREE.Color(0x44aaff));
+  const segments = new THREE.LineSegments(helper.geometry, new THREE.LineBasicMaterial({ color: 0x44aaff, transparent: true, opacity: 0.55 }));
+  segments.name = "meshDomain";
+  return segments;
+}
+
+function buildFluidInteriorGroup(
+  parameters: CanonicalParameters,
+  snapshot: ReturnType<typeof createGeometrySnapshot>
+): THREE.Group {
+  const { derived } = snapshot;
+  const group = new THREE.Group();
+  group.name = "fluidInterior";
+
+  const fluidMat = new THREE.MeshPhysicalMaterial({
+    color: 0x0088ff,
+    transparent: true,
+    opacity: 0.22,
+    roughness: 0.1,
+    side: THREE.FrontSide,
+    depthWrite: false,
+  });
+
+  // Container interior box
+  const containerLength = derived.X2 - derived.S0;
+  const containerHeight = parameters.h0 + parameters.h_a;
+  const containerBox = new THREE.Mesh(
+    new THREE.BoxGeometry(containerLength, containerHeight, parameters.W),
+    fluidMat
+  );
+  containerBox.position.set(derived.S0 + containerLength / 2, containerHeight / 2, 0);
+  group.add(containerBox);
+
+  // Tube interior (inner radius)
+  const innerRadius = Math.max(derived.r * (1 - 0.2), derived.r * 0.1);
+  const tubeCurve = new THREE.CatmullRomCurve3(
+    derived.tubePolyline.map((p: { x: number; y: number }) => new THREE.Vector3(p.x, p.y, 0)),
+    false,
+    "catmullrom",
+    0
+  );
+  const tubeMesh = new THREE.Mesh(
+    new THREE.TubeGeometry(tubeCurve, 240, innerRadius, 18, false),
+    fluidMat
+  );
+  group.add(tubeMesh);
+
+  return group;
+}
+
 export function buildSceneGroup(
   parameters: CanonicalParameters,
-  visibility: VisibilityMap
+  visibility: VisibilityMap,
+  meshingPreset?: MeshingConfig["preset"],
+  showMeshDomain?: boolean,
+  showFluidInterior?: boolean
 ) {
   const snapshot = createGeometrySnapshot(parameters);
   const descriptors = buildFixedGeometryDescriptors(
@@ -163,6 +232,14 @@ export function buildSceneGroup(
     }
   }
 
+  if (showFluidInterior) {
+    group.add(buildFluidInteriorGroup(parameters, snapshot));
+  }
+
+  if (showMeshDomain) {
+    group.add(buildMeshDomainWireframe(parameters, snapshot));
+  }
+
   if (visibility.labels) {
     const labelGroup = new THREE.Group();
     const labelPoints = [
@@ -205,8 +282,12 @@ function downloadBlob(blob: Blob, fileName: string) {
   URL.revokeObjectURL(anchor.href);
 }
 
-export async function exportCaseJson(parameters: CanonicalParameters) {
-  const caseFile = createDefaultCase(parameters);
+export async function exportCaseJson(
+  parameters: CanonicalParameters,
+  transport?: TransportConfig,
+  meshingPreset?: MeshingConfig["preset"]
+) {
+  const caseFile = createDefaultCase(parameters, transport, meshingPreset);
   downloadBlob(
     new Blob([JSON.stringify(caseFile, null, 2)], { type: "application/json" }),
     `${caseFile.caseId}.json`

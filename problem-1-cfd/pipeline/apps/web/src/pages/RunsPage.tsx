@@ -17,14 +17,10 @@ type ExampleIndex = {
 type SeriesPoint = { time: number; value: number };
 
 export function RunsPage() {
-  const visibility = useAppStore((state) => ({
-    container: state.visibility.container,
-    tube: state.visibility.tube,
-    holders: state.visibility.holders,
-    columns: state.visibility.columns,
-  }));
+  const visibility = useAppStore((state) => state.visibility);
   const [indexData, setIndexData] = useState<ExampleIndex | null>(null);
   const [selectedManifestPath, setSelectedManifestPath] = useState<string | null>(null);
+  const [customPath, setCustomPath] = useState("");
   const [manifest, setManifest] = useState<RunManifest | null>(null);
   const [fixedGeometry, setFixedGeometry] = useState<Record<string, unknown[]> | null>(null);
   const [frames, setFrames] = useState<MeshJson[]>([]);
@@ -34,14 +30,16 @@ export function RunsPage() {
   const [frameIndex, setFrameIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
 
-  useEffect(() => {
-    fetch("/index.json")
+  const reloadIndex = () => {
+    fetch("/index.json?" + Date.now())
       .then((response) => response.json())
       .then((value: ExampleIndex) => {
         setIndexData(value);
-        setSelectedManifestPath(value.runs[0]?.manifest ?? null);
+        if (!selectedManifestPath) setSelectedManifestPath(value.runs[0]?.manifest ?? null);
       });
-  }, []);
+  };
+
+  useEffect(() => { reloadIndex(); }, []);
 
   useEffect(() => {
     if (!selectedManifestPath) {
@@ -100,6 +98,9 @@ export function RunsPage() {
         <div className="panel">
           <div className="panel-heading">
             <h2>Available runs</h2>
+            <button className="secondary-button" style={{ fontSize: "0.75rem", padding: "0.2rem 0.6rem" }} onClick={reloadIndex}>
+              Refresh
+            </button>
           </div>
           <div className="run-list">
             {indexData.runs.map((run) => (
@@ -111,6 +112,27 @@ export function RunsPage() {
                 {run.label}
               </button>
             ))}
+          </div>
+          <div style={{ marginTop: "0.75rem" }}>
+            <p className="body-copy muted" style={{ marginBottom: "0.35rem", fontSize: "0.72rem" }}>
+              Load by path (relative to examples/, e.g. my-run/manifest.json)
+            </p>
+            <div style={{ display: "flex", gap: "0.4rem" }}>
+              <input
+                style={{ flex: 1, fontSize: "0.75rem", padding: "0.25rem 0.4rem", background: "#12121c", border: "1px solid #303050", color: "#d0d8e8", borderRadius: "4px" }}
+                placeholder="run-name/manifest.json"
+                value={customPath}
+                onChange={(e) => setCustomPath(e.currentTarget.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && customPath) setSelectedManifestPath(customPath); }}
+              />
+              <button
+                className="secondary-button"
+                style={{ fontSize: "0.75rem", padding: "0.2rem 0.6rem", whiteSpace: "nowrap" }}
+                onClick={() => { if (customPath) setSelectedManifestPath(customPath); }}
+              >
+                Load
+              </button>
+            </div>
           </div>
         </div>
         <div className="panel">

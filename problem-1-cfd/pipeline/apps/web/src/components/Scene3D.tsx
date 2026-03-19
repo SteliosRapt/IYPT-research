@@ -1,6 +1,6 @@
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
-import type { CanonicalParameters } from "@fixed-geometry/shared-schema";
+import type { CanonicalParameters, MeshingConfig } from "@fixed-geometry/shared-schema";
 import { useMemo } from "react";
 
 import { buildSceneGroup } from "@/lib/sceneBuilder";
@@ -16,13 +16,19 @@ type VisibilityMap = {
 export function Scene3D({
   parameters,
   visibility,
+  meshingPreset,
+  showMeshDomain,
+  showFluidInterior,
 }: {
   parameters: CanonicalParameters;
   visibility: VisibilityMap;
+  meshingPreset?: MeshingConfig["preset"];
+  showMeshDomain?: boolean;
+  showFluidInterior?: boolean;
 }) {
   const sceneGroup = useMemo(
-    () => buildSceneGroup(parameters, visibility).group,
-    [parameters, visibility]
+    () => buildSceneGroup(parameters, visibility, meshingPreset, showMeshDomain, showFluidInterior).group,
+    [parameters, visibility, meshingPreset, showMeshDomain, showFluidInterior]
   );
 
   return (

@@ -153,6 +153,14 @@ export type FixedGeometryDescriptor =
   | PrimitiveTubeDescriptor
   | PrimitiveHolderDescriptor;
 
+export interface TransportConfig {
+  waterNu: number;
+  waterRho: number;
+  airNu: number;
+  airRho: number;
+  sigma: number;
+}
+
 export interface EventThresholds {
   eps_H: number;
   eps_dHdt: number;
@@ -208,6 +216,7 @@ export interface CaseFile {
     fixedGeometryGroups: string[];
   };
   meshing: MeshingConfig;
+  transport: TransportConfig;
   solver: SolverConfig;
   forcing: ForcingConfig;
   eventThresholds: EventThresholds;

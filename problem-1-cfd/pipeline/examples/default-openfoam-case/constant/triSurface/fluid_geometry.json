@@ -409,6 +409,198 @@
       "radius": 0.0063830764864
     }
   },
+  "solidObstructions": [
+    {
+      "type": "holder",
+      "name": "W1Holder",
+      "center": [
+        0.06,
+        0.0,
+        0.0
+      ],
+      "pointHeight": 0.124905874392,
+      "baseY": 0.0,
+      "alpha": 0.02,
+      "hw": 0.02,
+      "ht": 0.003,
+      "plateThickness": 0.004,
+      "tubeRadius": 0.007978845608
+    },
+    {
+      "type": "holder",
+      "name": "P3Holder",
+      "center": [
+        0.245070369781,
+        0.0,
+        0.0
+      ],
+      "pointHeight": 0.12,
+      "baseY": 0.0,
+      "alpha": 0.02,
+      "hw": 0.02,
+      "ht": 0.003,
+      "plateThickness": 0.004,
+      "tubeRadius": 0.007978845608
+    },
+    {
+      "type": "holder",
+      "name": "W2Holder",
+      "center": [
+        0.513444296177,
+        0.0,
+        0.0
+      ],
+      "pointHeight": 0.109775989419,
+      "baseY": 0.0,
+      "alpha": 0.02,
+      "hw": 0.02,
+      "ht": 0.003,
+      "plateThickness": 0.004,
+      "tubeRadius": 0.007978845608
+    },
+    {
+      "type": "holder",
+      "name": "P4Holder",
+      "center": [
+        0.362543771026,
+        0.3,
+        0.0
+      ],
+      "pointHeight": 0.035,
+      "baseY": 0.3,
+      "alpha": 0.02,
+      "hw": 0.02,
+      "ht": 0.003,
+      "plateThickness": 0.004,
+      "tubeRadius": 0.007978845608
+    },
+    {
+      "type": "box",
+      "name": "P4Platform",
+      "center": [
+        0.362543771026,
+        0.3,
+        0.0
+      ],
+      "size": [
+        0.02,
+        0.004,
+        0.3
+      ]
+    },
+    {
+      "type": "box",
+      "name": "FrontColumn",
+      "center": [
+        0.362543771026,
+        0.15,
+        0.13999999999999999
+      ],
+      "size": [
+        0.02,
+        0.3,
+        0.02
+      ]
+    },
+    {
+      "type": "box",
+      "name": "BackColumn",
+      "center": [
+        0.362543771026,
+        0.15,
+        -0.13999999999999999
+      ],
+      "size": [
+        0.02,
+        0.3,
+        0.02
+      ]
+    },
+    {
+      "type": "box",
+      "name": "FrontTopBeam",
+      "center": [
+        0.262838333979,
+        0.3,
+        0.13999999999999999
+      ],
+      "size": [
+        0.17941087409399997,
+        0.004,
+        0.02
+      ]
+    },
+    {
+      "type": "box",
+      "name": "BackTopBeam",
+      "center": [
+        0.262838333979,
+        0.3,
+        -0.13999999999999999
+      ],
+      "size": [
+        0.17941087409399997,
+        0.004,
+        0.02
+      ]
+    },
+    {
+      "type": "box",
+      "name": "FrontBottomBeam",
+      "center": [
+        0.262838333979,
+        0.0,
+        0.13999999999999999
+      ],
+      "size": [
+        0.17941087409399997,
+        0.004,
+        0.02
+      ]
+    },
+    {
+      "type": "box",
+      "name": "BackBottomBeam",
+      "center": [
+        0.262838333979,
+        0.0,
+        -0.13999999999999999
+      ],
+      "size": [
+        0.17941087409399997,
+        0.004,
+        0.02
+      ]
+    },
+    {
+      "type": "box",
+      "name": "FloorPlatform",
+      "center": [
+        0.362543771026,
+        0.0,
+        0.0
+      ],
+      "size": [
+        0.02,
+        0.004,
+        0.3
+      ]
+    },
+    {
+      "type": "box",
+      "name": "CenterRail",
+      "center": [
+        0.35828859655449996,
+        0.0,
+        0.0
+      ],
+      "size": [
+        0.37031139924499995,
+        0.004,
+        0.02
+      ]
+    }
+  ],
   "topAtmosphere": {
     "type": "rect",
     "center": [

@@ -11,7 +11,8 @@ import type {
   MeshingConfig,
   NormalizedParameters,
   Point2D,
-  SolverConfig
+  SolverConfig,
+  TransportConfig
 } from "./types";
 
 export const HTML_TO_CANONICAL_PARAMETER_MAP = {
@@ -465,6 +466,16 @@ export function defaultMeshingConfig(): MeshingConfig {
   };
 }
 
+export function defaultTransportConfig(): TransportConfig {
+  return {
+    waterNu: 1e-6,
+    waterRho: 998.2,
+    airNu: 1.5e-5,
+    airRho: 1.2,
+    sigma: 0.072,
+  };
+}
+
 export function defaultForcingConfig(): ForcingConfig {
   return {
     mode: "inflow_patch",
@@ -487,7 +498,11 @@ export function defaultSolverConfig(): SolverConfig {
   };
 }
 
-export function createDefaultCase(parameters: Partial<Record<string, number>> = {}): CaseFile {
+export function createDefaultCase(
+  parameters: Partial<Record<string, number>> = {},
+  transport?: TransportConfig,
+  meshingPreset: MeshingConfig["preset"] = "coarse"
+): CaseFile {
   const snapshot = createGeometrySnapshot(parameters);
   const parameterHash = stableStringHash(JSON.stringify(snapshot.parameters));
 
@@ -501,7 +516,8 @@ export function createDefaultCase(parameters: Partial<Record<string, number>> = 
       fluidBoundaryPatches: ["walls", "topAtmosphere", "topInflow", "tubeOutlet"],
       fixedGeometryGroups: ["container", "tube", "holders", "columns"]
     },
-    meshing: defaultMeshingConfig(),
+    meshing: { preset: meshingPreset },
+    transport: transport ?? defaultTransportConfig(),
     solver: defaultSolverConfig(),
     forcing: defaultForcingConfig(),
     eventThresholds: defaultEventThresholds(),
