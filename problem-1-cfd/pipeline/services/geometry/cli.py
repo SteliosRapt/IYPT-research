@@ -6,13 +6,14 @@ import argparse
 import json
 from pathlib import Path
 
+from services.utils import write_json
+
 from .core import (
     build_fixed_geometry_descriptors,
     build_fluid_geometry_descriptors,
     create_case_file,
     create_geometry_snapshot,
     default_forcing_config,
-    write_json,
 )
 
 

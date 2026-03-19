@@ -10,9 +10,12 @@
 
 - `A0` is used as the default plan area for `H(t)` because the source files define it as the container footprint and do not provide a separate interior-area formula.
 - The mock run uses synthetic water-volume evolution. It is not a CFD result and exists to keep the viewer demonstrably functional when OpenFOAM is unavailable.
+- Real solver-backed viewer manifests still render reduced box-and-plume browser frames derived from solver-measured `H(t)` and `Q_out(t)`, not the full CFD free-surface mesh.
 
 ## Runtime
 
-- Docker and OpenFOAM are not installed in the current environment, so the committed example run is synthetic.
+- WSL with OpenFOAM on PATH is the preferred local runtime on Windows. Docker remains a manual reference path and is not the primary backend execution environment.
+- OpenFOAM is not installed in the current environment, so the committed example run is synthetic.
 - The generated OpenFOAM-style case is intended as a coarse starting point and needs mesh and boundary-condition validation before production CFD use.
+- Browser-triggered runs use the local HTTP API. The API now serves real solver-backed post-processing when the configured solver binary is on PATH and falls back to mock viewer-data assets otherwise.
 

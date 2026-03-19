@@ -16,7 +16,7 @@
 
 ## Deferred CFD validation
 
-- Install Docker Desktop or a host OpenFOAM runtime.
+- Install OpenFOAM inside WSL and run the solver/API from that same WSL environment.
 - Run the generated case through `blockMesh`, `snappyHexMesh`, and `interFoam`.
 - Compare the real solver event summary with the mock fallback expectations and update thresholds as needed.
 

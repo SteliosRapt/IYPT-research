@@ -446,6 +446,13 @@
   "meshing": {
     "preset": "coarse"
   },
+  "transport": {
+    "waterNu": 1e-06,
+    "waterRho": 998.2,
+    "airNu": 1.5e-05,
+    "airRho": 1.2,
+    "sigma": 0.072
+  },
   "solver": {
     "solver": "interFoam",
     "startTime": 0.0,

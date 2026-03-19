@@ -18,4 +18,14 @@ actions
             box (-0.176867103068 0 -0.15) (0.173132896932 0.31 0.15);
         }
     }
+    {
+        name containerRegion;
+        type cellZoneSet;
+        action new;
+        source setToCellZone;
+        sourceInfo
+        {
+            set containerRegion;
+        }
+    }
 );

@@ -40,11 +40,13 @@ The physical experiment models an open-top container fed by an inflow patch on i
 | Path | Purpose |
 |------|---------|
 | `packages/shared-schema/` | JSON schemas, TypeScript types, parameter metadata, and geometry formulas shared between frontend and any TypeScript consumers. |
+| `services/api/` | Python: lightweight HTTP API for browser-triggered case creation, `auto | mock | real` run submission, status polling, and run asset delivery. |
 | `services/geometry/` | Python: canonical parameter normalisation, derived geometry computation, constraint checking, and geometry descriptor builders. |
 | `services/orchestrator/` | Python: OpenFOAM-style case generation, event detection, and run orchestration CLI. |
 | `services/viewer_data/` | Python: synthetic time-series generation, per-frame JSON/VTK output, and run manifest assembly. |
+| `services/utils.py` | Python: shared JSON/text output helpers and stable hashing used across services. |
 | `apps/web/` | React 18 + Vite SPA. Two pages: Configure (parameter editor + 3D scene) and Runs (manifest browser + chart). |
-| `solver/openfoam-template/` | Docker image definition and runtime reference scripts for containerised OpenFOAM execution. |
+| `solver/openfoam-template/` | Docker image definition and runtime reference scripts; WSL with OpenFOAM on PATH is the preferred local OpenFOAM environment on Windows. |
 | `examples/` | Committed default case JSON, generated OpenFOAM-style case directory, and a full synthetic mock run (121 frames, VTK files, series JSON). |
 | `docs/` | Architecture, physics model, case format, assumptions, and validation plan documentation. |
 | `tests/python/` | Pytest suite covering geometry computation, constraint validation, schema conformance, event detection, and smoke tests. |
@@ -58,7 +60,7 @@ The pipeline proceeds through five numbered stages, each consuming the output of
 
 ### 3.1 Stage 1 — Case Creation
 
-The entry point is either the browser configurator or the Python CLI. Both produce a canonical case JSON file (schema version 1.0.0) that captures:
+The entry point is either the browser configurator, the browser-facing HTTP API, or the Python CLI. All of them produce a canonical case JSON file (schema version 1.0.0) that captures:
 
 - All 22 free parameters (`A0`, `h0`, `h1`, `h3`, `h5`, `Y2`, `Y4`, `W1`, `W2`, `L1`–`L4`, `A`, `W`, `alpha`, `Ct`, `ht`, `P24t`, `hw`, `h_a`, `bendR`).
 - All derived geometric quantities computed from those parameters.
@@ -89,11 +91,13 @@ The entry point is either the browser configurator or the Python CLI. Both produ
 - `0/alpha.water`, `0/U`, `0/p_rgh` — initial and boundary conditions.
 - `constant/transportProperties` — water/air phases (`nu`, `rho`, `sigma`), populated from the case file's `transport` section.
 - `constant/g` — gravitational acceleration vector.
-- `Allrun` — `blockMesh`, `snappyHexMesh`, `topoSet`, `interFoam` sequence.
+- `Allrun` — `blockMesh`, `snappyHexMesh`, `topoSet`, solver execution, and `foamToVTK || true`.
 
 ### 3.4 Stage 4 — Simulation or Mock
 
-`services/orchestrator/cli.py` drives execution. If `interFoam` is found on PATH it runs `Allrun` directly and raises on non-zero exit. If Docker but not OpenFOAM is available it raises an error directing the user to run the solver manually via Docker. When neither is available it raises an error. Mock run generation is now a separate explicit step.
+`services/orchestrator/cli.py` drives execution. If `interFoam` is found on PATH it runs `Allrun` directly and raises on non-zero exit. On Windows, the intended local setup is to run this from WSL so the solver and Python API share the same environment. If Docker but not OpenFOAM is available it raises an error directing the user to run the solver manually via Docker. When neither is available it raises an error. Mock run generation is now a separate explicit step.
+
+For browser-triggered runs, `services/api/server.py` exposes a lightweight HTTP layer. The API-backed run path now chooses between real solver execution and the mock fallback: `mode = "auto"` uses the configured solver when it is on PATH and otherwise falls back to mock viewer-data generation. Real runs generate the OpenFOAM-style case directory, execute `Allrun`, and post-process solver outputs into the same browser-facing manifest contract.
 
 The mock generator in `services/viewer_data/mock.py` synthesises a physically plausible (but not CFD-accurate) water-height trajectory using an exponential approach to steady state with an oscillatory damping term, then passes it through the event detection state machine.
 
@@ -134,14 +138,14 @@ The mock generator in `services/viewer_data/mock.py` synthesises a physically pl
 | `build_fixed_geometry_descriptors(p, d)` | Returns typed descriptor trees for `container`, `tube`, `holders`, and `columns`. |
 | `build_fluid_geometry_descriptors(p, d, f, fg)` | Returns wall bounds, top atmosphere, inflow patch, tube outlet, and solid obstruction list (holders + columns from fixed geometry) used by OpenFOAM. |
 | `create_case_file(raw)` | Creates a full case JSON dict with all fields including provenance and run status. |
-| `stable_hash(parameters)` | SHA-256 of sort-key JSON-serialised parameter dict, first 10 hex characters. |
-| `write_json(path, payload)` | Creates parent directories and writes JSON with 2-space indentation. |
+
+Shared cross-service helpers now live in `services/utils.py`: `stable_hash()`, `write_json()`, and `write_text()`.
 
 ### 4.2 `services/orchestrator/case.py`
 
 Generates a complete OpenFOAM-style case directory. Key function:
 
-**`generate_case(case_file, output_dir)`** — accepts the case JSON dict and output `Path`. Computes mesh preset (coarse / medium / fine), creates the directory tree, and writes all solver files. Returns the output `Path`.
+**`generate_case(case_file, output_dir)`** — accepts the case JSON dict and output `Path`. Computes mesh preset (coarse / medium / fine), creates the directory tree, writes all solver files, and promotes `runStatus.state` from `not_started` to `generated` in the written case file. Returns the output `Path`.
 
 Mesh preset logic: `backgroundCellSize = domain_span / divisor` where `divisor` is 24, 36, or 48 for coarse, medium, fine respectively. Refinement levels follow 2 / 3 / 4.
 
@@ -177,13 +181,37 @@ Thresholds: `eps_H` (height span < 1 mm default), `eps_dHdt` (RMS derivative < 0
 
 ### 4.4 `services/orchestrator/cli.py`
 
-**`run_case(case_dir)`** — attempts to run the case with `interFoam` (if available). Raises `RuntimeError` on non-zero exit, on Docker-only environments, or when neither solver nor Docker is found. Mock run generation is decoupled and must be invoked explicitly via the viewer-data CLI.
+**`run_case(case_dir)`** — attempts to run the case with `interFoam` (if available). Raises `RuntimeError` on non-zero exit, on Docker-only environments, or when neither solver nor Docker is found. The generated `Allrun` script now also calls `foamToVTK || true` after the solver so real API/CLI runs can expose ParaView assets when that tool is available.
 
 ### 4.5 `services/viewer_data/mock.py`
 
 **`create_mock_run(case_json, output_dir)`** — orchestrates synthetic run creation. Calls `create_time_series()` then `analyze_series()`, writes all viewer assets, and returns the output directory `Path`.
 
 **`create_time_series(case_file, snapshot)`** — generates 121 time steps (t = 0…12 s, Δt = 0.1 s). Water height follows an exponential approach to `h0 + 7.5 mm` with an oscillatory damping transient. Outlet flow uses a delayed exponential rise with a slow decay. `Q_in` is a step function. Cumulative discharged volume is computed by trapezoidal integration.
+
+### 4.6 `services/viewer_data/real.py`
+
+**`create_real_run(case_dir, output_dir)`** — loads the generated case's `postProcessing/containerWaterVolume`, `postProcessing/tubeOutletFlow`, and optional `postProcessing/topInflowFlow` outputs, converts them into `H(t)`, `Q_out(t)`, discharged-volume, and event-state series, and writes the same viewer asset bundle used by mock runs.
+
+Real manifests keep the same browser contract as mock runs but set `status = "done"` and populate `paraview.foamFile` / `paraview.vtkDir` from the generated OpenFOAM case when those assets exist.
+
+### 4.7 `services/api/server.py`
+
+**`python -m services.api.server`** starts a stdlib `ThreadingHTTPServer` that the Vite app can reach through `/api`.
+
+Supported endpoints:
+
+| Endpoint | Action |
+|----------|--------|
+| `GET /api/health` | Liveness probe for the local API. |
+| `POST /api/cases` | Accept `parameters`, `transport`, and `meshingPreset`; create and persist a canonical case JSON. |
+| `GET /api/cases/{id}` | Return a previously created canonical case JSON. |
+| `POST /api/cases/{id}/run` | Queue a browser-triggered run for that case. Accepts `mode = "auto" | "mock" | "real"`. |
+| `GET /api/runs/{id}/status` | Return `queued` / `running` / `done` / `failed` state with timestamps and error details. |
+| `GET /api/runs/{id}/viewer/manifest.json` | Return the completed run manifest when available. |
+| `GET /api/runs/{id}/...` | Serve run assets such as `series/*.json`, `frames/*.json`, and `fixed_geometry.json`. |
+
+Run assets are stored under `tmp/api/runs/<run-id>/viewer` with the generated case under `tmp/api/runs/<run-id>/openfoam-case`. They are served through API-relative URLs so the browser can resolve them the same way it resolves static example manifests.
 
 ---
 
@@ -311,7 +339,7 @@ The state machine processes a time series of measured water height H(t):
 | `forcing` | object | `mode`, `topPatchFraction`, `inflowVelocity`, `volumetricSourceRate`, `reservoirHead`. |
 | `eventThresholds` | object | `eps_H`, `eps_dHdt`, `eps_Q`, `T_ss`, `dwell`, `requireQBalance`. |
 | `outputs` | object | `exportRoot` path, optional `manifestPath`. |
-| `runStatus` | object | `state`: `'not_started'` \| `'running'` \| `'done'` \| `'error'`. |
+| `runStatus` | object | `state`: `'not_started'` \| `'generated'` \| `'running'` \| `'done'` \| `'failed'`. |
 | `provenance` | object | `parameterHash`, `gitCommit`, `sourceFiles` list. |
 
 ### 7.2 Run Manifest (`run-manifest.schema.json`)
@@ -325,7 +353,7 @@ The state machine processes a time series of measured water height H(t):
 | `geometryAssets` | object | Optional `fixedGlb` path and `fixedJson` path for the static geometry. |
 | `fluidAssets` | object | `interfaceFrames`: array of relative paths to per-step frame JSON. |
 | `events` | object | `t_h0_up`, `t_steady`, `terminationReason`, `currentState`. |
-| `status` | string | `'mock'` \| `'real'` \| `'running'` \| `'error'`. |
+| `status` | string | `'mock'` \| `'running'` \| `'done'` \| `'failed'`. `mock` is reserved for synthetic viewer-data output. |
 | `paraview` | object | Optional `foamFile` path and `vtkDir` path for ParaView integration. |
 | `metadata` | object | `parameterHash`, `gitCommit`, `sourceFiles`, `meshPreset`, `solverName`. |
 
@@ -364,10 +392,24 @@ Attempts to run the case with `interFoam` (if available on PATH). Raises on fail
 ### 8.3 Viewer-Data CLI
 
 ```bash
-python3 -m services.viewer_data.cli generate-mock CASE_JSON --output-dir DIR
+python3 -m services.viewer_data.cli mock-run CASE_JSON --output-dir DIR
 ```
 
 Generates a complete synthetic mock run without requiring OpenFOAM.
+
+```bash
+python3 -m services.viewer_data.cli build-manifest CASE_DIR
+```
+
+Builds or refreshes a viewer manifest from a generated case directory. If real solver `postProcessing/*` outputs exist it emits a real manifest; otherwise it falls back to the mock manifest path.
+
+### 8.4 API Server
+
+```bash
+python -m services.api.server --host 127.0.0.1 --port 8000
+```
+
+Starts the local HTTP API used by the web app for browser-triggered runs. In development the Vite app proxies `/api/*` to `http://127.0.0.1:8000` by default.
 
 ### 8.4 Makefile Targets
 
@@ -404,9 +446,9 @@ Root `package.json` defines a workspace with `packages/shared-schema` and `apps/
 npm install
 ```
 
-### 9.3 Docker / OpenFOAM
+### 9.3 WSL / OpenFOAM
 
-`solver/openfoam-template/Dockerfile` defines the OpenFOAM container. `compose.yaml` mounts the repository at `/workspace`. OpenFOAM and Docker are optional; without them the pipeline generates synthetic mock runs via the viewer-data CLI.
+WSL with OpenFOAM on PATH is the preferred local runtime on Windows because the backend API and CLI expect to see `interFoam` in the same execution environment as Python. `solver/openfoam-template/Dockerfile` and `compose.yaml` remain available as manual/reference assets, but Docker is not the primary local execution path for the backend.
 
 ---
 
@@ -443,6 +485,7 @@ pytest
 - The geometry service produces a scaffold OpenFOAM case that has not been validated for mesh quality or boundary condition correctness in production.
 - Boolean holder cutouts in exported solid meshes (STL/GLB) are not yet implemented.
 - The browser viewer uses simplified polydata (box + plume approximations), not the actual CFD mesh.
+- The browser viewer still uses reduced box-and-plume frame meshes derived from solver measurements, not the full CFD free-surface geometry.
 - Only the `'coarse'` mesh preset has been exercised. Medium and fine presets are defined but untested.
 - The `inflow_patch` forcing mode is the only tested boundary condition configuration.
 - `run_case()` in the orchestrator CLI no longer auto-generates mock data — this must now be done explicitly via `services.viewer_data.cli`.

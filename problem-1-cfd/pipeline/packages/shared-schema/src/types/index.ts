@@ -67,6 +67,16 @@ export interface Point2D {
   y: number;
 }
 
+export interface SqrtArgs {
+  arg1: number;
+  arg2: number;
+  arg3: number;
+  arg4: number;
+}
+
+export type CaseRunStatusState = "not_started" | "generated" | "running" | "done" | "failed";
+export type RunManifestStatus = "mock" | "running" | "done" | "failed";
+
 export interface DerivedGeometry {
   r: number;
   P4t: number;
@@ -93,6 +103,7 @@ export interface DerivedGeometry {
     columnZ: [number, number];
     centerRail: { startX: number; endX: number; y: number };
   };
+  sqrtArgs: SqrtArgs;
 }
 
 export interface ConstraintResult {
@@ -225,7 +236,7 @@ export interface CaseFile {
     manifestPath?: string;
   };
   runStatus: {
-    state: "not_started" | "generated" | "running" | "done" | "failed";
+    state: CaseRunStatusState;
     reason?: string;
   };
   provenance: ProvenanceMetadata;
@@ -254,7 +265,7 @@ export interface RunManifest {
     terminationReason: string;
     currentState: "PRE_H0" | "POST_H0_MONITORING" | "DONE";
   };
-  status: "mock" | "solver_generated";
+  status: RunManifestStatus;
   paraview: {
     foamFile: string | null;
     vtkDir: string | null;

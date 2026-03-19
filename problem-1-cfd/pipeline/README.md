@@ -21,10 +21,12 @@ Implemented now:
 Not fully executed here:
 
 - real OpenFOAM meshing and solving
-- Docker-based coarse CFD run
+- WSL-based coarse CFD run
 - exact watertight boolean holder cutouts in exported solid meshes
 
 ## Install
+
+For local OpenFOAM work on Windows, use WSL Ubuntu and run the solver/API from the same WSL environment. The Docker image in `solver/openfoam-template` remains a manual reference path and is not the primary local runtime.
 
 Python:
 
@@ -67,13 +69,15 @@ Generate the OpenFOAM-style case:
 make case-generate CASE=examples/default-case.json CASE_DIR=examples/default-openfoam-case
 ```
 
-If OpenFOAM is available on the host:
+Preferred on Windows: run this from WSL after OpenFOAM is installed there, so `interFoam` is on the same `PATH` as the Python API/CLI.
+
+If OpenFOAM is available on the current runtime:
 
 ```bash
 python3 -m services.orchestrator.cli run-case examples/default-openfoam-case
 ```
 
-If it is not available, the command falls back to mock viewer data.
+If it is not available, use the mock viewer-data path instead.
 
 ## Generate viewer data
 
@@ -118,6 +122,6 @@ make web-build
 
 ## Known limitations
 
-- The committed example run is synthetic because Docker and OpenFOAM are not installed in this environment.
+- The committed example run is synthetic because OpenFOAM is not installed in this environment.
 - The generated OpenFOAM-style case is a baseline scaffold and needs runtime validation before production use.
 - The browser viewer uses simplified fixed-geometry polydata derived from geometry descriptors, not a full CFD mesh.

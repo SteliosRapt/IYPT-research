@@ -3,15 +3,17 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from hashlib import sha256
-import json
 import math
 from pathlib import Path
 from typing import Any
 
+from services.utils import stable_hash
+
 ROOT_DIR = Path(__file__).resolve().parents[2]
 SOURCE_FILES = ["experimental_setup.md", "setup_3d (2).html"]
 SCHEMA_DIR = ROOT_DIR / "packages" / "shared-schema" / "src" / "schemas"
+TUBE_WALL_THICKNESS_RATIO = 0.2
+CASE_RUN_STATUS_STATES = ("not_started", "generated", "running", "done", "failed")
 
 
 @dataclass(frozen=True)
@@ -117,7 +119,7 @@ def normalize_parameters(raw: dict[str, Any] | None = None) -> dict[str, float]:
             mapped = HTML_TO_CANONICAL_PARAMETER_MAP.get(key, key)
             merged[mapped] = float(value)
     merged["P4t"] = merged["alpha"]
-    merged["wallThicknessRatio"] = 0.2
+    merged["wallThicknessRatio"] = TUBE_WALL_THICKNESS_RATIO
     return merged
 
 
@@ -501,13 +503,6 @@ def create_geometry_snapshot(raw: dict[str, Any] | None = None) -> dict[str, Any
     derived = compute_derived(parameters)
     constraints = check_constraints(parameters, derived)
     return {"parameters": parameters, "derived": derived, "constraints": constraints}
-
-
-def stable_hash(parameters: dict[str, Any]) -> str:
-    payload = json.dumps(parameters, sort_keys=True).encode("utf-8")
-    return sha256(payload).hexdigest()[:10]
-
-
 def default_forcing_config() -> dict[str, Any]:
     return {
         "mode": "inflow_patch",
@@ -515,6 +510,16 @@ def default_forcing_config() -> dict[str, Any]:
         "inflowVelocity": 0.02,
         "volumetricSourceRate": 0.0,
         "reservoirHead": 0.0,
+    }
+
+
+def default_transport_config() -> dict[str, Any]:
+    return {
+        "waterNu": 1e-6,
+        "waterRho": 998.2,
+        "airNu": 1.5e-5,
+        "airRho": 1.2,
+        "sigma": 0.072,
     }
 
 
@@ -526,7 +531,7 @@ def default_solver_config() -> dict[str, Any]:
         "deltaT": 0.02,
         "writeInterval": 0.1,
         "chunkDuration": 0.5,
-        "tubeWallThicknessRatio": 0.2,
+        "tubeWallThicknessRatio": TUBE_WALL_THICKNESS_RATIO,
     }
 
 
@@ -545,6 +550,10 @@ def default_event_thresholds() -> dict[str, Any]:
     }
 
 
+def default_run_status() -> dict[str, Any]:
+    return {"state": CASE_RUN_STATUS_STATES[0]}
+
+
 def create_case_file(raw: dict[str, Any] | None = None) -> dict[str, Any]:
     snapshot = create_geometry_snapshot(raw)
     forcing = default_forcing_config()
@@ -560,19 +569,15 @@ def create_case_file(raw: dict[str, Any] | None = None) -> dict[str, Any]:
             "fixedGeometryGroups": ["container", "tube", "holders", "columns"],
         },
         "meshing": default_meshing_config(),
+        "transport": default_transport_config(),
         "solver": default_solver_config(),
         "forcing": forcing,
         "eventThresholds": default_event_thresholds(),
         "outputs": {"exportRoot": "examples/generated/case-default", "manifestPath": None},
-        "runStatus": {"state": "not_started"},
+        "runStatus": default_run_status(),
         "provenance": {
             "parameterHash": parameter_hash,
             "gitCommit": None,
             "sourceFiles": SOURCE_FILES,
         },
     }
-
-
-def write_json(path: Path, payload: dict[str, Any] | list[Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")

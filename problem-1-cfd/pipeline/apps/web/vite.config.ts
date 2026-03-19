@@ -14,6 +14,14 @@ export default defineConfig({
       )
     }
   },
+  server: {
+    proxy: {
+      "/api": {
+        target: process.env.CFD_API_TARGET ?? "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
+    },
+  },
   publicDir: fileURLToPath(new URL("../../examples", import.meta.url)),
   test: {
     environment: "jsdom",

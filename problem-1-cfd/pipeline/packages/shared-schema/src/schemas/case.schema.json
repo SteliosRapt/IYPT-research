@@ -11,6 +11,7 @@
     "derived",
     "geometry",
     "meshing",
+    "transport",
     "solver",
     "forcing",
     "eventThresholds",
@@ -39,11 +40,22 @@
       }
     },
     "meshing": { "type": "object" },
+    "transport": { "type": "object" },
     "solver": { "type": "object" },
     "forcing": { "type": "object" },
     "eventThresholds": { "type": "object" },
     "outputs": { "type": "object" },
-    "runStatus": { "type": "object" },
+    "runStatus": {
+      "type": "object",
+      "required": ["state"],
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "enum": ["not_started", "generated", "running", "done", "failed"]
+        },
+        "reason": { "type": "string" }
+      }
+    },
     "provenance": { "type": "object" }
   }
 }

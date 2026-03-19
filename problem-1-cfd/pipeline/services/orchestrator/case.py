@@ -2,20 +2,22 @@
 
 from __future__ import annotations
 
+import copy
 import os
 from pathlib import Path
 from typing import Any
 
 from services.geometry.core import (
-    ROOT_DIR,
     build_fixed_geometry_descriptors,
     build_fluid_geometry_descriptors,
     create_geometry_snapshot,
     default_event_thresholds,
     default_forcing_config,
+    default_run_status,
     default_solver_config,
-    write_json,
+    default_transport_config,
 )
+from services.utils import write_json, write_text
 
 
 def mesh_preset(parameters: dict[str, float], derived: dict[str, Any], preset: str) -> dict[str, Any]:
@@ -34,12 +36,6 @@ def mesh_preset(parameters: dict[str, float], derived: dict[str, Any], preset: s
             "freeSurface": level,
         },
     }
-
-
-def write_text(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content.strip() + "\n", encoding="utf-8")
-
 
 def build_block_mesh_dict(case_file: dict[str, Any], snapshot: dict[str, Any]) -> str:
     parameters = snapshot["parameters"]
@@ -184,6 +180,48 @@ writeCompression off;
 timeFormat general;
 timePrecision 6;
 runTimeModifiable true;
+
+functions
+{{
+    containerWaterVolume
+    {{
+        type volFieldValue;
+        libs ("libfieldFunctionObjects.so");
+        writeFields false;
+        regionType cellZone;
+        name containerRegion;
+        operation volIntegrate;
+        fields (alpha.water);
+        writeControl adjustableRunTime;
+        writeInterval {solver["writeInterval"]};
+    }}
+
+    tubeOutletFlow
+    {{
+        type surfaceFieldValue;
+        libs ("libfieldFunctionObjects.so");
+        writeFields false;
+        regionType patch;
+        name tubeOutlet;
+        operation areaIntegrate;
+        fields (phi);
+        writeControl adjustableRunTime;
+        writeInterval {solver["writeInterval"]};
+    }}
+
+    topInflowFlow
+    {{
+        type surfaceFieldValue;
+        libs ("libfieldFunctionObjects.so");
+        writeFields false;
+        regionType patch;
+        name topInflow;
+        operation areaIntegrate;
+        fields (phi);
+        writeControl adjustableRunTime;
+        writeInterval {solver["writeInterval"]};
+    }}
+}}
 """
 
 
@@ -319,6 +357,16 @@ actions
             box ({derived["S0"]} 0 {-parameters["W"] / 2}) ({derived["X2"]} {parameters["h0"] + parameters["h_a"]} {parameters["W"] / 2});
         }}
     }}
+    {{
+        name containerRegion;
+        type cellZoneSet;
+        action new;
+        source setToCellZone;
+        sourceInfo
+        {{
+            set containerRegion;
+        }}
+    }}
 );
 """
 
@@ -336,12 +384,17 @@ def build_run_metadata(case_file: dict[str, Any], snapshot: dict[str, Any]) -> d
 
 
 def generate_case(case_file: dict[str, Any], output_dir: Path) -> Path:
+    case_file = copy.deepcopy(case_file)
     snapshot = create_geometry_snapshot(case_file["parameters"])
     meshing = mesh_preset(snapshot["parameters"], snapshot["derived"], case_file.get("meshing", {}).get("preset", "coarse"))
     case_file["meshing"] = meshing
+    case_file["transport"] = {**default_transport_config(), **case_file.get("transport", {})}
     case_file["solver"] = {**default_solver_config(), **case_file.get("solver", {})}
     case_file["forcing"] = {**default_forcing_config(), **case_file.get("forcing", {})}
     case_file["eventThresholds"] = {**default_event_thresholds(), **case_file.get("eventThresholds", {})}
+    case_file["runStatus"] = {**default_run_status(), **case_file.get("runStatus", {})}
+    if case_file["runStatus"]["state"] == "not_started":
+        case_file["runStatus"]["state"] = "generated"
 
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / "0").mkdir(exist_ok=True)
@@ -372,11 +425,12 @@ def generate_case(case_file: dict[str, Any], output_dir: Path) -> Path:
     topInflow { type fixedValue; value uniform 1; }
     tubeOutlet { type inletOutlet; inletValue uniform 0; value uniform 0; }
     """
-    velocity_boundary = """
-    walls { type fixedValue; value uniform (0 0 0); }
-    topAtmosphere { type pressureInletOutletVelocity; value uniform (0 0 0); }
-    topInflow { type fixedValue; value uniform (0 -0.02 0); }
-    tubeOutlet { type pressureInletOutletVelocity; value uniform (0 0 0); }
+    inflow_velocity = abs(case_file["forcing"]["inflowVelocity"])
+    velocity_boundary = f"""
+    walls {{ type fixedValue; value uniform (0 0 0); }}
+    topAtmosphere {{ type pressureInletOutletVelocity; value uniform (0 0 0); }}
+    topInflow {{ type fixedValue; value uniform (0 {-inflow_velocity} 0); }}
+    tubeOutlet {{ type pressureInletOutletVelocity; value uniform (0 0 0); }}
     """
     pressure_boundary = """
     walls { type fixedFluxPressure; value uniform 0; }
@@ -411,6 +465,7 @@ def generate_case(case_file: dict[str, Any], output_dir: Path) -> Path:
         snappyHexMesh -overwrite
         topoSet
         {case_file["solver"]["solver"]}
+        foamToVTK || true
         """,
     )
     os.chmod(output_dir / "Allrun", 0o755)

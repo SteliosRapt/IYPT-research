@@ -2,6 +2,7 @@ import {
   buildFixedGeometryDescriptors,
   createDefaultCase,
   createGeometrySnapshot,
+  TUBE_WALL_THICKNESS_RATIO,
   type CanonicalParameters,
   type FixedGeometryDescriptor,
   type MeshingConfig,
@@ -138,7 +139,7 @@ function buildFluidInteriorGroup(
   group.add(containerBox);
 
   // Tube interior (inner radius)
-  const innerRadius = Math.max(derived.r * (1 - 0.2), derived.r * 0.1);
+  const innerRadius = Math.max(derived.r * (1 - TUBE_WALL_THICKNESS_RATIO), derived.r * 0.1);
   const tubeCurve = new THREE.CatmullRomCurve3(
     derived.tubePolyline.map((p: { x: number; y: number }) => new THREE.Vector3(p.x, p.y, 0)),
     false,
@@ -287,7 +288,7 @@ export async function exportCaseJson(
   transport?: TransportConfig,
   meshingPreset?: MeshingConfig["preset"]
 ) {
-  const caseFile = createDefaultCase(parameters, transport, meshingPreset);
+  const caseFile = await createDefaultCase(parameters, transport, meshingPreset);
   downloadBlob(
     new Blob([JSON.stringify(caseFile, null, 2)], { type: "application/json" }),
     `${caseFile.caseId}.json`

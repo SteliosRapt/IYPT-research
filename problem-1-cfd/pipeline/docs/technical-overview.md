@@ -6,7 +6,7 @@ This repository implements a parametric pipeline for configuring, generating, an
 (optionally) running two-phase CFD simulations on a fixed experimental geometry.
 The geometry represents a water-discharge test rig: a rectangular container connected
 to an S-shaped tube whose path is defined by a polyline of key points.  When
-OpenFOAM/Docker is unavailable the pipeline falls back to a fully synthetic mock run,
+OpenFOAM is unavailable the pipeline falls back to a fully synthetic mock run,
 so the entire data path from parameter input to browser/ParaView visualisation can be
 exercised without a solver.
 
@@ -19,10 +19,12 @@ Problem_1_CFD_1/
 ├── apps/web/                     React/Vite web configurator
 ├── packages/shared-schema/       JSON Schemas + TypeScript types
 ├── services/
+│   ├── api/                      Browser-triggered HTTP API
+│   ├── utils.py                  Shared hashing + JSON/text write helpers
 │   ├── geometry/                 Canonical geometry computations  ← core library
 │   ├── orchestrator/             Case generation & run control
 │   └── viewer_data/              Mock synthetic output generation
-├── solver/openfoam-template/     Docker / solver reference files
+├── solver/openfoam-template/     Docker / solver reference files (WSL is preferred locally)
 ├── scripts/                      build_examples.py, smoke_run.py
 ├── tests/python/                 pytest suite
 ├── examples/                     Committed golden assets
@@ -42,6 +44,13 @@ Problem_1_CFD_1/
 User / Web UI
      │ raw parameter dict (may use HTML names)
      ▼
+services/api/server.py
+  POST /api/cases               → create canonical case.json
+  POST /api/cases/{id}/run      → enqueue backend auto/mock/real run
+  GET  /api/runs/{id}/status    → poll browser-triggered run state
+  GET  /api/runs/{id}/viewer/manifest.json → browser manifest entrypoint
+     │
+     ▼
 services/geometry/core.py
   normalize_parameters()     → applies HTML→canonical map, fills defaults
   compute_derived()          → computes h2, h4, X2-X5, S0-S2, C1-C2, polyline
@@ -57,7 +66,7 @@ services/geometry/core.py
              → OpenFOAM directory (0/, constant/, system/, Allrun)
              │
              └─► services/orchestrator/cli.py   run-case
-                     [OpenFOAM/Docker present] → execute Allrun
+                     [OpenFOAM on PATH, typically via WSL] → execute Allrun
                      [fallback] ──────────────►
                          services/viewer_data/mock.py   create_mock_run()
                              → series/*.json (height, outlet_flow, discharged_volume)
@@ -147,7 +156,8 @@ tube radius, holder width, and structural parameters.  All are evaluated in
 | `build_fluid_geometry_descriptors` | `parameters, derived, forcing → dict` | Fluid domain + boundary patches |
 | `create_geometry_snapshot` | `raw → dict` | parameters + derived + constraints |
 | `create_case_file` | `raw → dict` | Full canonical case JSON |
-| `stable_hash` | `parameters → str` | SHA-256 hex prefix (10 chars) |
+
+Shared helpers `stable_hash`, `write_json`, and `write_text` live in `services/utils.py`.
 
 ---
 
@@ -267,6 +277,31 @@ Each frame contains two box surfaces combined into one triangle mesh:
 Frames are written as both JSON (`frames/frame_NNNN.json`) and legacy VTK polydata
 (`vtk/frame_NNNN.vtk`).
 
+### Runtime note
+
+On Windows, the preferred local runtime is WSL with OpenFOAM on PATH. Docker remains
+a manual/reference path and is not the primary local execution route for the backend
+API and CLI.
+
+### 4.5 `services/api/server.py`
+
+The local API is a stdlib `ThreadingHTTPServer` wrapper around the existing Python
+services. It keeps the browser path thin by delegating all case creation and run
+execution to the same backend code used by the CLIs. `mode = "auto"` uses the
+configured solver when it is available on PATH and otherwise falls back to mock data.
+
+Supported routes:
+
+| Route | Purpose |
+|-------|---------|
+| `GET /api/health` | Liveness probe |
+| `POST /api/cases` | Persist canonical case JSON from browser inputs |
+| `GET /api/cases/{id}` | Return a stored case JSON |
+| `POST /api/cases/{id}/run` | Start a browser-triggered run (`auto`, `mock`, or `real`) |
+| `GET /api/runs/{id}/status` | Poll queued/running/done/failed state |
+| `GET /api/runs/{id}/viewer/manifest.json` | Entry manifest for the completed run |
+| `GET /api/runs/{id}/...` | Series, frame, and geometry assets resolved relative to the manifest |
+
 ---
 
 ## 5. Case JSON Structure
@@ -290,7 +325,7 @@ Frames are written as both JSON (`frames/frame_NNNN.json`) and legacy VTK polyda
   "forcing":  { "mode": "inflow_patch", "topPatchFraction": 0.18, ... },
   "eventThresholds": { "eps_H": 1e-3, "eps_dHdt": 1e-4, "eps_Q": 1e-6, ... },
   "outputs":  { "exportRoot": "...", "manifestPath": null },
-  "runStatus": { "state": "not_started" },
+  "runStatus": { "state": "not_started|generated|running|done|failed" },
   "provenance": { "parameterHash": "...", "sourceFiles": [...] }
 }
 ```
@@ -312,7 +347,7 @@ Frames are written as both JSON (`frames/frame_NNNN.json`) and legacy VTK polyda
   "geometryAssets": { "fixedGlb": null, "fixedJson": "fixed_geometry.json" },
   "fluidAssets":    { "interfaceFrames": ["frames/frame_0000.json", ...] },
   "events": { "t_h0_up": float|null, "t_steady": float|null, ... },
-  "status": "mock",
+  "status": "mock|running|done|failed",
   "paraview": { "foamFile": null, "vtkDir": "vtk" },
   "metadata": { "parameterHash": "...", "meshPreset": "coarse", ... }
 }
@@ -344,6 +379,12 @@ python -m services.orchestrator.cli run-case      --case FILE [--output-dir DIR]
 ```
 python -m services.viewer_data.cli mock-run       --case FILE [--output-dir DIR]
 python -m services.viewer_data.cli build-manifest --case-dir DIR
+```
+
+### API server
+
+```
+python -m services.api.server --host 127.0.0.1 --port 8000
 ```
 
 ---
@@ -391,9 +432,10 @@ make smoke                      # pytest + smoke_run.py + npm build
 
 ## 10. Known Limitations / Deferred Items
 
-- OpenFOAM execution requires Docker; falls back silently to mock data.
+- OpenFOAM execution is intended to run from a WSL environment with the solver binaries on PATH; Docker orchestration remains manual/reference only. `mode = "auto"` falls back to mock data when the solver is unavailable.
 - GLB export (`fixedGlb`) is `null` — not yet implemented.
 - `gitCommit` provenance field is always `null`.
 - Boolean mesh operations (shapely/manifold3d extras) are not called by any current path.
 - The web configurator only reads/writes case JSON; no live solver connection.
+- The browser viewer still renders reduced box-and-plume frame meshes derived from solver measurements instead of the full CFD free-surface mesh.
 - `test_source_truth_parity.py` depends on the HTML file being parseable as a reference implementation; fragile if the HTML changes.

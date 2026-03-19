@@ -2,9 +2,9 @@ import {
   createGeometrySnapshot,
   type CanonicalParameters,
 } from "@fixed-geometry/shared-schema";
-import { useMemo, useTransition } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { ChartPanel } from "@/components/ChartPanel";
 import { ConstraintList } from "@/components/ConstraintList";
 import { DerivedPanel } from "@/components/DerivedPanel";
 import { MeshingPanel } from "@/components/MeshingPanel";
@@ -18,8 +18,15 @@ import {
   exportStl,
 } from "@/lib/sceneBuilder";
 import { parameterSections, useAppStore } from "@/app/store";
+import {
+  createBackendCase,
+  getRunStatus,
+  startBackendRun,
+  type ApiRunStatus as BackendRunStatus,
+} from "@/lib/runApi";
 
 export function ConfigurePage() {
+  const navigate = useNavigate();
   const parameters = useAppStore((state) => state.parameters);
   const visibility = useAppStore((state) => state.visibility);
   const transport = useAppStore((state) => state.transport);
@@ -34,7 +41,71 @@ export function ConfigurePage() {
   const setMeshingPreset = useAppStore((state) => state.setMeshingPreset);
   const toggleMeshDomain = useAppStore((state) => state.toggleMeshDomain);
   const snapshot = useMemo(() => createGeometrySnapshot(parameters), [parameters]);
-  const [isPending, startTransition] = useTransition();
+  const [backendRun, setBackendRun] = useState<BackendRunStatus | null>(null);
+  const [runError, setRunError] = useState<string | null>(null);
+  const [isExportPending, setIsExportPending] = useState(false);
+  const [isRunPending, setIsRunPending] = useState(false);
+
+  useEffect(() => {
+    if (!backendRun || !["queued", "running"].includes(backendRun.state)) {
+      return;
+    }
+
+    let cancelled = false;
+    let timer: number | null = null;
+
+    const pollStatus = async () => {
+      try {
+        const nextStatus = await getRunStatus(backendRun.runId);
+        if (cancelled) {
+          return;
+        }
+        setBackendRun(nextStatus);
+        if (["queued", "running"].includes(nextStatus.state)) {
+          timer = window.setTimeout(() => {
+            void pollStatus();
+          }, 1000);
+        }
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
+        setRunError(error instanceof Error ? error.message : "Failed to poll API run status.");
+      }
+    };
+
+    void pollStatus();
+    return () => {
+      cancelled = true;
+      if (timer !== null) {
+        window.clearTimeout(timer);
+      }
+    };
+  }, [backendRun]);
+
+  const exportCurrentCase = async () => {
+    setIsExportPending(true);
+    try {
+      await exportCaseJson(parameters, transport, meshingPreset);
+    } finally {
+      setIsExportPending(false);
+    }
+  };
+
+  const launchBackendRun = async () => {
+    setIsRunPending(true);
+    setRunError(null);
+    setBackendRun(null);
+    try {
+      const caseResponse = await createBackendCase(parameters, transport, meshingPreset);
+      const runStatus = await startBackendRun(caseResponse.caseId, "auto");
+      setBackendRun(runStatus);
+    } catch (error) {
+      setRunError(error instanceof Error ? error.message : "Failed to start backend run.");
+    } finally {
+      setIsRunPending(false);
+    }
+  };
 
   return (
     <div className="layout">
@@ -46,33 +117,46 @@ export function ConfigurePage() {
             </button>
             <button
               className="secondary-button"
-              onClick={() =>
-                startTransition(() => {
-                  void exportCaseJson(parameters, transport, meshingPreset);
-                })
-              }
+              onClick={() => {
+                void exportCurrentCase();
+              }}
             >
               Export case JSON
             </button>
           </div>
           <div className="button-row">
             <button
+              className="primary-button"
+              disabled={isRunPending || backendRun?.state === "queued" || backendRun?.state === "running"}
+              onClick={() => {
+                void launchBackendRun();
+              }}
+            >
+              Run via API
+            </button>
+            {backendRun?.state === "done" ? (
+              <button
+                className="secondary-button"
+                onClick={() => navigate(`/runs?manifest=${encodeURIComponent(backendRun.manifestUrl)}`)}
+              >
+                Open run
+              </button>
+            ) : null}
+          </div>
+          <div className="button-row">
+            <button
               className="secondary-button"
-              onClick={() =>
-                startTransition(() => {
-                  void exportStl(parameters, visibility);
-                })
-              }
+              onClick={() => {
+                void exportStl(parameters, visibility);
+              }}
             >
               Export STL
             </button>
             <button
               className="secondary-button"
-              onClick={() =>
-                startTransition(() => {
-                  void exportGlb(parameters, visibility);
-                })
-              }
+              onClick={() => {
+                void exportGlb(parameters, visibility);
+              }}
             >
               Export GLB
             </button>
@@ -111,13 +195,34 @@ export function ConfigurePage() {
           <ConstraintList constraints={snapshot.constraints} />
           <section className="panel">
             <div className="panel-heading">
-              <h2>Export notes</h2>
+              <h2>Export and API</h2>
             </div>
             <p className="body-copy">
               Browser exports preserve the current parameter set, the fixed geometry
               group visibility, and the canonical case schema used by the backend.
             </p>
-            {isPending ? <p className="body-copy muted">Preparing export...</p> : null}
+            <p className="body-copy muted">
+              Start the local API with <code>python -m services.api.server</code> to enable
+              browser-triggered runs. If the configured solver is on PATH, the API uses real
+              solver-backed post-processing; otherwise it falls back to the mock path.
+            </p>
+            {isExportPending ? <p className="body-copy muted">Preparing export...</p> : null}
+            {isRunPending ? <p className="body-copy muted">Submitting browser run...</p> : null}
+            {backendRun ? (
+              <div className="status-block">
+                <span>API run state</span>
+                <strong>
+                  {backendRun.state} ({backendRun.mode})
+                </strong>
+              </div>
+            ) : null}
+            {backendRun?.state === "done" ? (
+              <p className="body-copy muted">
+                The backend run is ready. Open it in the Runs page to inspect the generated
+                manifest and viewer assets.
+              </p>
+            ) : null}
+            {runError ? <p className="body-copy">{runError}</p> : null}
           </section>
         </div>
       </aside>

@@ -15,6 +15,9 @@ import type {
   TransportConfig
 } from "./types";
 
+export const SOURCE_FILES = ["experimental_setup.md", "setup_3d (2).html"] as const;
+export const TUBE_WALL_THICKNESS_RATIO = 0.2;
+
 export const HTML_TO_CANONICAL_PARAMETER_MAP = {
   A0: "A0",
   h0: "h0",
@@ -70,6 +73,33 @@ function roundValue(value: number): number {
   return Number(value.toFixed(12));
 }
 
+function sortObjectKeys<T extends object>(value: T): T {
+  return Object.fromEntries(
+    Object.entries(value).sort(([left], [right]) => {
+      if (left < right) {
+        return -1;
+      }
+      if (left > right) {
+        return 1;
+      }
+      return 0;
+    })
+  ) as T;
+}
+
+function pythonStyleJson(value: object): string {
+  return `{${Object.entries(sortObjectKeys(value))
+    .map(([key, item]) => `${JSON.stringify(key)}: ${JSON.stringify(item)}`)
+    .join(", ")}}`;
+}
+
+function subtleCrypto(): SubtleCrypto {
+  if (globalThis.crypto?.subtle) {
+    return globalThis.crypto.subtle;
+  }
+  throw new Error("Web Crypto API is unavailable in this environment.");
+}
+
 export function normalizeParameters(
   raw: Partial<Record<string, number>>
 ): NormalizedParameters {
@@ -89,7 +119,7 @@ export function normalizeParameters(
   return {
     ...canonical,
     P4t: canonical.alpha,
-    wallThicknessRatio: 0.2
+    wallThicknessRatio: TUBE_WALL_THICKNESS_RATIO
   };
 }
 
@@ -184,6 +214,7 @@ export function computeDerived(parameters: NormalizedParameters): DerivedGeometr
     [points.P1, points.P2, points.P3, points.P4, points.P5],
     parameters.bendR
   );
+  const sqrtArgs = { arg1, arg2, arg3, arg4 };
 
   return {
     r: roundValue(r),
@@ -222,15 +253,12 @@ export function computeDerived(parameters: NormalizedParameters): DerivedGeometr
         endX: roundValue(X5),
         y: 0
       }
-    }
+    },
+    sqrtArgs
   };
 }
 
 export function checkConstraints(parameters: NormalizedParameters, derived: DerivedGeometry): ConstraintResult[] {
-  const arg1 = parameters.L1 * parameters.L1 - (derived.h2 - parameters.h1) * (derived.h2 - parameters.h1);
-  const arg2 = parameters.L2 * parameters.L2 - (parameters.h3 - derived.h2) * (parameters.h3 - derived.h2);
-  const arg3 = parameters.L3 * parameters.L3 - (derived.h4 - parameters.h3) * (derived.h4 - parameters.h3);
-  const arg4 = parameters.L4 * parameters.L4 - (parameters.h5 - derived.h4) * (parameters.h5 - derived.h4);
   const checks = [
     derived.S0 < 0,
     0 < derived.S1 && derived.S1 < derived.X2 && derived.X2 < derived.X3 && derived.X3 < derived.X4 && derived.X4 < derived.S2 && derived.S2 < derived.X5,
@@ -247,10 +275,10 @@ export function checkConstraints(parameters: NormalizedParameters, derived: Deri
     parameters.alpha >= parameters.Ct,
     parameters.alpha >= 2.5 * derived.r,
     parameters.P24t <= parameters.alpha,
-    arg1 >= 0,
-    arg2 >= 0,
-    arg3 >= 0,
-    arg4 >= 0
+    derived.sqrtArgs.arg1 >= 0,
+    derived.sqrtArgs.arg2 >= 0,
+    derived.sqrtArgs.arg3 >= 0,
+    derived.sqrtArgs.arg4 >= 0
   ];
 
   return CONSTRAINT_LABELS.map((constraint, index) => ({
@@ -440,13 +468,13 @@ export function buildFixedGeometryDescriptors(
   };
 }
 
-export function stableStringHash(value: string): string {
-  let hash = 2166136261;
-  for (let index = 0; index < value.length; index += 1) {
-    hash ^= value.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-  return Math.abs(hash >>> 0).toString(16).padStart(8, "0");
+export async function stableStringHash(value: string): Promise<string> {
+  const bytes = new TextEncoder().encode(value);
+  const hashBuffer = await subtleCrypto().digest("SHA-256", bytes);
+  return Array.from(
+    new Uint8Array(hashBuffer),
+    (byte) => byte.toString(16).padStart(2, "0")
+  ).join("").slice(0, 10);
 }
 
 export function defaultEventThresholds(): EventThresholds {
@@ -494,17 +522,19 @@ export function defaultSolverConfig(): SolverConfig {
     deltaT: 0.02,
     writeInterval: 0.1,
     chunkDuration: 0.5,
-    tubeWallThicknessRatio: 0.2
+    tubeWallThicknessRatio: TUBE_WALL_THICKNESS_RATIO
   };
 }
 
-export function createDefaultCase(
+export async function createDefaultCase(
   parameters: Partial<Record<string, number>> = {},
   transport?: TransportConfig,
   meshingPreset: MeshingConfig["preset"] = "coarse"
-): CaseFile {
+): Promise<CaseFile> {
   const snapshot = createGeometrySnapshot(parameters);
-  const parameterHash = stableStringHash(JSON.stringify(snapshot.parameters));
+  const parameterHash = await stableStringHash(
+    pythonStyleJson(snapshot.parameters)
+  );
 
   return {
     schemaVersion: "1.0.0",
@@ -530,7 +560,7 @@ export function createDefaultCase(
     provenance: {
       parameterHash,
       gitCommit: null,
-      sourceFiles: ["experimental_setup.md", "setup_3d (2).html"]
+      sourceFiles: [...SOURCE_FILES]
     }
   };
 }

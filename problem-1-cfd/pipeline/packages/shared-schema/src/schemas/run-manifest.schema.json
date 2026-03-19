@@ -28,7 +28,7 @@
     "geometryAssets": { "type": "object" },
     "fluidAssets": { "type": "object" },
     "events": { "type": "object" },
-    "status": { "enum": ["mock", "solver_generated"] },
+    "status": { "enum": ["mock", "running", "done", "failed"] },
     "paraview": { "type": "object" },
     "metadata": { "type": "object" }
   }

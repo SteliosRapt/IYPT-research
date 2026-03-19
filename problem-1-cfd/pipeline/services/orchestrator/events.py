@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass
 import math
 from typing import Any
@@ -22,9 +23,28 @@ def _interpolate_crossing(t0: float, h0_value: float, t1: float, h1_value: float
     return t0 + max(0.0, min(1.0, fraction)) * (t1 - t0)
 
 
-def _window_indices(times: list[float], center_index: int, window_seconds: float) -> list[int]:
-    window_start = times[center_index] - window_seconds
-    return [index for index, value in enumerate(times[: center_index + 1]) if value >= window_start]
+def _advance_window_start(
+    times: list[float],
+    window_start_index: int,
+    current_time: float,
+    window_seconds: float,
+) -> int:
+    window_start = current_time - window_seconds
+    while window_start_index < len(times) and times[window_start_index] < window_start:
+        window_start_index += 1
+    return window_start_index
+
+
+def _push_min_index(indices: deque[int], values: list[float], index: int) -> None:
+    while indices and values[indices[-1]] >= values[index]:
+        indices.pop()
+    indices.append(index)
+
+
+def _push_max_index(indices: deque[int], values: list[float], index: int) -> None:
+    while indices and values[indices[-1]] <= values[index]:
+        indices.pop()
+    indices.append(index)
 
 
 def analyze_series(
@@ -46,40 +66,74 @@ def analyze_series(
     if not times:
         return EventSummary(None, None, "no_samples", states)
 
+    height_min_indices: deque[int] = deque()
+    height_max_indices: deque[int] = deque()
+    q_balance_indices: deque[int] = deque()
+    window_start_index = 0
+    derivative_start_index = 1
+    derivative_squares = [0.0] * len(times)
+    derivative_is_valid = [False] * len(times)
+    derivative_sum = 0.0
+    derivative_count = 0
+    q_differences: list[float] | None = None
+    if require_q_balance and q_in is not None and q_out is not None:
+        q_limit = min(len(q_in), len(q_out))
+        q_differences = [abs(q_in[index] - q_out[index]) for index in range(q_limit)]
+
     for index, current_time in enumerate(times):
         height = heights[index]
         previous_height = heights[index - 1] if index > 0 else height
         previous_time = times[index - 1] if index > 0 else current_time
 
+        window_start_index = _advance_window_start(times, window_start_index, current_time, thresholds["T_ss"])
+
+        if index > 0:
+            dt = current_time - previous_time
+            if dt > 0:
+                derivative = (height - previous_height) / dt
+                derivative_squares[index] = derivative * derivative
+                derivative_is_valid[index] = True
+                derivative_sum += derivative_squares[index]
+                derivative_count += 1
+
+        while derivative_start_index < window_start_index + 1:
+            if derivative_is_valid[derivative_start_index]:
+                derivative_sum -= derivative_squares[derivative_start_index]
+                derivative_count -= 1
+            derivative_start_index += 1
+
+        _push_min_index(height_min_indices, heights, index)
+        _push_max_index(height_max_indices, heights, index)
+        while height_min_indices and height_min_indices[0] < window_start_index:
+            height_min_indices.popleft()
+        while height_max_indices and height_max_indices[0] < window_start_index:
+            height_max_indices.popleft()
+
+        if q_differences is not None and index < len(q_differences):
+            _push_max_index(q_balance_indices, q_differences, index)
+        while q_balance_indices and q_balance_indices[0] < window_start_index:
+            q_balance_indices.popleft()
+
         if state == "PRE_H0" and index > 0 and previous_height < h0_target <= height and height > previous_height:
             t_h0_up = _interpolate_crossing(previous_time, previous_height, current_time, height, h0_target)
             state = "POST_H0_MONITORING"
-
-        window = _window_indices(times, index, thresholds["T_ss"])
-        derivative_values: list[float] = []
-        for window_index in window[1:]:
-            dt = times[window_index] - times[window_index - 1]
-            if dt <= 0:
-                continue
-            derivative_values.append((heights[window_index] - heights[window_index - 1]) / dt)
 
         height_span = 0.0
         rms_dhdt = math.inf
         q_balance = math.inf
         steady_now = False
+        window_size = index - window_start_index + 1
 
-        if state == "POST_H0_MONITORING" and len(window) >= 2:
-            window_heights = [heights[window_index] for window_index in window]
-            height_span = max(window_heights) - min(window_heights)
-            if derivative_values:
-                rms_dhdt = math.sqrt(sum(value * value for value in derivative_values) / len(derivative_values))
+        if state == "POST_H0_MONITORING" and window_size >= 2:
+            height_span = heights[height_max_indices[0]] - heights[height_min_indices[0]]
+            if derivative_count > 0:
+                rms_dhdt = math.sqrt(derivative_sum / derivative_count)
             else:
                 rms_dhdt = 0.0
 
             q_ok = True
-            if require_q_balance and q_in is not None and q_out is not None:
-                q_window = window[-min(len(window), len(q_in), len(q_out)) :]
-                q_balance = max(abs(q_in[i] - q_out[i]) for i in q_window)
+            if require_q_balance and q_differences is not None and q_balance_indices:
+                q_balance = q_differences[q_balance_indices[0]]
                 q_ok = q_balance < thresholds["eps_Q"]
 
             steady_now = (

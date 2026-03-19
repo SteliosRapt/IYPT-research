@@ -1,10 +1,12 @@
 import type { RunManifest } from "@fixed-geometry/shared-schema";
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { ChartPanel } from "@/components/ChartPanel";
 import { RunViewer } from "@/components/RunViewer";
 import { useAppStore } from "@/app/store";
 import type { MeshJson } from "@/lib/meshBuilders";
+import { resolveAssetUrl, resolveManifestUrl } from "@/lib/runApi";
 
 type ExampleIndex = {
   runs: Array<{
@@ -17,6 +19,7 @@ type ExampleIndex = {
 type SeriesPoint = { time: number; value: number };
 
 export function RunsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const visibility = useAppStore((state) => state.visibility);
   const [indexData, setIndexData] = useState<ExampleIndex | null>(null);
   const [selectedManifestPath, setSelectedManifestPath] = useState<string | null>(null);
@@ -29,37 +32,52 @@ export function RunsPage() {
   const [dischargedSeries, setDischargedSeries] = useState<SeriesPoint[]>([]);
   const [frameIndex, setFrameIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const manifestQuery = searchParams.get("manifest");
+
+  const selectManifest = (manifestPath: string) => {
+    setSelectedManifestPath(manifestPath);
+    setSearchParams({ manifest: manifestPath });
+  };
 
   const reloadIndex = () => {
     fetch("/index.json?" + Date.now())
       .then((response) => response.json())
       .then((value: ExampleIndex) => {
         setIndexData(value);
-        if (!selectedManifestPath) setSelectedManifestPath(value.runs[0]?.manifest ?? null);
+        if (!manifestQuery && !selectedManifestPath) {
+          setSelectedManifestPath(value.runs[0]?.manifest ?? null);
+        }
       });
   };
 
   useEffect(() => { reloadIndex(); }, []);
 
   useEffect(() => {
+    if (manifestQuery) {
+      setSelectedManifestPath(manifestQuery);
+    }
+  }, [manifestQuery]);
+
+  useEffect(() => {
     if (!selectedManifestPath) {
       return;
     }
     void (async () => {
-      const manifestValue = (await fetch(`/${selectedManifestPath}`).then((response) =>
+      const manifestUrl = resolveManifestUrl(selectedManifestPath);
+      const manifestValue = (await fetch(manifestUrl).then((response) =>
         response.json()
       )) as RunManifest;
       setManifest(manifestValue);
 
       const [geometryValue, heightValue, flowValue, dischargedValue, frameValues] =
         await Promise.all([
-          fetch(`/${selectedManifestPath.replace("manifest.json", manifestValue.geometryAssets.fixedJson)}`).then((response) => response.json()),
-          fetch(`/${selectedManifestPath.replace("manifest.json", manifestValue.chartSeries.height)}`).then((response) => response.json()),
-          fetch(`/${selectedManifestPath.replace("manifest.json", manifestValue.chartSeries.outletFlow)}`).then((response) => response.json()),
-          fetch(`/${selectedManifestPath.replace("manifest.json", manifestValue.chartSeries.dischargedVolume)}`).then((response) => response.json()),
+          fetch(resolveAssetUrl(manifestUrl, manifestValue.geometryAssets.fixedJson)).then((response) => response.json()),
+          fetch(resolveAssetUrl(manifestUrl, manifestValue.chartSeries.height)).then((response) => response.json()),
+          fetch(resolveAssetUrl(manifestUrl, manifestValue.chartSeries.outletFlow)).then((response) => response.json()),
+          fetch(resolveAssetUrl(manifestUrl, manifestValue.chartSeries.dischargedVolume)).then((response) => response.json()),
           Promise.all(
             manifestValue.fluidAssets.interfaceFrames.map((framePath) =>
-              fetch(`/${selectedManifestPath.replace("manifest.json", framePath)}`).then((response) =>
+              fetch(resolveAssetUrl(manifestUrl, framePath)).then((response) =>
                 response.json()
               )
             )
@@ -107,7 +125,7 @@ export function RunsPage() {
               <button
                 className={run.manifest === selectedManifestPath ? "run-pill active" : "run-pill"}
                 key={run.id}
-                onClick={() => setSelectedManifestPath(run.manifest)}
+                onClick={() => selectManifest(run.manifest)}
               >
                 {run.label}
               </button>
@@ -123,12 +141,12 @@ export function RunsPage() {
                 placeholder="run-name/manifest.json"
                 value={customPath}
                 onChange={(e) => setCustomPath(e.currentTarget.value)}
-                onKeyDown={(e) => { if (e.key === "Enter" && customPath) setSelectedManifestPath(customPath); }}
+                onKeyDown={(e) => { if (e.key === "Enter" && customPath) selectManifest(customPath); }}
               />
               <button
                 className="secondary-button"
                 style={{ fontSize: "0.75rem", padding: "0.2rem 0.6rem", whiteSpace: "nowrap" }}
-                onClick={() => { if (customPath) setSelectedManifestPath(customPath); }}
+                onClick={() => { if (customPath) selectManifest(customPath); }}
               >
                 Load
               </button>

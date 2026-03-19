@@ -6,8 +6,9 @@ import argparse
 import json
 from pathlib import Path
 
-from services.geometry.core import write_json
+from services.utils import write_json
 from .mock import create_mock_run
+from .real import create_real_run, has_real_post_processing
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 EXAMPLES_DIR = ROOT_DIR / "examples"
@@ -43,6 +44,8 @@ def _update_index(run_output_dir: Path, label: str | None) -> None:
 def build_manifest(case_dir: Path) -> Path:
     viewer_dir = case_dir / "viewer"
     viewer_dir.mkdir(exist_ok=True)
+    if has_real_post_processing(case_dir):
+        return create_real_run(case_dir, viewer_dir)
     return create_mock_run(case_dir / "case.json", viewer_dir)
 
 

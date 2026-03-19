@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from services.geometry.core import create_case_file, write_json
+from services.geometry.core import create_case_file
 from services.orchestrator.case import generate_case
+from services.utils import write_json
 from services.viewer_data.mock import create_mock_run
 
 
