@@ -3,7 +3,7 @@
     {
       "id": "default-mock",
       "label": "Default mock run",
-      "manifest": "default-mock/manifest.json"
+      "manifest": "sample-runs/default-mock/manifest.json"
     }
   ]
 }

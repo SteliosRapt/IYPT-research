@@ -24,13 +24,71 @@
       "type": "array",
       "items": { "type": "number" }
     },
-    "chartSeries": { "type": "object" },
-    "geometryAssets": { "type": "object" },
-    "fluidAssets": { "type": "object" },
-    "events": { "type": "object" },
+    "chartSeries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["height", "outletFlow", "dischargedVolume"],
+      "properties": {
+        "height": { "type": "string", "minLength": 1 },
+        "outletFlow": { "type": "string", "minLength": 1 },
+        "dischargedVolume": { "type": "string", "minLength": 1 }
+      }
+    },
+    "geometryAssets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fixedGlb", "fixedJson"],
+      "properties": {
+        "fixedGlb": { "type": ["string", "null"] },
+        "fixedJson": { "type": "string", "minLength": 1 }
+      }
+    },
+    "fluidAssets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["interfaceFrames"],
+      "properties": {
+        "interfaceFrames": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "events": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["t_h0_up", "t_steady", "terminationReason", "currentState"],
+      "properties": {
+        "t_h0_up": { "type": ["number", "null"] },
+        "t_steady": { "type": ["number", "null"] },
+        "terminationReason": { "type": "string", "minLength": 1 },
+        "currentState": { "enum": ["PRE_H0", "POST_H0_MONITORING", "DONE"] }
+      }
+    },
     "status": { "enum": ["mock", "running", "done", "failed"] },
-    "paraview": { "type": "object" },
-    "metadata": { "type": "object" }
+    "paraview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["foamFile", "vtkDir"],
+      "properties": {
+        "foamFile": { "type": ["string", "null"] },
+        "vtkDir": { "type": ["string", "null"] }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["parameterHash", "gitCommit", "sourceFiles", "meshPreset", "solverName"],
+      "properties": {
+        "parameterHash": { "type": "string", "minLength": 1 },
+        "gitCommit": { "type": ["string", "null"] },
+        "sourceFiles": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "meshPreset": { "enum": ["coarse", "medium", "fine"] },
+        "solverName": { "enum": ["interFoam", "interIsoFoam"] }
+      }
+    }
   }
 }
-

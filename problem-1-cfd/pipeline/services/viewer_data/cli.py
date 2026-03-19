@@ -12,7 +12,7 @@ from .real import create_real_run, has_real_post_processing
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 EXAMPLES_DIR = ROOT_DIR / "examples"
-INDEX_PATH = EXAMPLES_DIR / "index.json"
+INDEX_PATH = EXAMPLES_DIR / "catalog" / "index.json"
 
 
 def load_json(path: str | Path) -> dict:
@@ -27,7 +27,7 @@ def _update_index(run_output_dir: Path, label: str | None) -> None:
         return  # output is outside examples/ — skip index update
 
     manifest_rel = str(rel / "manifest.json").replace("\\", "/")
-    run_id = rel.parts[0]
+    run_id = rel.parts[-1]
     display_label = label or run_id.replace("-", " ").replace("_", " ").title()
 
     index: dict = {"runs": []}

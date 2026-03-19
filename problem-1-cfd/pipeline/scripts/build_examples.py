@@ -14,23 +14,28 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 
 def main() -> None:
     examples_dir = ROOT_DIR / "examples"
-    case_path = examples_dir / "default-case.json"
+    catalog_dir = examples_dir / "catalog"
+    sample_cases_dir = examples_dir / "sample-cases"
+    sample_runs_dir = examples_dir / "sample-runs"
+    case_path = sample_cases_dir / "default-case.json"
     case_file = create_case_file()
     write_json(case_path, case_file)
-    generate_case(case_file, examples_dir / "default-openfoam-case")
-    create_mock_run(case_path, examples_dir / "default-mock")
+    generate_case(case_file, sample_cases_dir / "default-openfoam-case")
+    create_mock_run(case_path, sample_runs_dir / "default-mock")
+    index_payload = {
+        "runs": [
+            {
+                "id": "default-mock",
+                "label": "Default mock run",
+                "manifest": "sample-runs/default-mock/manifest.json",
+            }
+        ]
+    }
     write_json(
-        examples_dir / "index.json",
-        {
-            "runs": [
-                {
-                    "id": "default-mock",
-                    "label": "Default mock run",
-                    "manifest": "default-mock/manifest.json",
-                }
-            ]
-        },
+        catalog_dir / "index.json",
+        index_payload,
     )
+    write_json(examples_dir / "index.json", index_payload)
 
 
 if __name__ == "__main__":

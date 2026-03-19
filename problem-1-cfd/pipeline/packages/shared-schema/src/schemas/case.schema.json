@@ -27,6 +27,7 @@
     "derived": { "type": "object" },
     "geometry": {
       "type": "object",
+      "additionalProperties": false,
       "required": ["fluidBoundaryPatches", "fixedGeometryGroups"],
       "properties": {
         "fluidBoundaryPatches": {
@@ -39,12 +40,88 @@
         }
       }
     },
-    "meshing": { "type": "object" },
-    "transport": { "type": "object" },
-    "solver": { "type": "object" },
-    "forcing": { "type": "object" },
-    "eventThresholds": { "type": "object" },
-    "outputs": { "type": "object" },
+    "meshing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["preset"],
+      "properties": {
+        "preset": { "enum": ["coarse", "medium", "fine"] },
+        "backgroundCellSize": { "type": "number" },
+        "refinementLevels": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["opening", "bends", "outlet", "freeSurface"],
+          "properties": {
+            "opening": { "type": "number" },
+            "bends": { "type": "number" },
+            "outlet": { "type": "number" },
+            "freeSurface": { "type": "number" }
+          }
+        }
+      }
+    },
+    "transport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["waterNu", "waterRho", "airNu", "airRho", "sigma"],
+      "properties": {
+        "waterNu": { "type": "number" },
+        "waterRho": { "type": "number" },
+        "airNu": { "type": "number" },
+        "airRho": { "type": "number" },
+        "sigma": { "type": "number" }
+      }
+    },
+    "solver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["solver", "startTime", "endTime", "deltaT", "writeInterval", "chunkDuration", "tubeWallThicknessRatio"],
+      "properties": {
+        "solver": { "enum": ["interFoam", "interIsoFoam"] },
+        "startTime": { "type": "number" },
+        "endTime": { "type": "number" },
+        "deltaT": { "type": "number" },
+        "writeInterval": { "type": "number" },
+        "chunkDuration": { "type": "number" },
+        "tubeWallThicknessRatio": { "type": "number" }
+      }
+    },
+    "forcing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "topPatchFraction", "inflowVelocity", "volumetricSourceRate", "reservoirHead"],
+      "properties": {
+        "mode": { "enum": ["none", "inflow_patch", "volumetric_source", "reservoir_head"] },
+        "topPatchFraction": { "type": "number" },
+        "inflowVelocity": { "type": "number" },
+        "volumetricSourceRate": { "type": "number" },
+        "reservoirHead": { "type": "number" }
+      }
+    },
+    "eventThresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["eps_H", "eps_dHdt", "eps_Q", "T_ss", "dwell", "requireQBalance"],
+      "properties": {
+        "eps_H": { "type": "number" },
+        "eps_dHdt": { "type": "number" },
+        "eps_Q": { "type": "number" },
+        "T_ss": { "type": "number" },
+        "dwell": { "type": "number" },
+        "requireQBalance": { "type": "boolean" }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["exportRoot", "manifestPath"],
+      "properties": {
+        "exportRoot": { "type": "string", "minLength": 1 },
+        "manifestPath": {
+          "type": ["string", "null"]
+        }
+      }
+    },
     "runStatus": {
       "type": "object",
       "required": ["state"],
@@ -56,7 +133,18 @@
         "reason": { "type": "string" }
       }
     },
-    "provenance": { "type": "object" }
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["parameterHash", "gitCommit", "sourceFiles"],
+      "properties": {
+        "parameterHash": { "type": "string", "minLength": 1 },
+        "gitCommit": { "type": ["string", "null"] },
+        "sourceFiles": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
   }
 }
-

@@ -8,10 +8,7 @@ export default defineConfig({
   resolve: {
     dedupe: ["react", "react-dom"],
     alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
-      "@fixed-geometry/shared-schema": fileURLToPath(
-        new URL("../../packages/shared-schema/src/index.ts", import.meta.url)
-      )
+      "@": fileURLToPath(new URL("./src", import.meta.url))
     }
   },
   server: {

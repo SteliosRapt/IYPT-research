@@ -3,44 +3,10 @@
 from __future__ import annotations
 
 import argparse
-import json
 from pathlib import Path
-import shutil
-import subprocess
 
 from .case import generate_case
-
-
-def load_json(path: str | Path) -> dict:
-    return json.loads(Path(path).read_text(encoding="utf-8"))
-
-
-def command_exists(name: str) -> bool:
-    return shutil.which(name) is not None
-
-
-def run_case(case_dir: Path) -> None:
-    case_file = load_json(case_dir / "case.json")
-    solver = case_file["solver"]["solver"]
-    has_openfoam = command_exists(solver)
-    has_docker = command_exists("docker")
-
-    if has_openfoam:
-        result = subprocess.run(["bash", "Allrun"], cwd=case_dir, check=False)
-        if result.returncode != 0:
-            raise RuntimeError(f"Allrun exited with code {result.returncode} in {case_dir}")
-        return
-
-    if has_docker:
-        raise RuntimeError(
-            "Docker is present but no container orchestration is wired. "
-            "Run the solver manually via Docker."
-        )
-
-    raise RuntimeError(
-        f"Solver '{solver}' not found and Docker is not available. "
-        "Install OpenFOAM or Docker to run this case."
-    )
+from .runtime import command_exists, load_json, run_case
 
 
 def main() -> None:

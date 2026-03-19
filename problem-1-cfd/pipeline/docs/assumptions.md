@@ -16,6 +16,8 @@
 
 - WSL with OpenFOAM on PATH is the preferred local runtime on Windows. Docker remains a manual reference path and is not the primary backend execution environment.
 - OpenFOAM is not installed in the current environment, so the committed example run is synthetic.
-- The generated OpenFOAM-style case is intended as a coarse starting point and needs mesh and boundary-condition validation before production CFD use.
+- The generated OpenFOAM-style case now writes solver-consumable STL patch assets plus `setFields`, but it still needs real OpenFOAM validation before production CFD use.
+- The initial real-solver water column is applied with `setFields` over the container volume from `y = 0` to the canonical `H0` height. The tube remains dry at startup.
 - Browser-triggered runs use the local HTTP API. The API now serves real solver-backed post-processing when the configured solver binary is on PATH and falls back to mock viewer-data assets otherwise.
+- CLI `run-case` does not perform a mock fallback. Only API `mode = "auto"` does.
 

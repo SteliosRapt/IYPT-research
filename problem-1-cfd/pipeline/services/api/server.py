@@ -16,11 +16,12 @@ from services.geometry.core import (
     create_case_file,
     default_event_thresholds,
     default_forcing_config,
+    default_meshing_config,
     default_solver_config,
     default_transport_config,
 )
 from services.orchestrator.case import generate_case
-from services.orchestrator.cli import command_exists, run_case
+from services.orchestrator.runtime import command_exists, run_case
 from services.utils import write_json
 from services.viewer_data.mock import create_mock_run
 from services.viewer_data.real import create_real_run
@@ -51,37 +52,43 @@ class ApiState:
 
     def create_case(self, payload: dict[str, Any]) -> dict[str, Any]:
         raw_parameters = _as_object(payload.get("parameters")) or None
-        case_file = create_case_file(raw_parameters)
-
         display_name = payload.get("displayName")
-        if isinstance(display_name, str) and display_name.strip():
-            case_file["displayName"] = display_name.strip()
-
-        case_file["transport"] = {
+        normalized_display_name = (
+            display_name.strip() if isinstance(display_name, str) and display_name.strip() else "Default fixed-geometry case"
+        )
+        transport = {
             **default_transport_config(),
             **_as_object(payload.get("transport")),
         }
-        case_file["forcing"] = {
+        forcing = {
             **default_forcing_config(),
             **_as_object(payload.get("forcing")),
         }
-        case_file["solver"] = {
+        solver = {
             **default_solver_config(),
             **_as_object(payload.get("solver")),
         }
-        case_file["eventThresholds"] = {
+        event_thresholds = {
             **default_event_thresholds(),
             **_as_object(payload.get("eventThresholds")),
         }
-
         meshing = {
-            **case_file.get("meshing", {}),
+            **default_meshing_config(),
             **_as_object(payload.get("meshing")),
         }
         meshing_preset = payload.get("meshingPreset", meshing.get("preset"))
         if meshing_preset in {"coarse", "medium", "fine"}:
             meshing["preset"] = meshing_preset
-        case_file["meshing"] = meshing
+
+        case_file = create_case_file(
+            raw_parameters,
+            display_name=normalized_display_name,
+            transport=transport,
+            forcing=forcing,
+            solver=solver,
+            event_thresholds=event_thresholds,
+            meshing=meshing,
+        )
 
         case_root = self.cases_dir / case_file["caseId"]
         case_root.mkdir(parents=True, exist_ok=True)

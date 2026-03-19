@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
 
+import caseIdentityContract from "./fixtures/case-identity-contract.json";
 import geometryContract from "./fixtures/geometry-contract.json";
 import {
   createDefaultCase,
@@ -43,12 +44,39 @@ test("default geometry matches the source-of-truth defaults", () => {
 test("default case uses Python-compatible hashing and shared provenance constants", async () => {
   const caseFile = await createDefaultCase({ ...defaultParameters });
 
-  expect(caseFile.caseId).toBe("case-6cc4e9b9e1");
-  expect(caseFile.provenance.parameterHash).toBe("6cc4e9b9e1");
+  expect(caseFile.caseId).toBe("case-2598074512");
+  expect(caseFile.provenance.parameterHash).toBe("254df71f13");
   expect(caseFile.provenance.sourceFiles).toEqual([...SOURCE_FILES]);
   expect(caseFile.transport).toEqual(defaultTransportConfig());
   expect(caseFile.runStatus.state).toBe("not_started");
 });
+
+test("case identity changes when transport or meshing changes", async () => {
+  const baseCase = await createDefaultCase({ ...defaultParameters });
+  const sigmaCase = await createDefaultCase(
+    { ...defaultParameters },
+    { ...defaultTransportConfig(), sigma: 0.081 },
+    "coarse"
+  );
+  const fineCase = await createDefaultCase({ ...defaultParameters }, undefined, "fine");
+
+  expect(baseCase.provenance.parameterHash).toBe(sigmaCase.provenance.parameterHash);
+  expect(baseCase.caseId).not.toBe(sigmaCase.caseId);
+  expect(baseCase.caseId).not.toBe(fineCase.caseId);
+});
+
+for (const fixtureCase of caseIdentityContract.cases) {
+  test(`case identity contract matches ${fixtureCase.name}`, async () => {
+    const caseFile = await createDefaultCase(
+      fixtureCase.parameters,
+      fixtureCase.transport ?? undefined,
+      fixtureCase.meshingPreset as "coarse" | "medium" | "fine"
+    );
+
+    expect(caseFile.caseId).toBe(fixtureCase.caseId);
+    expect(caseFile.provenance.parameterHash).toBe(fixtureCase.parameterHash);
+  });
+}
 
 for (const contractCase of geometryContract.cases) {
   test(`geometry contract fixture matches ${contractCase.name}`, () => {

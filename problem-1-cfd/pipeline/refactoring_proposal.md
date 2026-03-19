@@ -1,3 +1,6 @@
+> Superseded by `docs/remediation-roadmap.md`.
+> Retained for historical context only.
+
 # Fixed-Geometry CFD Pipeline — Refactoring Proposal
 
 **March 2026 · Version 0.1.0**

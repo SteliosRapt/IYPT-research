@@ -120,6 +120,29 @@ def test_api_creates_case_and_serves_mock_run_assets(tmp_path: Path) -> None:
         thread.join(timeout=5)
 
 
+def test_api_case_identity_includes_transport_and_meshing(tmp_path: Path) -> None:
+    server, thread, base_url = _start_server(tmp_path)
+
+    try:
+        _, base_case = _request(base_url, "POST", "/api/cases", {"transport": {"sigma": 0.072}})
+        _, changed_transport_case = _request(base_url, "POST", "/api/cases", {"transport": {"sigma": 0.081}})
+        _, changed_meshing_case = _request(base_url, "POST", "/api/cases", {"meshingPreset": "fine"})
+
+        assert isinstance(base_case, dict)
+        assert isinstance(changed_transport_case, dict)
+        assert isinstance(changed_meshing_case, dict)
+        assert base_case["caseId"] != changed_transport_case["caseId"]
+        assert base_case["caseId"] != changed_meshing_case["caseId"]
+        assert (
+            base_case["caseFile"]["provenance"]["parameterHash"]
+            == changed_transport_case["caseFile"]["provenance"]["parameterHash"]
+        )
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+
+
 def test_api_runs_real_solver_post_processing_when_requested(tmp_path: Path) -> None:
     with patch("services.api.server.command_exists", return_value=True), patch(
         "services.api.server.run_case",

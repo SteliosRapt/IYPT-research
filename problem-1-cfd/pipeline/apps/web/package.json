@@ -4,8 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "npm run build --workspace @fixed-geometry/shared-schema",
     "dev": "vite",
+    "prebuild": "npm run build --workspace @fixed-geometry/shared-schema",
     "build": "vite build",
+    "pretest": "npm run build --workspace @fixed-geometry/shared-schema",
     "test": "vitest run"
   },
   "dependencies": {

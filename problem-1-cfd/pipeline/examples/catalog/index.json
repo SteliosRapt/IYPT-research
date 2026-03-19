@@ -1,0 +1,9 @@
+{
+  "runs": [
+    {
+      "id": "default-mock",
+      "label": "Default mock run",
+      "manifest": "sample-runs/default-mock/manifest.json"
+    }
+  ]
+}

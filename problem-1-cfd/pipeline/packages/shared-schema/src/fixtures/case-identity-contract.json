@@ -1,0 +1,34 @@
+{
+  "cases": [
+    {
+      "name": "default",
+      "parameters": {},
+      "transport": null,
+      "meshingPreset": "coarse",
+      "caseId": "case-2598074512",
+      "parameterHash": "254df71f13"
+    },
+    {
+      "name": "sigma-variant",
+      "parameters": {},
+      "transport": {
+        "waterNu": 0.000001,
+        "waterRho": 998.2,
+        "airNu": 0.000015,
+        "airRho": 1.2,
+        "sigma": 0.081
+      },
+      "meshingPreset": "coarse",
+      "caseId": "case-ea8a13c951",
+      "parameterHash": "254df71f13"
+    },
+    {
+      "name": "fine-mesh",
+      "parameters": {},
+      "transport": null,
+      "meshingPreset": "fine",
+      "caseId": "case-3b083b5e94",
+      "parameterHash": "254df71f13"
+    }
+  ]
+}

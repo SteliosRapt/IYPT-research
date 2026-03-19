@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 from services.geometry.core import create_case_file
 from services.orchestrator.case import generate_case
-from services.orchestrator.cli import run_case
+from services.orchestrator.runtime import run_case
 
 
 def _generated_case_dir(tmp_path):
@@ -15,7 +15,7 @@ def _generated_case_dir(tmp_path):
 def test_run_case_reports_missing_solver_and_docker(tmp_path) -> None:
     case_dir = _generated_case_dir(tmp_path)
 
-    with patch("services.orchestrator.cli.command_exists", return_value=False):
+    with patch("services.orchestrator.runtime.command_exists", return_value=False):
         try:
             run_case(case_dir)
         except RuntimeError as exc:
@@ -28,10 +28,10 @@ def test_run_case_executes_allrun_when_solver_is_available(tmp_path) -> None:
     case_dir = _generated_case_dir(tmp_path)
 
     with patch(
-        "services.orchestrator.cli.command_exists",
+        "services.orchestrator.runtime.command_exists",
         side_effect=lambda name: name == "interFoam",
     ), patch(
-        "services.orchestrator.cli.subprocess.run",
+        "services.orchestrator.runtime.subprocess.run",
         return_value=SimpleNamespace(returncode=0),
     ) as run_mock:
         run_case(case_dir)
@@ -43,10 +43,10 @@ def test_run_case_surfaces_allrun_failures(tmp_path) -> None:
     case_dir = _generated_case_dir(tmp_path)
 
     with patch(
-        "services.orchestrator.cli.command_exists",
+        "services.orchestrator.runtime.command_exists",
         side_effect=lambda name: name == "interFoam",
     ), patch(
-        "services.orchestrator.cli.subprocess.run",
+        "services.orchestrator.runtime.subprocess.run",
         return_value=SimpleNamespace(returncode=3),
     ):
         try:

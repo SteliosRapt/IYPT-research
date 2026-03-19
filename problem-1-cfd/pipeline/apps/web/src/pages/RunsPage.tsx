@@ -1,110 +1,28 @@
-import type { RunManifest } from "@fixed-geometry/shared-schema";
-import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-
 import { ChartPanel } from "@/components/ChartPanel";
 import { RunViewer } from "@/components/RunViewer";
 import { useAppStore } from "@/app/store";
-import type { MeshJson } from "@/lib/meshBuilders";
-import { resolveAssetUrl, resolveManifestUrl } from "@/lib/runApi";
-
-type ExampleIndex = {
-  runs: Array<{
-    id: string;
-    label: string;
-    manifest: string;
-  }>;
-};
-
-type SeriesPoint = { time: number; value: number };
+import { useRunsPageState } from "@/hooks/useRunsPageState";
 
 export function RunsPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const visibility = useAppStore((state) => state.visibility);
-  const [indexData, setIndexData] = useState<ExampleIndex | null>(null);
-  const [selectedManifestPath, setSelectedManifestPath] = useState<string | null>(null);
-  const [customPath, setCustomPath] = useState("");
-  const [manifest, setManifest] = useState<RunManifest | null>(null);
-  const [fixedGeometry, setFixedGeometry] = useState<Record<string, unknown[]> | null>(null);
-  const [frames, setFrames] = useState<MeshJson[]>([]);
-  const [heightSeries, setHeightSeries] = useState<SeriesPoint[]>([]);
-  const [flowSeries, setFlowSeries] = useState<SeriesPoint[]>([]);
-  const [dischargedSeries, setDischargedSeries] = useState<SeriesPoint[]>([]);
-  const [frameIndex, setFrameIndex] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const manifestQuery = searchParams.get("manifest");
-
-  const selectManifest = (manifestPath: string) => {
-    setSelectedManifestPath(manifestPath);
-    setSearchParams({ manifest: manifestPath });
-  };
-
-  const reloadIndex = () => {
-    fetch("/index.json?" + Date.now())
-      .then((response) => response.json())
-      .then((value: ExampleIndex) => {
-        setIndexData(value);
-        if (!manifestQuery && !selectedManifestPath) {
-          setSelectedManifestPath(value.runs[0]?.manifest ?? null);
-        }
-      });
-  };
-
-  useEffect(() => { reloadIndex(); }, []);
-
-  useEffect(() => {
-    if (manifestQuery) {
-      setSelectedManifestPath(manifestQuery);
-    }
-  }, [manifestQuery]);
-
-  useEffect(() => {
-    if (!selectedManifestPath) {
-      return;
-    }
-    void (async () => {
-      const manifestUrl = resolveManifestUrl(selectedManifestPath);
-      const manifestValue = (await fetch(manifestUrl).then((response) =>
-        response.json()
-      )) as RunManifest;
-      setManifest(manifestValue);
-
-      const [geometryValue, heightValue, flowValue, dischargedValue, frameValues] =
-        await Promise.all([
-          fetch(resolveAssetUrl(manifestUrl, manifestValue.geometryAssets.fixedJson)).then((response) => response.json()),
-          fetch(resolveAssetUrl(manifestUrl, manifestValue.chartSeries.height)).then((response) => response.json()),
-          fetch(resolveAssetUrl(manifestUrl, manifestValue.chartSeries.outletFlow)).then((response) => response.json()),
-          fetch(resolveAssetUrl(manifestUrl, manifestValue.chartSeries.dischargedVolume)).then((response) => response.json()),
-          Promise.all(
-            manifestValue.fluidAssets.interfaceFrames.map((framePath) =>
-              fetch(resolveAssetUrl(manifestUrl, framePath)).then((response) =>
-                response.json()
-              )
-            )
-          ),
-        ]);
-
-      setFixedGeometry(geometryValue as Record<string, unknown[]>);
-      setHeightSeries(heightValue as SeriesPoint[]);
-      setFlowSeries(flowValue as SeriesPoint[]);
-      setDischargedSeries(dischargedValue as SeriesPoint[]);
-      setFrames(frameValues as MeshJson[]);
-      setFrameIndex(0);
-      setPlaying(false);
-    })();
-  }, [selectedManifestPath]);
-
-  useEffect(() => {
-    if (!playing || frames.length === 0) {
-      return;
-    }
-    const timer = window.setInterval(() => {
-      setFrameIndex((current) => (current + 1) % frames.length);
-    }, 120);
-    return () => window.clearInterval(timer);
-  }, [playing, frames.length]);
-
-  const activeFrame = useMemo(() => frames[frameIndex] ?? null, [frames, frameIndex]);
+  const {
+    indexData,
+    selectedManifestPath,
+    customPath,
+    setCustomPath,
+    manifest,
+    fixedGeometry,
+    heightSeries,
+    flowSeries,
+    dischargedSeries,
+    frameIndex,
+    setFrameIndex,
+    playing,
+    setPlaying,
+    activeFrame,
+    reloadIndex,
+    selectManifest,
+  } = useRunsPageState();
 
   if (!manifest || !fixedGeometry || !indexData) {
     return <div className="empty-state">Loading example manifests...</div>;
@@ -133,7 +51,7 @@ export function RunsPage() {
           </div>
           <div style={{ marginTop: "0.75rem" }}>
             <p className="body-copy muted" style={{ marginBottom: "0.35rem", fontSize: "0.72rem" }}>
-              Load by path (relative to examples/, e.g. my-run/manifest.json)
+              Load by path (relative to examples/, e.g. sample-runs/default-mock/manifest.json)
             </p>
             <div style={{ display: "flex", gap: "0.4rem" }}>
               <input

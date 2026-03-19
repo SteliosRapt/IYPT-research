@@ -2,7 +2,7 @@ import {
   createGeometrySnapshot,
   type CanonicalParameters,
 } from "@fixed-geometry/shared-schema";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { ConstraintList } from "@/components/ConstraintList";
@@ -18,12 +18,7 @@ import {
   exportStl,
 } from "@/lib/sceneBuilder";
 import { parameterSections, useAppStore } from "@/app/store";
-import {
-  createBackendCase,
-  getRunStatus,
-  startBackendRun,
-  type ApiRunStatus as BackendRunStatus,
-} from "@/lib/runApi";
+import { useBackendRun } from "@/hooks/useBackendRun";
 
 export function ConfigurePage() {
   const navigate = useNavigate();
@@ -41,47 +36,12 @@ export function ConfigurePage() {
   const setMeshingPreset = useAppStore((state) => state.setMeshingPreset);
   const toggleMeshDomain = useAppStore((state) => state.toggleMeshDomain);
   const snapshot = useMemo(() => createGeometrySnapshot(parameters), [parameters]);
-  const [backendRun, setBackendRun] = useState<BackendRunStatus | null>(null);
-  const [runError, setRunError] = useState<string | null>(null);
   const [isExportPending, setIsExportPending] = useState(false);
-  const [isRunPending, setIsRunPending] = useState(false);
-
-  useEffect(() => {
-    if (!backendRun || !["queued", "running"].includes(backendRun.state)) {
-      return;
-    }
-
-    let cancelled = false;
-    let timer: number | null = null;
-
-    const pollStatus = async () => {
-      try {
-        const nextStatus = await getRunStatus(backendRun.runId);
-        if (cancelled) {
-          return;
-        }
-        setBackendRun(nextStatus);
-        if (["queued", "running"].includes(nextStatus.state)) {
-          timer = window.setTimeout(() => {
-            void pollStatus();
-          }, 1000);
-        }
-      } catch (error) {
-        if (cancelled) {
-          return;
-        }
-        setRunError(error instanceof Error ? error.message : "Failed to poll API run status.");
-      }
-    };
-
-    void pollStatus();
-    return () => {
-      cancelled = true;
-      if (timer !== null) {
-        window.clearTimeout(timer);
-      }
-    };
-  }, [backendRun]);
+  const { backendRun, runError, isRunPending, launchBackendRun } = useBackendRun(
+    parameters,
+    transport,
+    meshingPreset,
+  );
 
   const exportCurrentCase = async () => {
     setIsExportPending(true);
@@ -89,21 +49,6 @@ export function ConfigurePage() {
       await exportCaseJson(parameters, transport, meshingPreset);
     } finally {
       setIsExportPending(false);
-    }
-  };
-
-  const launchBackendRun = async () => {
-    setIsRunPending(true);
-    setRunError(null);
-    setBackendRun(null);
-    try {
-      const caseResponse = await createBackendCase(parameters, transport, meshingPreset);
-      const runStatus = await startBackendRun(caseResponse.caseId, "auto");
-      setBackendRun(runStatus);
-    } catch (error) {
-      setRunError(error instanceof Error ? error.message : "Failed to start backend run.");
-    } finally {
-      setIsRunPending(false);
     }
   };
 
@@ -203,8 +148,8 @@ export function ConfigurePage() {
             </p>
             <p className="body-copy muted">
               Start the local API with <code>python -m services.api.server</code> to enable
-              browser-triggered runs. If the configured solver is on PATH, the API uses real
-              solver-backed post-processing; otherwise it falls back to the mock path.
+              browser-triggered runs. API mode <code>auto</code> falls back to mock output when
+              the configured solver is not on PATH; CLI <code>run-case</code> does not.
             </p>
             {isExportPending ? <p className="body-copy muted">Preparing export...</p> : null}
             {isRunPending ? <p className="body-copy muted">Submitting browser run...</p> : null}

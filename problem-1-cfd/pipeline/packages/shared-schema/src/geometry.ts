@@ -73,9 +73,17 @@ function roundValue(value: number): number {
   return Number(value.toFixed(12));
 }
 
-function sortObjectKeys<T extends object>(value: T): T {
-  return Object.fromEntries(
-    Object.entries(value).sort(([left], [right]) => {
+function stableJsonValue(value: unknown): string {
+  if (value === null || typeof value === "boolean" || typeof value === "number" || typeof value === "string") {
+    return JSON.stringify(value);
+  }
+
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => stableJsonValue(item)).join(", ")}]`;
+  }
+
+  return `{${Object.entries(value as Record<string, unknown>)
+    .sort(([left], [right]) => {
       if (left < right) {
         return -1;
       }
@@ -84,12 +92,7 @@ function sortObjectKeys<T extends object>(value: T): T {
       }
       return 0;
     })
-  ) as T;
-}
-
-function pythonStyleJson(value: object): string {
-  return `{${Object.entries(sortObjectKeys(value))
-    .map(([key, item]) => `${JSON.stringify(key)}: ${JSON.stringify(item)}`)
+    .map(([key, item]) => `${JSON.stringify(key)}: ${stableJsonValue(item)}`)
     .join(", ")}}`;
 }
 
@@ -532,25 +535,40 @@ export async function createDefaultCase(
   meshingPreset: MeshingConfig["preset"] = "coarse"
 ): Promise<CaseFile> {
   const snapshot = createGeometrySnapshot(parameters);
-  const parameterHash = await stableStringHash(
-    pythonStyleJson(snapshot.parameters)
-  );
+  const { P4t: _p4t, wallThicknessRatio: _wallThicknessRatio, ...caseParameters } = snapshot.parameters;
+  const resolvedTransport = transport ?? defaultTransportConfig();
+  const resolvedMeshing = { preset: meshingPreset } satisfies MeshingConfig;
+  const resolvedSolver = defaultSolverConfig();
+  const resolvedForcing = defaultForcingConfig();
+  const resolvedEventThresholds = defaultEventThresholds();
+  const parameterHash = await stableStringHash(stableJsonValue(caseParameters));
+  const caseId = `case-${await stableStringHash(
+    stableJsonValue({
+      displayName: "Default fixed-geometry case",
+      parameters: caseParameters,
+      transport: resolvedTransport,
+      forcing: resolvedForcing,
+      solver: resolvedSolver,
+      eventThresholds: resolvedEventThresholds,
+      meshing: { preset: resolvedMeshing.preset }
+    })
+  )}`;
 
   return {
     schemaVersion: "1.0.0",
-    caseId: `case-${parameterHash}`,
+    caseId,
     displayName: "Default fixed-geometry case",
-    parameters: { ...snapshot.parameters },
+    parameters: caseParameters,
     derived: snapshot.derived,
     geometry: {
       fluidBoundaryPatches: ["walls", "topAtmosphere", "topInflow", "tubeOutlet"],
       fixedGeometryGroups: ["container", "tube", "holders", "columns"]
     },
-    meshing: { preset: meshingPreset },
-    transport: transport ?? defaultTransportConfig(),
-    solver: defaultSolverConfig(),
-    forcing: defaultForcingConfig(),
-    eventThresholds: defaultEventThresholds(),
+    meshing: resolvedMeshing,
+    transport: resolvedTransport,
+    solver: resolvedSolver,
+    forcing: resolvedForcing,
+    eventThresholds: resolvedEventThresholds,
     outputs: {
       exportRoot: "examples/generated/case-default"
     },

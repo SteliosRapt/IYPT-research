@@ -1,3 +1,6 @@
+> Superseded by `docs/remediation-roadmap.md`.
+> Retained for historical context only.
+
 # Refactoring Proposal — Fixed-Geometry CFD Pipeline
 
 ## Scope and Principles

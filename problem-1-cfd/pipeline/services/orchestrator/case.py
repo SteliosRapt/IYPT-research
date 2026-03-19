@@ -10,6 +10,8 @@ from typing import Any
 from services.geometry.core import (
     build_fixed_geometry_descriptors,
     build_fluid_geometry_descriptors,
+    build_refinement_regions,
+    build_solver_surface_stls,
     create_geometry_snapshot,
     default_event_thresholds,
     default_forcing_config,
@@ -17,6 +19,7 @@ from services.geometry.core import (
     default_solver_config,
     default_transport_config,
 )
+from services.orchestrator.runtime import prepare_generated_case_dir
 from services.utils import write_json, write_text
 
 
@@ -36,6 +39,11 @@ def mesh_preset(parameters: dict[str, float], derived: dict[str, Any], preset: s
             "freeSurface": level,
         },
     }
+
+
+def _foam_vector(values: list[float]) -> str:
+    return f"({values[0]} {values[1]} {values[2]})"
+
 
 def build_block_mesh_dict(case_file: dict[str, Any], snapshot: dict[str, Any]) -> str:
     parameters = snapshot["parameters"]
@@ -90,10 +98,35 @@ def build_snappy_hex_mesh_dict(case_file: dict[str, Any], snapshot: dict[str, An
     refinement = case_file["meshing"]["refinementLevels"]
     derived = snapshot["derived"]
     parameters = snapshot["parameters"]
-    # A point guaranteed inside the container fluid domain: horizontal centre,
-    # half container height, z=0.
     loc_x = round((derived["S0"] + derived["X2"]) / 2, 6)
     loc_y = round(parameters["h0"] * 0.5, 6)
+    searchable_boxes = build_refinement_regions(parameters, derived, case_file["forcing"])
+
+    geometry_entries = [
+        ('walls.stl', 'walls'),
+        ('topAtmosphere.stl', 'topAtmosphere'),
+        ('topInflow.stl', 'topInflow'),
+        ('tubeOutlet.stl', 'tubeOutlet'),
+        ('solidObstructions.stl', 'solidObstructions'),
+    ]
+    tri_surface_text = "\n".join(
+        f"""    {file_name}
+    {{
+        type triSurfaceMesh;
+        name {surface_name};
+    }}"""
+        for file_name, surface_name in geometry_entries
+    )
+    box_text = "\n".join(
+        f"""    {name}
+    {{
+        type searchableBox;
+        min {_foam_vector(bounds["min"])};
+        max {_foam_vector(bounds["max"])};
+    }}"""
+        for name, bounds in searchable_boxes.items()
+    )
+
     return f"""
 FoamFile
 {{
@@ -109,19 +142,8 @@ addLayers false;
 
 geometry
 {{
-    // Fluid domain boundaries: container interior + tube interior
-    fluid_geometry.json
-    {{
-        type triSurfaceMesh;
-        name fluidWalls;
-    }}
-    // Solid obstacles inside the fluid domain: holders and structural columns.
-    // snappyHexMesh carves these out of the fluid mesh so flow is not blocked.
-    fixed_geometry.json
-    {{
-        type triSurfaceMesh;
-        name solidObstructions;
-    }}
+{tri_surface_text}
+{box_text}
 }}
 
 castellatedMeshControls
@@ -131,6 +153,22 @@ castellatedMeshControls
     minRefinementCells 0;
     nCellsBetweenLevels 3;
     resolveFeatureAngle 30;
+    features
+    (
+        {{ file "walls.eMesh"; level 1; }}
+        {{ file "topAtmosphere.eMesh"; level 1; }}
+        {{ file "topInflow.eMesh"; level 1; }}
+        {{ file "tubeOutlet.eMesh"; level 1; }}
+        {{ file "solidObstructions.eMesh"; level 1; }}
+    );
+    refinementSurfaces
+    {{
+        walls {{ level (1 1); patchInfo {{ type wall; }} }}
+        topAtmosphere {{ level (1 1); patchInfo {{ type patch; }} }}
+        topInflow {{ level (1 1); patchInfo {{ type patch; }} }}
+        tubeOutlet {{ level (1 1); patchInfo {{ type patch; }} }}
+        solidObstructions {{ level (1 1); patchInfo {{ type wall; }} }}
+    }}
     locationInMesh ({loc_x} {loc_y} 0);
 }}
 
@@ -147,10 +185,51 @@ meshQualityControls {{}}
 refinementRegions
 {{
     openingBox {{ mode inside; levels ((1E15 {refinement["opening"]})); }}
-    bendBoxes  {{ mode inside; levels ((1E15 {refinement["bends"]})); }}
-    outletBox  {{ mode inside; levels ((1E15 {refinement["outlet"]})); }}
+    bendBoxP2 {{ mode inside; levels ((1E15 {refinement["bends"]})); }}
+    bendBoxP3 {{ mode inside; levels ((1E15 {refinement["bends"]})); }}
+    bendBoxP4 {{ mode inside; levels ((1E15 {refinement["bends"]})); }}
+    outletBox {{ mode inside; levels ((1E15 {refinement["outlet"]})); }}
     freeSurfaceBox {{ mode inside; levels ((1E15 {refinement["freeSurface"]})); }}
 }}
+"""
+
+
+def build_surface_feature_extract_dict() -> str:
+    return """
+walls.stl
+{
+    extractionMethod extractFromSurface;
+    includedAngle 150;
+    writeObj yes;
+}
+
+topAtmosphere.stl
+{
+    extractionMethod extractFromSurface;
+    includedAngle 150;
+    writeObj yes;
+}
+
+topInflow.stl
+{
+    extractionMethod extractFromSurface;
+    includedAngle 150;
+    writeObj yes;
+}
+
+tubeOutlet.stl
+{
+    extractionMethod extractFromSurface;
+    includedAngle 150;
+    writeObj yes;
+}
+
+solidObstructions.stl
+{
+    extractionMethod extractFromSurface;
+    includedAngle 150;
+    writeObj yes;
+}
 """
 
 
@@ -245,12 +324,12 @@ boundaryField
 
 
 def build_transport_properties(case_file: dict[str, Any]) -> str:
-    t = case_file.get("transport", {})
-    water_nu = t.get("waterNu", 1e-6)
-    water_rho = t.get("waterRho", 998.2)
-    air_nu = t.get("airNu", 1.5e-5)
-    air_rho = t.get("airRho", 1.2)
-    sigma = t.get("sigma", 0.072)
+    transport = case_file.get("transport", {})
+    water_nu = transport.get("waterNu", 1e-6)
+    water_rho = transport.get("waterRho", 998.2)
+    air_nu = transport.get("airNu", 1.5e-5)
+    air_rho = transport.get("airRho", 1.2)
+    sigma = transport.get("sigma", 0.072)
     return f"""
 FoamFile
 {{
@@ -371,12 +450,45 @@ actions
 """
 
 
+def build_set_fields_dict(snapshot: dict[str, Any]) -> str:
+    parameters = snapshot["parameters"]
+    derived = snapshot["derived"]
+    return f"""
+FoamFile
+{{
+    version 2.0;
+    format ascii;
+    class dictionary;
+    object setFieldsDict;
+}}
+
+defaultFieldValues
+(
+    volScalarFieldValue alpha.water 0
+);
+
+regions
+(
+    boxToCell
+    {{
+        box ({derived["S0"]} 0 {-parameters["W"] / 2}) ({derived["X2"]} {derived["H0"]} {parameters["W"] / 2});
+        fieldValues
+        (
+            volScalarFieldValue alpha.water 1
+        );
+    }}
+);
+"""
+
+
 def build_run_metadata(case_file: dict[str, Any], snapshot: dict[str, Any]) -> dict[str, Any]:
     return {
         "caseId": case_file["caseId"],
+        "displayName": case_file["displayName"],
         "parameters": case_file["parameters"],
         "derived": snapshot["derived"],
         "meshing": case_file["meshing"],
+        "transport": case_file["transport"],
         "solver": case_file["solver"],
         "forcing": case_file["forcing"],
         "eventThresholds": case_file["eventThresholds"],
@@ -396,26 +508,43 @@ def generate_case(case_file: dict[str, Any], output_dir: Path) -> Path:
     if case_file["runStatus"]["state"] == "not_started":
         case_file["runStatus"]["state"] = "generated"
 
-    output_dir.mkdir(parents=True, exist_ok=True)
+    output_dir = prepare_generated_case_dir(output_dir)
     (output_dir / "0").mkdir(exist_ok=True)
     (output_dir / "constant" / "triSurface").mkdir(parents=True, exist_ok=True)
     (output_dir / "system").mkdir(exist_ok=True)
     (output_dir / "postProcessing").mkdir(exist_ok=True)
 
     fixed_geometry = build_fixed_geometry_descriptors(snapshot["parameters"], snapshot["derived"])
-    fluid_geometry = build_fluid_geometry_descriptors(snapshot["parameters"], snapshot["derived"], case_file["forcing"], fixed_geometry)
+    fluid_geometry = build_fluid_geometry_descriptors(
+        snapshot["parameters"],
+        snapshot["derived"],
+        case_file["forcing"],
+        fixed_geometry,
+    )
+    surface_assets = build_solver_surface_stls(
+        snapshot["parameters"],
+        snapshot["derived"],
+        case_file["forcing"],
+        fixed_geometry,
+    )
+
     write_json(output_dir / "case.json", case_file)
     write_json(output_dir / "geometry_snapshot.json", snapshot)
     write_json(output_dir / "fixed_geometry.json", fixed_geometry)
     write_json(output_dir / "constant" / "triSurface" / "fluid_geometry.json", fluid_geometry)
     write_json(output_dir / "run_metadata.json", build_run_metadata(case_file, snapshot))
 
+    for file_name, stl_payload in surface_assets.items():
+        write_text(output_dir / "constant" / "triSurface" / file_name, stl_payload)
+
     write_text(output_dir / "system" / "blockMeshDict", build_block_mesh_dict(case_file, snapshot))
     write_text(output_dir / "system" / "snappyHexMeshDict", build_snappy_hex_mesh_dict(case_file, snapshot))
+    write_text(output_dir / "system" / "surfaceFeatureExtractDict", build_surface_feature_extract_dict())
     write_text(output_dir / "system" / "controlDict", build_control_dict(case_file))
     write_text(output_dir / "system" / "fvSchemes", build_fv_schemes())
     write_text(output_dir / "system" / "fvSolution", build_fv_solution())
     write_text(output_dir / "system" / "topoSetDict", build_topo_set_dict(case_file, snapshot))
+    write_text(output_dir / "system" / "setFieldsDict", build_set_fields_dict(snapshot))
     write_text(output_dir / "constant" / "transportProperties", build_transport_properties(case_file))
     write_text(output_dir / "constant" / "g", "dimensions [0 1 -2 0 0 0 0];\nvalue (0 -9.81 0);")
 
@@ -451,19 +580,17 @@ def generate_case(case_file: dict[str, Any], output_dir: Path) -> Path:
         output_dir / "0" / "p_rgh",
         build_field_file("volScalarField", "[1 -1 -2 0 0 0 0]", "uniform 0", pressure_boundary, "p_rgh"),
     )
-    write_text(
-        output_dir / ".foam",
-        "",
-    )
+    write_text(output_dir / ".foam", "")
     write_text(
         output_dir / "Allrun",
         f"""
         #!/usr/bin/env bash
         set -euo pipefail
         blockMesh
-        surfaceFeatureExtract || true
+        surfaceFeatureExtract
         snappyHexMesh -overwrite
         topoSet
+        setFields
         {case_file["solver"]["solver"]}
         foamToVTK || true
         """,

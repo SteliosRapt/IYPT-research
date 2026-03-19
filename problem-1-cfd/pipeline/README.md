@@ -1,127 +1,65 @@
-# Fixed-Geometry CFD Pipeline MVP
+# Fixed-Geometry CFD Pipeline
 
-This repo turns the source-of-truth geometry in `experimental_setup.md` and `setup_3d (2).html` into a local pipeline with:
+This repo turns the source-of-truth rig description in `experimental_setup.md` and `setup_3d (2).html` into:
 
 - a browser configurator
-- canonical case JSON export
+- canonical case JSON files
 - OpenFOAM-style case generation
-- event logic and mock run generation
-- browser viewer assets and ParaView-compatible legacy VTK frames
+- mock and solver-backed viewer manifests
+- browser and ParaView inspection assets
 
-## Status
+## Quick Start
 
-Implemented now:
-
-- canonical parameter schema and shared formulas
-- Python geometry, orchestrator, and viewer-data CLIs
-- React/Vite web app scaffold for configuration and run browsing
-- committed default example case and mock run
-- tests, docs, and smoke scripts
-
-Not fully executed here:
-
-- real OpenFOAM meshing and solving
-- WSL-based coarse CFD run
-- exact watertight boolean holder cutouts in exported solid meshes
-
-## Install
-
-For local OpenFOAM work on Windows, use WSL Ubuntu and run the solver/API from the same WSL environment. The Docker image in `solver/openfoam-template` remains a manual reference path and is not the primary local runtime.
-
-Python:
+Install Python and workspace dependencies:
 
 ```bash
-python3 -m pip install -e '.[dev]'
-```
-
-Node:
-
-```bash
+python -m pip install -e ".[dev]"
 npm install
 ```
 
-## Run the web app
+Run the frontend and local API together:
 
 ```bash
-make web-dev
+python -m services.api.server
+npm run dev
 ```
 
-## Export a case
-
-Browser:
-
-- open the configurator
-- adjust parameters
-- use `Export case JSON`, `Export STL`, or `Export GLB`
-
-CLI:
+Generate the committed sample assets:
 
 ```bash
-python3 -m services.geometry.cli create-case --output examples/default-case.json
-python3 -m services.geometry.cli export-case examples/default-case.json --output-dir examples/exported-geometry
+python -m scripts.build_examples
 ```
 
-## Run a coarse simulation
-
-Generate the OpenFOAM-style case:
+Run a local smoke path:
 
 ```bash
-make case-generate CASE=examples/default-case.json CASE_DIR=examples/default-openfoam-case
+python -m scripts.smoke_run
 ```
 
-Preferred on Windows: run this from WSL after OpenFOAM is installed there, so `interFoam` is on the same `PATH` as the Python API/CLI.
+## Runtime Notes
 
-If OpenFOAM is available on the current runtime:
+- Browser-triggered runs require the local API server.
+- API run mode `auto` falls back to mock output when the configured solver is not on `PATH`.
+- `python -m services.orchestrator.cli run-case ...` does not fall back to mock output. It requires a real solver runtime.
+- On Windows, WSL with OpenFOAM on `PATH` is the preferred real-solver environment.
 
-```bash
-python3 -m services.orchestrator.cli run-case examples/default-openfoam-case
-```
+## Example Layout
 
-If it is not available, use the mock viewer-data path instead.
+- Catalog: `examples/catalog/index.json`
+- Sample cases: `examples/sample-cases/`
+- Sample runs: `examples/sample-runs/`
 
-## Generate viewer data
+## Documentation
 
-```bash
-make viewer-data CASE=examples/default-case.json VIEWER_DIR=examples/default-mock
-```
+- Start here: `docs/start-here.md`
+- Deep technical guide: `docs/technical-overview.md`
+- Assumptions and solver caveats: `docs/assumptions.md`
+- Active remediation roadmap: `docs/remediation-roadmap.md`
 
-## Load a run in the browser
+## Historical Context
 
-Run the app, then open the `Runs` page. The committed example index points at:
+- `code_review_report.md`
+- `refactoring_proposal.md`
+- `docs/refactoring-proposal.md`
 
-- `examples/default-mock/manifest.json`
-
-## Inspect the same run in ParaView
-
-Open any legacy VTK frame under:
-
-- `examples/default-mock/vtk/`
-
-For example:
-
-```bash
-paraview examples/default-mock/vtk/frame_0000.vtk
-```
-
-## Validation commands
-
-```bash
-pytest
-python3 scripts/build_examples.py
-python3 scripts/smoke_run.py
-make web-build
-```
-
-## Main entry points
-
-- web app: `apps/web`
-- geometry service: `services/geometry/core.py`
-- case generator: `services/orchestrator/case.py`
-- solver runner: `services/orchestrator/cli.py`
-- viewer-data builder: `services/viewer_data/mock.py`
-
-## Known limitations
-
-- The committed example run is synthetic because OpenFOAM is not installed in this environment.
-- The generated OpenFOAM-style case is a baseline scaffold and needs runtime validation before production use.
-- The browser viewer uses simplified fixed-geometry polydata derived from geometry descriptors, not a full CFD mesh.
+Those files are retained for historical context only. The active issue source is `docs/remediation-roadmap.md`.

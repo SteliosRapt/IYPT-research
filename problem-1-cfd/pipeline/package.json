@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspace @fixed-geometry/web",
-    "build": "npm run build --workspace @fixed-geometry/shared-schema && npm run build --workspace @fixed-geometry/web",
+    "build": "npm run build --workspace @fixed-geometry/web",
     "test": "npm run test --workspace @fixed-geometry/shared-schema && npm run test --workspace @fixed-geometry/web"
   }
 }

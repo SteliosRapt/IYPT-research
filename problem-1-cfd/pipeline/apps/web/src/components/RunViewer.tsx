@@ -44,6 +44,7 @@ export function RunViewer({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const renderRef = useRef<vtkGenericRenderWindow | null>(null);
   const actorsRef = useRef<Record<string, vtkActor>>({});
+  const lastLoadedCaseIdRef = useRef<string | null>(null);
   const fixedMeshes = useMemo(
     () => descriptorGroupsToMeshes(fixedGeometry as never),
     [fixedGeometry]
@@ -72,6 +73,7 @@ export function RunViewer({
       return;
     }
     const renderer = renderRef.current.getRenderer();
+    const shouldResetCamera = lastLoadedCaseIdRef.current !== manifest.caseId;
 
     for (const [key, mesh] of Object.entries(fixedMeshes)) {
       if (!actorsRef.current[key]) {
@@ -92,9 +94,24 @@ export function RunViewer({
         }
         actorsRef.current[key] = actor;
         renderer.addActor(actor);
+      } else {
+        actorsRef.current[key].getMapper().setInputData(toPolyData(mesh));
       }
       actorsRef.current[key].setVisibility(visibility[key as keyof VisibilityMap]);
     }
+
+    lastLoadedCaseIdRef.current = manifest.caseId;
+    if (shouldResetCamera) {
+      renderer.resetCamera();
+    }
+    renderRef.current.getRenderWindow().render();
+  }, [fixedMeshes, visibility, manifest.caseId]);
+
+  useEffect(() => {
+    if (!renderRef.current) {
+      return;
+    }
+    const renderer = renderRef.current.getRenderer();
 
     if (!actorsRef.current.fluid && frame) {
       const mapper = vtkMapper.newInstance();
@@ -105,16 +122,13 @@ export function RunViewer({
       actor.getProperty().setOpacity(0.48);
       actorsRef.current.fluid = actor;
       renderer.addActor(actor);
-    }
-
-    if (actorsRef.current.fluid && frame) {
+    } else if (actorsRef.current.fluid && frame) {
       actorsRef.current.fluid.getMapper().setInputData(toPolyData(frame));
       actorsRef.current.fluid.setVisibility(true);
     }
 
-    renderer.resetCamera();
     renderRef.current.getRenderWindow().render();
-  }, [fixedMeshes, frame, visibility, manifest.caseId]);
+  }, [frame]);
 
   return (
     <div className="viewer-panel">

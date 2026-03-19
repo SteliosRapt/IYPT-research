@@ -1,3 +1,6 @@
+> Superseded by `docs/remediation-roadmap.md`.
+> Retained for historical context only.
+
 # Code Review — Fixed-Geometry CFD Pipeline
 
 **Reviewer:** Claude (automated review)
