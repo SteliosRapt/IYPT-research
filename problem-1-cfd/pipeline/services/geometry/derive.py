@@ -65,20 +65,54 @@ def build_tube_path(points: list[dict[str, float]], bend_radius: float) -> list[
             all_points.append({"x": round_value(current["x"]), "y": round_value(current["y"])})
             continue
 
-        offset = min(bend_radius, len_a * 0.45, len_b * 0.45)
+        # True circular-arc fillet of radius `bend_radius`, tangent to both legs.
+        # For a corner whose legs subtend interior half-angle `phi` (between the
+        # back-leg and forward-leg directions), the tangent points sit a distance
+        # d = R / tan(phi) from the corner. If the legs are too short for that, the
+        # radius is reduced so the arc still fits. A circular arc keeps the inner
+        # turn radius equal to R (>> bore radius), so the swept tube never folds
+        # through itself at acute bends like the P3 valley.
+        cos_between_legs = max(-1.0, min(1.0, (-u_ax) * u_bx + (-u_ay) * u_by))
+        phi = math.acos(cos_between_legs) / 2.0  # half-angle between the two legs
+        tan_phi = math.tan(phi)
+        if tan_phi < 1e-6:
+            all_points.append({"x": round_value(current["x"]), "y": round_value(current["y"])})
+            continue
+        radius = bend_radius
+        offset = radius / tan_phi
+        max_offset = min(len_a, len_b) * 0.45
+        if offset > max_offset:
+            offset = max_offset
+            radius = offset * tan_phi
         p0x = current["x"] - u_ax * offset
         p0y = current["y"] - u_ay * offset
         p1x = current["x"] + u_bx * offset
         p1y = current["y"] + u_by * offset
-        pcx = 2 * current["x"] - 0.5 * (p0x + p1x)
-        pcy = 2 * current["y"] - 0.5 * (p0y + p1y)
+        # Arc centre: along the inward bisector at distance R / sin(phi) from the corner.
+        bisx, bisy = u_bx - u_ax, u_by - u_ay
+        bis_len = math.hypot(bisx, bisy)
+        if bis_len < 1e-9:
+            all_points.append({"x": round_value(current["x"]), "y": round_value(current["y"])})
+            continue
+        bisx, bisy = bisx / bis_len, bisy / bis_len
+        sin_phi = math.sin(phi)
+        center_dist = radius / sin_phi if sin_phi > 1e-9 else radius
+        cxs = current["x"] + bisx * center_dist
+        cys = current["y"] + bisy * center_dist
+        start_angle = math.atan2(p0y - cys, p0x - cxs)
+        end_angle = math.atan2(p1y - cys, p1x - cxs)
+        # Sweep the short way around the centre.
+        delta = end_angle - start_angle
+        while delta > math.pi:
+            delta -= 2 * math.pi
+        while delta < -math.pi:
+            delta += 2 * math.pi
 
         all_points.append({"x": round_value(p0x), "y": round_value(p0y)})
         for step in range(1, arc_segments):
-            s = step / arc_segments
-            one_minus_s = 1.0 - s
-            qx = one_minus_s * one_minus_s * p0x + 2 * one_minus_s * s * pcx + s * s * p1x
-            qy = one_minus_s * one_minus_s * p0y + 2 * one_minus_s * s * pcy + s * s * p1y
+            ang = start_angle + delta * (step / arc_segments)
+            qx = cxs + radius * math.cos(ang)
+            qy = cys + radius * math.sin(ang)
             all_points.append({"x": round_value(qx), "y": round_value(qy)})
         all_points.append({"x": round_value(p1x), "y": round_value(p1y)})
 

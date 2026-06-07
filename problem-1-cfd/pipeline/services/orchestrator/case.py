@@ -101,9 +101,12 @@ def build_snappy_hex_mesh_dict(case_file: dict[str, Any], snapshot: dict[str, An
     loc_x = round((derived["S0"] + derived["X2"]) / 2, 6)
     loc_y = round(parameters["h0"] * 0.5, 6)
     searchable_boxes = build_refinement_regions(parameters, derived, case_file["forcing"])
+    inner_radius = max(derived["r"] * (1 - parameters["wallThicknessRatio"]), derived["r"] * 0.1)
 
+    tube_level = max(refinement["bends"], 3)
     geometry_entries = [
         ('walls.stl', 'walls'),
+        ('tubeWall.stl', 'tubeWall'),
         ('topAtmosphere.stl', 'topAtmosphere'),
         ('topInflow.stl', 'topInflow'),
         ('tubeOutlet.stl', 'tubeOutlet'),
@@ -148,28 +151,41 @@ geometry
 
 castellatedMeshControls
 {{
-    maxLocalCells 100000;
-    maxGlobalCells 200000;
+    maxLocalCells 4000000;
+    maxGlobalCells 8000000;
     minRefinementCells 0;
     nCellsBetweenLevels 3;
     resolveFeatureAngle 30;
     features
     (
         {{ file "walls.eMesh"; level 1; }}
+        {{ file "tubeWall.eMesh"; level {tube_level}; }}
         {{ file "topAtmosphere.eMesh"; level 1; }}
         {{ file "topInflow.eMesh"; level 1; }}
-        {{ file "tubeOutlet.eMesh"; level 1; }}
+        {{ file "tubeOutlet.eMesh"; level {tube_level}; }}
         {{ file "solidObstructions.eMesh"; level 1; }}
     );
     refinementSurfaces
     {{
         walls {{ level (1 1); patchInfo {{ type wall; }} }}
+        tubeWall {{ level ({tube_level} {tube_level}); patchInfo {{ type wall; }} }}
         topAtmosphere {{ level (1 1); patchInfo {{ type patch; }} }}
         topInflow {{ level (1 1); patchInfo {{ type patch; }} }}
-        tubeOutlet {{ level (1 1); patchInfo {{ type patch; }} }}
+        tubeOutlet {{ level ({tube_level} {tube_level}); patchInfo {{ type patch; }} }}
         solidObstructions {{ level (1 1); patchInfo {{ type wall; }} }}
     }}
+    refinementRegions
+    {{
+        tubeWall {{ mode distance; levels (({round(inner_radius * 1.6, 6)} {tube_level})); }}
+        openingBox {{ mode inside; levels ((1E15 {tube_level})); }}
+        bendBoxP2 {{ mode inside; levels ((1E15 {tube_level})); }}
+        bendBoxP3 {{ mode inside; levels ((1E15 {tube_level})); }}
+        bendBoxP4 {{ mode inside; levels ((1E15 {tube_level})); }}
+        outletBox {{ mode inside; levels ((1E15 {tube_level})); }}
+        freeSurfaceBox {{ mode inside; levels ((1E15 {refinement["freeSurface"]})); }}
+    }}
     locationInMesh ({loc_x} {loc_y} 0);
+    allowFreeStandingZoneFaces true;
 }}
 
 snapControls
@@ -178,25 +194,73 @@ snapControls
     tolerance 2.0;
     nSolveIter 30;
     nRelaxIter 5;
+    nFeatureSnapIter 10;
+    implicitFeatureSnap false;
+    explicitFeatureSnap true;
+    multiRegionFeatureSnap false;
 }}
 
-meshQualityControls {{}}
-
-refinementRegions
+addLayersControls
 {{
-    openingBox {{ mode inside; levels ((1E15 {refinement["opening"]})); }}
-    bendBoxP2 {{ mode inside; levels ((1E15 {refinement["bends"]})); }}
-    bendBoxP3 {{ mode inside; levels ((1E15 {refinement["bends"]})); }}
-    bendBoxP4 {{ mode inside; levels ((1E15 {refinement["bends"]})); }}
-    outletBox {{ mode inside; levels ((1E15 {refinement["outlet"]})); }}
-    freeSurfaceBox {{ mode inside; levels ((1E15 {refinement["freeSurface"]})); }}
+    relativeSizes true;
+    layers {{}}
+    expansionRatio 1.0;
+    finalLayerThickness 0.3;
+    minThickness 0.1;
+    nGrow 0;
+    featureAngle 60;
+    slipFeatureAngle 30;
+    nRelaxIter 3;
+    nSmoothSurfaceNormals 1;
+    nSmoothNormals 3;
+    nSmoothThickness 10;
+    maxFaceThicknessRatio 0.5;
+    maxThicknessToMedialRatio 0.3;
+    minMedialAxisAngle 90;
+    nBufferCellsNoExtrude 0;
+    nLayerIter 50;
 }}
+
+meshQualityControls
+{{
+    maxNonOrtho 65;
+    maxBoundarySkewness 20;
+    maxInternalSkewness 4;
+    maxConcave 80;
+    minVol 1e-13;
+    minTetQuality 1e-15;
+    minArea -1;
+    minTwist 0.02;
+    minDeterminant 0.001;
+    minFaceWeight 0.05;
+    minVolRatio 0.01;
+    minTriangleTwist -1;
+    nSmoothScale 4;
+    errorReduction 0.75;
+}}
+
+mergeTolerance 1e-6;
 """
 
 
 def build_surface_feature_extract_dict() -> str:
     return """
+FoamFile
+{
+    version 2.0;
+    format ascii;
+    class dictionary;
+    object surfaceFeatureExtractDict;
+}
+
 walls.stl
+{
+    extractionMethod extractFromSurface;
+    includedAngle 150;
+    writeObj yes;
+}
+
+tubeWall.stl
 {
     extractionMethod extractFromSurface;
     includedAngle 150;
@@ -259,6 +323,11 @@ writeCompression off;
 timeFormat general;
 timePrecision 6;
 runTimeModifiable true;
+
+adjustTimeStep yes;
+maxCo 0.5;
+maxAlphaCo 0.5;
+maxDeltaT 0.05;
 
 functions
 {{
@@ -396,17 +465,47 @@ FoamFile
 
 solvers
 {
-    "alpha.water.*" { nAlphaCorr 1; nAlphaSubCycles 1; cAlpha 1; }
-    p_rgh { solver PCG; preconditioner DIC; tolerance 1e-7; relTol 0.01; }
+    "alpha.water.*"
+    {
+        nAlphaCorr 2;
+        nAlphaSubCycles 1;
+        cAlpha 1;
+        MULESCorr yes;
+        nLimiterIter 5;
+        solver smoothSolver;
+        smoother symGaussSeidel;
+        tolerance 1e-8;
+        relTol 0;
+    }
+    "pcorr.*"
+    {
+        solver PCG;
+        preconditioner DIC;
+        tolerance 1e-5;
+        relTol 0;
+    }
+    p_rgh
+    {
+        solver PCG;
+        preconditioner DIC;
+        tolerance 1e-7;
+        relTol 0.05;
+    }
     p_rghFinal { $p_rgh; relTol 0; }
-    U { solver smoothSolver; smoother symGaussSeidel; tolerance 1e-6; relTol 0.1; }
+    "(U|UFinal)"
+    {
+        solver smoothSolver;
+        smoother symGaussSeidel;
+        tolerance 1e-6;
+        relTol 0;
+    }
 }
 
 PIMPLE
 {
-    momentumPredictor yes;
+    momentumPredictor no;
     nOuterCorrectors 1;
-    nCorrectors 2;
+    nCorrectors 3;
     nNonOrthogonalCorrectors 0;
 }
 """
@@ -546,10 +645,40 @@ def generate_case(case_file: dict[str, Any], output_dir: Path) -> Path:
     write_text(output_dir / "system" / "topoSetDict", build_topo_set_dict(case_file, snapshot))
     write_text(output_dir / "system" / "setFieldsDict", build_set_fields_dict(snapshot))
     write_text(output_dir / "constant" / "transportProperties", build_transport_properties(case_file))
-    write_text(output_dir / "constant" / "g", "dimensions [0 1 -2 0 0 0 0];\nvalue (0 -9.81 0);")
+    write_text(
+        output_dir / "constant" / "turbulenceProperties",
+        """
+FoamFile
+{
+    version 2.0;
+    format ascii;
+    class dictionary;
+    object turbulenceProperties;
+}
+
+simulationType laminar;
+""",
+    )
+    write_text(
+        output_dir / "constant" / "g",
+        """
+FoamFile
+{
+    version 2.0;
+    format ascii;
+    class uniformDimensionedVectorField;
+    object g;
+}
+
+dimensions [0 1 -2 0 0 0 0];
+value (0 -9.81 0);
+""",
+    )
 
     alpha_boundary = """
     walls { type zeroGradient; }
+    tubeWall { type zeroGradient; }
+    solidObstructions { type zeroGradient; }
     topAtmosphere { type inletOutlet; inletValue uniform 0; value uniform 0; }
     topInflow { type fixedValue; value uniform 1; }
     tubeOutlet { type inletOutlet; inletValue uniform 0; value uniform 0; }
@@ -557,12 +686,16 @@ def generate_case(case_file: dict[str, Any], output_dir: Path) -> Path:
     inflow_velocity = abs(case_file["forcing"]["inflowVelocity"])
     velocity_boundary = f"""
     walls {{ type fixedValue; value uniform (0 0 0); }}
+    tubeWall {{ type fixedValue; value uniform (0 0 0); }}
+    solidObstructions {{ type fixedValue; value uniform (0 0 0); }}
     topAtmosphere {{ type pressureInletOutletVelocity; value uniform (0 0 0); }}
     topInflow {{ type fixedValue; value uniform (0 {-inflow_velocity} 0); }}
     tubeOutlet {{ type pressureInletOutletVelocity; value uniform (0 0 0); }}
     """
     pressure_boundary = """
     walls { type fixedFluxPressure; value uniform 0; }
+    tubeWall { type fixedFluxPressure; value uniform 0; }
+    solidObstructions { type fixedFluxPressure; value uniform 0; }
     topAtmosphere { type totalPressure; p0 uniform 0; value uniform 0; }
     topInflow { type totalPressure; p0 uniform 0; value uniform 0; }
     tubeOutlet { type totalPressure; p0 uniform 0; value uniform 0; }
