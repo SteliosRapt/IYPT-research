@@ -1,6 +1,6 @@
 # Remediation Execution Log
 
-Last updated: 2026-03-19
+Last updated: 2026-06-07
 Source: `docs/remediation-roadmap.md`
 
 ## Current status
@@ -10,6 +10,35 @@ Source: `docs/remediation-roadmap.md`
 - Runtime and data integrity: completed
 - Documentation and schema hardening: completed
 - Organization refactor: completed
+- Dockerized 3D OpenFOAM progress check: completed for solver startup/progress only; full-quality snapped 3D validation remains pending
+
+## 2026-06-07 3D OpenFOAM progress check
+
+Completed:
+
+- Started Docker Desktop and pulled `opencfd/openfoam-default:2406`.
+- Added a temporary Docker runner under `tmp/siphon_exp/run_3d_short_container.sh` that writes `progress.log` and `progress.json` for meshing and solver progress.
+- Ran the existing full-quality `tmp/siphon_exp/case3d` setup through `blockMesh` and into `snappyHexMesh`.
+- Ran a fast 3D progress check with the snappy snap phase disabled in the copied run directory so `interFoam` could start within the session.
+
+Files touched:
+
+- `tmp/siphon_exp/run_3d_short_container.sh`
+- `tmp/siphon_exp/case3d-short-20260607-153910/`
+- `tmp/siphon_exp/case3d-fast-20260607-155122/`
+- `docs/assumptions.md`
+- `docs/code-review-wave-handoff.md`
+
+Verification run:
+
+- Full-quality snapped 3D attempt: `blockMesh` completed; `snappyHexMesh` reached about 1,006,534 cells but timed out during snapping after about 604 seconds before solver startup.
+- Fast unsnapped 3D progress run: `blockMesh` completed; `snappyHexMesh` finished in 167.79 seconds; `checkMesh` reported 1,006,534 cells, one region, and `Mesh OK`; `setFields` and `decomposePar -force` completed; `mpirun -np 12 interFoam -parallel` ran to simulated time `0.00879628 s`.
+- Progress artifacts for the fast run are in `tmp/siphon_exp/case3d-fast-20260607-155122/progress.log` and `tmp/siphon_exp/case3d-fast-20260607-155122/progress.json`.
+
+Pending external follow-up:
+
+- A production-quality snapped 3D run still needs a longer OpenFOAM runtime budget.
+- The fast unsnapped run demonstrates 3D solver startup and measurable progress only; it should not be treated as final CFD validation.
 
 ## 2026-03-19 remediation pass
 
