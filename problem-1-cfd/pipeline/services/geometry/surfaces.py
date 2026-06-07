@@ -410,8 +410,14 @@ def build_solver_surface_stls(
                 hole_radius=inner_radius,
                 normal_positive=True,
             ),
-            tube_side_mesh([tuple((point["x"], point["y"], 0.0)) for point in derived["tubePolyline"]], inner_radius),
         ]
+    )
+    # The tube wall (straw bore surface) is a dedicated patch so the mesher can
+    # refine it far more aggressively than the big container walls. The bore is only
+    # ~13 mm across, so without its own high refinement level snappyHexMesh cannot
+    # carve a continuous open channel and no water can flow through the siphon.
+    tube_wall_mesh = tube_side_mesh(
+        [tuple((point["x"], point["y"], 0.0)) for point in derived["tubePolyline"]], inner_radius, radial_segments=28
     )
     top_atmosphere_mesh = framed_top_patch_mesh(
         center_x=inlet_center_x,
@@ -433,6 +439,7 @@ def build_solver_surface_stls(
 
     return {
         "walls.stl": mesh_to_ascii_stl("walls", walls_mesh),
+        "tubeWall.stl": mesh_to_ascii_stl("tubeWall", tube_wall_mesh),
         "solidObstructions.stl": mesh_to_ascii_stl("solidObstructions", solid_obstructions),
         "topAtmosphere.stl": mesh_to_ascii_stl("topAtmosphere", top_atmosphere_mesh),
         "topInflow.stl": mesh_to_ascii_stl("topInflow", top_inflow_mesh),

@@ -164,20 +164,51 @@ export function buildTubePath(points: Point2D[], bendRadius: number): Point2D[] 
       continue;
     }
 
-    const offset = Math.min(bendRadius, lenA * 0.45, lenB * 0.45);
+    // True circular-arc fillet of radius bendRadius, tangent to both legs (matches
+    // the Python build_tube_path). Keeps the inner turn radius equal to bendRadius,
+    // far above the bore radius, so acute bends like the P3 valley never self-intersect.
+    const cosBetweenLegs = Math.max(-1, Math.min(1, -uAx * uBx + -uAy * uBy));
+    const phi = Math.acos(cosBetweenLegs) / 2;
+    const tanPhi = Math.tan(phi);
+    if (tanPhi < 1e-6) {
+      allPoints.push({ x: roundValue(current.x), y: roundValue(current.y) });
+      continue;
+    }
+    let radius = bendRadius;
+    let offset = radius / tanPhi;
+    const maxOffset = Math.min(lenA, lenB) * 0.45;
+    if (offset > maxOffset) {
+      offset = maxOffset;
+      radius = offset * tanPhi;
+    }
     const p0x = current.x - uAx * offset;
     const p0y = current.y - uAy * offset;
     const p1x = current.x + uBx * offset;
     const p1y = current.y + uBy * offset;
-    const pcx = 2 * current.x - 0.5 * (p0x + p1x);
-    const pcy = 2 * current.y - 0.5 * (p0y + p1y);
+    let bisx = uBx - uAx;
+    let bisy = uBy - uAy;
+    const bisLen = Math.hypot(bisx, bisy);
+    if (bisLen < 1e-9) {
+      allPoints.push({ x: roundValue(current.x), y: roundValue(current.y) });
+      continue;
+    }
+    bisx /= bisLen;
+    bisy /= bisLen;
+    const sinPhi = Math.sin(phi);
+    const centerDist = sinPhi > 1e-9 ? radius / sinPhi : radius;
+    const cxs = current.x + bisx * centerDist;
+    const cys = current.y + bisy * centerDist;
+    const startAngle = Math.atan2(p0y - cys, p0x - cxs);
+    const endAngle = Math.atan2(p1y - cys, p1x - cxs);
+    let delta = endAngle - startAngle;
+    while (delta > Math.PI) delta -= 2 * Math.PI;
+    while (delta < -Math.PI) delta += 2 * Math.PI;
 
     allPoints.push({ x: roundValue(p0x), y: roundValue(p0y) });
     for (let step = 1; step < arcSegments; step += 1) {
-      const s = step / arcSegments;
-      const oneMinusS = 1 - s;
-      const qx = oneMinusS * oneMinusS * p0x + 2 * oneMinusS * s * pcx + s * s * p1x;
-      const qy = oneMinusS * oneMinusS * p0y + 2 * oneMinusS * s * pcy + s * s * p1y;
+      const ang = startAngle + delta * (step / arcSegments);
+      const qx = cxs + radius * Math.cos(ang);
+      const qy = cys + radius * Math.sin(ang);
       allPoints.push({ x: roundValue(qx), y: roundValue(qy) });
     }
     allPoints.push({ x: roundValue(p1x), y: roundValue(p1y) });
