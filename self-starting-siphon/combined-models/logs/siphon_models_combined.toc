@@ -1,0 +1,46 @@
+\contentsline {section}{\numberline {1}Introduction and mental model}{3}{section.1}%
+\contentsline {subsection}{\numberline {1.1}IYPT Problem \#1 and objectives}{3}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Physical mechanism and qualitative picture}{3}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Modelling strategy and scope}{4}{subsection.1.3}%
+\contentsline {section}{\numberline {2}Geometry and coordinate systems}{4}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Global Cartesian coordinate system $(x,h)$}{5}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Pipe centreline: five node points and four segments}{5}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Centreline elevation as a function of arclength, $h(L)$}{5}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Wetted length coordinate $L(t)$ and the advancing front}{7}{subsection.2.4}%
+\contentsline {section}{\numberline {3}Container, volume map, and effective area}{7}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Container and pipe properties}{7}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}On the effective area $A_0$ for complex internal pipe layouts}{8}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Volume conservation in the filling phase}{9}{subsection.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.1}Global volume balance (container + pipe)}{9}{subsubsection.3.3.1}%
+\contentsline {subsubsection}{\numberline {3.3.2}Container level as a function of wetted length, $h_c(L)$}{10}{subsubsection.3.3.2}%
+\contentsline {section}{\numberline {4}Validity limits and missing physics}{10}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Governing assumptions}{10}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Cavitation and pressure limits}{11}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Surface tension and capillarity}{11}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Flow regime and friction modelling}{12}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Inlet dynamics and non-hydrostatic effects}{12}{subsection.4.5}%
+\contentsline {subsection}{\numberline {4.6}Slug-model breakdown and missing physics}{12}{subsection.4.6}%
+\contentsline {subsection}{\numberline {4.7}Summary of validity criteria}{13}{subsection.4.7}%
+\contentsline {section}{\numberline {5}Initial conditions and comparison with an inverted-U siphon}{13}{section.5}%
+\contentsline {section}{\numberline {6}Dynamics in the filling phase}{14}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Lossless momentum balance}{14}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Detailed derivation of the net driving force}{15}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Loss models: distributed friction and local (minor) losses}{16}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}Extended equation of motion in the filling phase}{17}{subsection.6.4}%
+\contentsline {section}{\numberline {7}Idealised climb bound and analytical stall height}{18}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Idealised lossless priming model and upper bound}{18}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Geometric priming criterion}{20}{subsection.7.2}%
+\contentsline {section}{\numberline {8}Dynamics in the draining phase}{20}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Container mass balance}{20}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}Momentum balance with losses in the draining phase}{21}{subsection.8.2}%
+\contentsline {section}{\numberline {9}Model summary}{21}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Guide to parameter studies}{23}{subsection.9.1}%
+\contentsline {section}{\numberline {10}Computational approach}{24}{section.10}%
+\contentsline {subsection}{\numberline {10.1}Computational strategy for investigation}{24}{subsection.10.1}%
+\contentsline {subsection}{\numberline {10.2}Python implementation}{24}{subsection.10.2}%
+\contentsline {subsection}{\numberline {10.3}Example parameter study}{26}{subsection.10.3}%
+\contentsline {subsection}{\numberline {10.4}Comparison with CFD and experiments}{27}{subsection.10.4}%
+\contentsline {section}{\numberline {11}Conclusions, usage, and future work}{27}{section.11}%
+\contentsline {subsection}{\numberline {11.1}Summary of contributions}{27}{subsection.11.1}%
+\contentsline {subsection}{\numberline {11.2}Recommended investigation workflow}{28}{subsection.11.2}%
+\contentsline {subsection}{\numberline {11.3}Future work}{28}{subsection.11.3}%
