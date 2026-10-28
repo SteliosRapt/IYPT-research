@@ -37,6 +37,3 @@ A rectangular prism with Steinmetz-bicylinder caps that rolls in a six-phase cyc
 | [`setup/`](problem-1-cfd/setup/) | The original experimental setup and 3D rig model (the same files are also in `pipeline/`) |
 
 The quasi-2D OpenFOAM run reproduces the priming qualitatively; its front is about 1.6× faster than the experiment ([`RESULTS.md`](problem-1-cfd/pipeline/cfd_siphon_results/RESULTS.md)). The full-3D pipeline has not yet completed a solver run.
-
-### [IYPT 2027](iypt-2027/)
-Preparation for the 2027 tournament.
