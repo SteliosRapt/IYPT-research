@@ -1,0 +1,774 @@
+\documentclass[11pt]{article}
+
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{bm}
+\usepackage{siunitx}
+\usepackage{graphicx}
+\usepackage{physics}
+\usepackage{mathtools}
+\usepackage{hyperref}
+
+\title{Self-starting Siphon Priming: Geometry, Dynamics, and Loss}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.6\textwidth]{figures/siphon_diagram.png}
+\caption{Schematic diagram of the self-starting siphon geometry. The pipe centerline is defined by points $A(0,h_0)$, $B(x_1,h_1)$, $C(x_2,h_2)$, $D(x_3,h_3)$, and $E(x_4,h_4)$, with straight segments of lengths $L_1$, $L_2$, $L_3$, and $L_4$. The container has free-surface area $A_0$ and water level $h_c(t)$; the pipe has cross-sectional area $A$ and diameter $D$. The arc-length coordinate $L(t)$ measures the wetted pipe length during the filling phase.}
+\label{fig:siphon-schematic}
+\end{figure}
+
+\section*{Models}
+
+\noindent
+Self-starting siphon behaviour and priming have been discussed in the
+fluid-mechanics and physics-education literature; see, for example,
+Potter and Barnes~\cite{potter_siphon}, Jumper and
+Stanchev~\cite{jumper_siphon}, Zheng \emph{et
+al.}~\cite{zheng_siphon}, Ortloff and Kassinos~\cite{ortloff_aspendos},
+and Sedlar \emph{et al.}~\cite{sedlar_siphon}.  The slug-flow model
+developed below focuses on the transient filling and draining dynamics
+of a self-starting siphon, including frictional and minor losses.
+Throughout, we make the following modelling assumptions:
+\begin{itemize}
+  \item The fluid is incompressible and Newtonian with constant density $\rho$
+        and viscosity $\mu$ (e.g.\ water at room temperature).
+  \item The pipe is rigid, stationary, and has a uniform circular cross-section
+        of diameter $D$ and area $A$; the centreline geometry is fixed.
+  \item Flow in the pipe is treated as one-dimensional slug (plug) flow, so
+        the mean velocity $v(t)$ is uniform over each cross-section.
+  \item The flow remains single-phase liquid in the regions modelled; effects
+        of cavitation, trapped air pockets, and surface tension are neglected.
+  \item The container is large enough that the velocity at the free surface is
+        negligible, so the container remains hydrostatic at each instant.
+  \item Both the container free surface and the outlet discharge to the same
+        atmospheric pressure, and the external air dynamics are neglected.
+\end{itemize}
+
+\section{Part I: Geometry and Lossless Equation of Motion}
+
+\subsection{Pipe Geometry}
+
+We describe the pipe centerline by a sequence of points
+\[
+A(0, h_0),\quad B(x_1, h_1),\quad C(x_2, h_2),\quad D(x_3, h_3),\quad E(x_4, h_4),
+\]
+where the horizontal coordinates are $x_i$ and the vertical coordinates are $h_i$.
+The lengths of the straight segments between consecutive points are
+\begin{align*}
+L_1 &= \lvert AB \rvert = \sqrt{x_1^2 + (h_1 - h_0)^2}, \\
+L_2 &= \lvert BC \rvert = \sqrt{(x_2 - x_1)^2 + (h_2 - h_1)^2}, \\
+L_3 &= \lvert CD \rvert = \sqrt{(x_3 - x_2)^2 + (h_3 - h_2)^2}, \\
+L_4 &= \lvert DE \rvert = \sqrt{(x_4 - x_3)^2 + (h_4 - h_3)^2}.
+\end{align*}
+The total pipe length is
+\[
+L_{\max} = L_1 + L_2 + L_3 + L_4.
+\]
+
+\subsection{Height Along the Pipe}
+
+Let $L$ denote the arc-length coordinate measured along the pipe from point $A$.
+We define a piecewise height function $h(L)$ along the pipe. For each straight
+segment we use a local parameter in $[0, 1]$; the functions $h_1, h_2,
+h_3, h_4$ map that local parameter to the physical height on each
+segment:
+\[
+h(L) =
+\begin{cases}
+ h_1\!\left(\dfrac{L}{L_1}\right), & 0 \le L \le L_1, \\[1.0em]
+ h_2\!\left(\dfrac{L - L_1}{L_2}\right), & L_1 \le L \le L_1 + L_2, \\[1.0em]
+ h_3\!\left(\dfrac{L - L_1 - L_2}{L_3}\right), & L_1 + L_2 \le L \le L_1 + L_2 + L_3, \\[1.0em]
+ h_4\!\left(\dfrac{L - L_1 - L_2 - L_3}{L_4}\right), & L_1 + L_2 + L_3 \le L \le L_{\max}.
+\end{cases}
+\]
+If each segment is straight, then each $h_i$ is an affine function of its local
+parameter.
+
+\subsection{Container Water Level}
+
+We choose a reference time $t_0$ at which
+\begin{itemize}
+  \item the water plug in the pipe has length $L(t_0)$,
+  \item the container water height (free surface) is $h_c(t_0)$,
+  \item the pipe cross-sectional area is $A$,
+  \item the container free-surface area is $A_0$.
+\end{itemize}
+
+Let $V_c(t)$ be the volume of water in the container \emph{outside} the pipe walls.
+During the stage when water is still entering the pipe from the container, the
+volumetric flow rate into the pipe is
+\[
+Q(t) = A\,\dot L_{\text{in}}(t),
+\]
+where $\dot L_{\text{in}}$ is the rate at which the water \emph{front} in the pipe
+moves away from the container. During the initial filling phase we will have
+$\dot L_{\text{in}} = \dot L(t)$; later, once the pipe is completely filled, we
+must treat $L$ as constant and use a different description (see Part~II).
+
+For the container alone, mass conservation gives
+\[
+\frac{\mathrm{d}V_c}{\mathrm{d}t} = -Q(t) = -A\,\dot L_{\text{in}}(t).
+\]
+Integrating in time from the reference instant $t_0$ to a general time $t$ and
+\emph{during the period where $\dot L_{\text{in}}=\dot L$}, we get
+\[
+V_c(t) = V_c(t_0) - A\,[L(t)-L(t_0)].
+\]
+Since $V_c(t) = A_0 h_c(t)$, this implies
+\begin{equation}
+  h_c(t) = h_c(t_0) - \frac{A}{A_0}\,[L(t)-L(t_0)].
+  \label{eq:hc-general}
+\end{equation}
+
+This form is completely general and does not assume any particular initial
+pattern of filled/empty segments. In particular, any portions of the pipe that
+are submerged in the container but initially empty (for example, all of $L_2$
+and some part of $L_3$) simply modify the numerical values of $h_c(t_0)$ and
+$L(t_0)$, but do not change the linear relation
+\[
+\frac{\mathrm{d}h_c}{\mathrm{d}L} = -\frac{A}{A_0}.
+\]
+
+If we denote by $V_0$ the actual water volume in the container at $t=0$, and by
+$L_0 = L(0)$ the actual water length in the pipe at $t=0$, then
+$h_c(0) = V_0/A_0$ and eq.~\eqref{eq:hc-general} can be written as
+\begin{equation}
+  h_c(t) = \frac{V_0 - A\,[L(t)-L_0]}{A_0}.
+\end{equation}
+Here $V_0$ must exclude any submerged but initially \emph{empty} pipe interior;
+those volumes are simply not water at $t=0$.
+
+\subsection{Lossless Equation of Motion: Filling Phase}
+
+We first derive the lossless equation of motion for the stage where the water
+plug is still advancing along the pipe, i.e.
+\[
+L(t_0) < L(t) < L_{\max}.
+\]
+
+We model the water inside the pipe as a slug of length $L$, cross-sectional area
+$A$, density $\rho$, and mass
+\[
+m = \rho A L.
+\]
+Let $g$ be the gravitational acceleration, and neglect friction and other losses.
+Atmospheric pressure acts both at the free surface in the container and at the
+pipe outlet, so it cancels in the driving pressure difference.
+
+During the filling phase we have the kinematic relation
+\begin{equation}
+  v(t) = \dot L(t),
+\end{equation}
+where $v(t)$ is the mean velocity in the pipe.
+
+We will show below that the net driving force along the pipe is
+\begin{equation}
+  F_{\text{net}} = \rho g A \,\bigl(h_c(t) - h(L)\bigr),
+\end{equation}
+where $h(L)$ is the height of the outlet at the current front position.
+Applying Newton's second law $F = m\,\ddot L$ gives
+\[
+\rho A L \,\ddot L
+= \rho g A \,\bigl(h_c(t) - h(L)\bigr),
+\]
+so, after cancellation,
+\[
+L \,\ddot L = g \,\bigl(h_c(t) - h(L)\bigr),
+\]
+and hence the basic lossless differential equation during the filling phase is
+\begin{equation}
+\ddot L
+  = \frac{g}{L}\,\bigl(h_c(t) - h(L)\bigr),
+  \qquad L(t_0) < L(t) < L_{\max},
+  \label{eq:lossless-filling}
+\end{equation}
+with $h(L)$ given by the piecewise definition above and $h_c(t)$ given by
+eq.~\eqref{eq:hc-general}.  Physically,
+eq.~\eqref{eq:lossless-filling} states that the acceleration $\ddot L$ of the
+water slug is driven by the instantaneous head difference $h_c(t)-h(L)$ and is
+inversely proportional to $L$, since a longer slug has more mass to accelerate.
+
+The filling phase ends at time $t_\ast$ such that $L(t_\ast) = L_{\max}$.
+Beyond this point, $L$ stays fixed and we must use a different set of
+equations (see Part~II).
+
+\subsection{Detailed Derivation of the Net Driving Force}
+
+We now derive $F_{\text{net}}$ more explicitly by decomposing the contributions
+of pressure and gravity.
+
+\subsubsection*{Local Force Balance on a Differential Element}
+
+Introduce a coordinate $s$ along the pipe, measured from the inlet (we will
+later identify $s$ with $L$ at the slug front). Consider a small fluid element
+of length $\mathrm{d}s$ and cross-sectional area $A$. Its volume is
+$A\,\mathrm{d}s$ and its mass is
+\[
+\mathrm{d}m = \rho A\,\mathrm{d}s.
+\]
+
+Let $p(s,t)$ be the pressure and $h(s)$ the height of the centerline at position
+$s$. The tangent to the pipe makes a local angle $\theta(s)$ with the horizontal,
+so that
+\[
+\sin\theta(s) = \frac{\mathrm{d}h}{\mathrm{d}s}.
+\]
+The component of the weight along the pipe (positive in the direction of
+increasing $s$) is then
+\[
+\mathrm{d}F_g
+  = -\rho g A \sin\theta(s)\,\mathrm{d}s
+  = -\rho g A\,\frac{\mathrm{d}h}{\mathrm{d}s}\,\mathrm{d}s.
+\]
+
+For this element, the forces in the tangential direction (taken as positive in
+the direction of increasing $s$) are:
+\begin{itemize}
+  \item Pressure on the upstream face (at $s$): $p(s,t)\,A$;
+  \item Pressure on the downstream face (at $s + \mathrm{d}s$):
+        $-p(s+\mathrm{d}s,t)\,A$;
+  \item Component of weight along the pipe:
+        \[
+        \mathrm{d}F_g
+        = -\rho g A\,\frac{\mathrm{d}h}{\mathrm{d}s}\,\mathrm{d}s.
+        \]
+\end{itemize}
+Thus the total tangential force on the element is
+\[
+\mathrm{d}F
+= -\frac{\partial p}{\partial s} A\,\mathrm{d}s
+  - \rho g A \frac{\mathrm{d}h}{\mathrm{d}s}\,\mathrm{d}s.
+\]
+
+If the mean velocity in the slug is $v(t) = \dot L(t)$ and is uniform along the
+slug, then $\partial v/\partial s = 0$ and the local unsteady 1D momentum
+equation (Euler equation along a streamline) \cite{white_fm} reduces to
+\[
+\rho \frac{\partial v}{\partial t}
+  = -\frac{\partial p}{\partial s} - \rho g \frac{\mathrm{d}h}{\mathrm{d}s}.
+\]
+Multiplying by $A\,\mathrm{d}s$ we recover
+\[
+\mathrm{d}F = \rho A\,\mathrm{d}s \,\frac{\partial v}{\partial t}
+           = \rho A\,\mathrm{d}s \,\frac{\mathrm{d}v}{\mathrm{d}t},
+\]
+which is Newton's second law for the differential element.
+
+\subsubsection*{Integration Along the Entire Water Slug}
+
+Integrate along the slug from the entrance at $s=0$ (just inside the pipe) to
+the front of the slug at $s=L(t)$:
+\begin{align*}
+F_{\text{net}}
+&= \int_0^{L} \mathrm{d}F \\
+&= \int_0^{L} \left(
+    -\frac{\partial p}{\partial s} A
+    - \rho g A\,\frac{\mathrm{d}h}{\mathrm{d}s}
+  \right) \mathrm{d}s \\
+&= -A\int_0^{L} \frac{\partial p}{\partial s} \,\mathrm{d}s
+   -\rho g A\int_0^{L} \frac{\mathrm{d}h}{\mathrm{d}s}\,\mathrm{d}s.
+\end{align*}
+
+The integrals can be evaluated explicitly:
+\begin{itemize}
+  \item Pressure contribution:
+  \[
+    -A\int_0^{L} \frac{\partial p}{\partial s} \,\mathrm{d}s
+    = -A\bigl(p(L,t) - p(0,t)\bigr)
+    = A\bigl(p(0,t) - p(L,t)\bigr).
+  \]
+  \item Gravity (body force) contribution:
+  \[
+    -\rho g A\int_0^{L} \frac{\mathrm{d}h}{\mathrm{d}s}\,\mathrm{d}s
+    = -\rho g A \bigl(h(L) - h(0)\bigr)
+    = \rho g A \bigl(h(0) - h(L)\bigr).
+  \]
+\end{itemize}
+Therefore,
+\begin{equation}
+F_{\text{net}}
+  = A\bigl(p(0,t) - p(L,t)\bigr)
+    + \rho g A \bigl(h(0) - h(L)\bigr).
+\label{eq:net-force-general}
+\end{equation}
+
+\subsubsection*{Relating End Pressures to the Container and Outlet}
+
+We now connect $p(0,t)$ and $p(L,t)$ to the free-surface and outlet conditions.
+
+\begin{itemize}
+  \item At the container free surface ($z = h_c(t)$), the pressure is
+        $p_{\text{atm}}$. Hydrostatic equilibrium in the container gives the
+        pressure at the pipe inlet (which we call $p(0,t)$) as
+        \[
+        p(0,t) = p_{\text{atm}} + \rho g \bigl(h_c(t) - h(0)\bigr),
+        \]
+        where $h(0)$ is the height of the pipe inlet.
+
+  \item At the outlet, we assume the jet discharges to the atmosphere at height
+        $h(L)$, so the pressure just at the outlet inside the pipe is
+        \[
+        p(L,t) = p_{\text{atm}}.
+        \]
+\end{itemize}
+
+Substituting into \eqref{eq:net-force-general}:
+\begin{align*}
+F_{\text{net}}
+  &= A\left[
+      p_{\text{atm}} + \rho g\bigl(h_c(t) - h(0)\bigr)
+      - p_{\text{atm}}
+    \right]
+    + \rho g A \bigl(h(0) - h(L)\bigr) \\
+  &= \rho g A\bigl(h_c(t) - h(0)\bigr)
+     + \rho g A\bigl(h(0) - h(L)\bigr) \\
+  &= \rho g A\bigl(h_c(t) - h(L)\bigr).
+\end{align*}
+
+\subsubsection*{Interpretation}
+
+From the above decomposition we can interpret
+\[
+F_{\text{net}} =
+\underbrace{A\bigl(p(0,t) - p(L,t)\bigr)}_{\text{pressure drive}}
++
+\underbrace{\rho g A \bigl(h(0) - h(L)\bigr)}_{\text{gravity drive}}
+= \rho g A\bigl(h_c(t) - h(L)\bigr).
+\]
+
+In other words:
+\begin{itemize}
+  \item The pressure difference between inlet and outlet, itself due to the
+        water column in the container above the inlet, contributes a net push.
+  \item The body force (weight) of the water along the pipe projects along the
+        pipe centerline and adds another contribution.
+  \item When these are combined, all dependence on the inlet height $h(0)$
+        cancels, and the net effect is equivalent to a single head difference
+        between the free surface in the container at $h_c(t)$ and the outlet at
+        $h(L)$.
+\end{itemize}
+
+Using $m = \rho A L$ and $F_{\text{net}} = m\,\ddot L$, we recover
+\[
+\rho A L \,\ddot L = \rho g A \bigl(h_c(t) - h(L)\bigr),
+\]
+which is precisely the lossless equation \eqref{eq:lossless-filling}, now with
+the roles of pressure and gravity made explicit.
+
+\section{Part II: Loss Models and Phase-Split Dynamics}
+
+In this part we add distributed wall-friction losses (Darcy--Weisbach) and
+local (minor) losses, and we also distinguish explicitly between:
+\begin{enumerate}
+  \item The \emph{filling phase}, where the front advances and $v = \dot L$;
+  \item The \emph{draining phase}, where the pipe is completely full and $L$
+        is fixed, but $v(t)$ and $h_c(t)$ still evolve.
+\end{enumerate}
+
+We denote the pipe diameter by $D$, and we continue to use $v(t)$ for the mean
+velocity in the pipe.
+
+\subsection{Kinematics and Phases}
+
+\subsubsection*{Filling Phase ($L(t_0) < L(t) < L_{\max}$)}
+
+During the filling phase, the front of the water plug advances along the pipe,
+so
+\begin{equation}
+  v(t) = \dot L(t), \qquad L(t_0) < L(t) < L_{\max}.
+\end{equation}
+The container height is given by eq.~\eqref{eq:hc-general},
+\[
+h_c(t) = h_c(t_0) - \frac{A}{A_0}\,[L(t)-L(t_0)].
+\]
+The phase ends at time $t_\ast$ when $L(t_\ast) = L_{\max}$.
+
+\subsubsection*{Draining Phase ($t \ge t_\ast$, full pipe)}
+
+Once the water plug occupies the entire pipe, its length becomes fixed:
+\[
+L(t) = L_{\max}, \qquad t \ge t_\ast,
+\]
+and we must treat the mean velocity $v(t)$ as an independent state variable;
+in particular $v \neq \dot L$ since $\dot L = 0$.
+
+The outlet height is now a constant
+\[
+h_{\text{out}} = h(L_{\max}).
+\]
+The volumetric flow rate is $Q(t) = A v(t)$, so the container volume and height
+evolve according to
+\begin{equation}
+  \dot h_c(t) = -\,\frac{A}{A_0}\,v(t),
+  \qquad t \ge t_\ast.
+  \label{eq:hc-draining}
+\end{equation}
+
+\subsection{Distributed Friction: Darcy--Weisbach}
+
+The head loss due to wall friction over a length $L$ of pipe is
+\cite{white_fm,crane}
+\begin{equation}
+  h_f = f\,\frac{L}{D}\,\frac{v^2}{2g},
+\end{equation}
+where
+\begin{itemize}
+  \item $f$ is the Darcy friction factor (dimensionless),
+  \item $L$ is the wetted pipe length,
+  \item $D$ is the pipe diameter,
+  \item $v$ is the mean velocity in the pipe.
+\end{itemize}
+
+The Reynolds number is \cite{white_fm}
+\[
+\mathrm{Re} = \frac{\rho v D}{\mu},
+\]
+with $\rho$ the density and $\mu$ the dynamic viscosity of the fluid.
+
+For water at room temperature (approximately $\rho \approx
+\SI{1000}{kg/m^3}$, $\mu \approx \SI{1.0e-3}{Pa\cdot s}$), typical regimes are:
+\begin{itemize}
+  \item \emph{Laminar flow} ($\mathrm{Re} \lesssim 2000$) \cite{white_fm}:
+        \[
+        f = \frac{64}{\mathrm{Re}}.
+        \]
+  \item \emph{Turbulent flow}: $f$ depends on both $\mathrm{Re}$ and the
+        relative roughness $\varepsilon/D$. A common correlation is
+        Colebrook--White \cite{colebrook}:
+        \[
+        \frac{1}{\sqrt{f}}
+        = -2\log_{10}\left(
+            \frac{\varepsilon/D}{3.7}
+            + \frac{2.51}{\mathrm{Re}\sqrt{f}}
+          \right),
+        \]
+        where $\varepsilon$ is the roughness height.
+\end{itemize}
+
+Typical ranges of $f$ for water in pipes:
+\begin{itemize}
+  \item Smooth plastic tubing: $f \approx 0.015$--$0.02$ (high $\mathrm{Re}$);
+  \item Commercial steel pipe: $f \approx 0.02$--$0.03$.
+\end{itemize}
+
+\subsubsection*{Experimental Determination of $f$}
+
+In a straight pipe test section of known $L$ and $D$, the pressure drop
+$\Delta p$ is measured for a given flow rate (hence velocity $v$). The
+Darcy--Weisbach relation in pressure form is
+\[
+\Delta p = f\,\frac{L}{D}\,\frac{\rho v^2}{2}.
+\]
+Solving for $f$ gives
+\[
+f = \frac{2D\,\Delta p}{\rho v^2 L}.
+\]
+Repeating this at various $\mathrm{Re}$ and roughnesses leads to the classical
+Moody diagram and empirical correlations \cite{moody}.
+
+\subsection{Local (Minor) Losses}
+
+Each fitting or geometric disturbance is modeled as \cite{white_fm,crane}
+\begin{equation}
+  h_m = K\,\frac{v^2}{2g},
+\end{equation}
+where $K$ is a dimensionless loss coefficient determined by geometry.
+
+If several such elements are present along the flow path, the total minor-loss
+head is
+\[
+h_{\text{minor,tot}} =
+\left(\sum_i K_i\right)\frac{v^2}{2g}.
+\]
+
+Typical values of $K$ (orders of magnitude) for water are
+\cite{white_fm,crane}:
+\begin{itemize}
+  \item Sharp-edged entrance from a reservoir: $K \approx 0.5$;
+  \item Well-rounded entrance: $K \approx 0.04$;
+  \item Sudden exit to a large tank / atmosphere: $K \approx 1.0$;
+  \item Smooth $90^\circ$ bend: $K \approx 0.2$--$0.5$;
+  \item Tight $90^\circ$ elbow: $K \approx 0.5$--$1.5$;
+  \item Fully open gate valve: $K \approx 0.1$--$0.2$;
+  \item Fully open globe valve: $K \approx 8$--$10$.
+\end{itemize}
+
+\subsubsection*{Experimental Determination of $K$}
+
+A test loop is set up with the fitting of interest. The extra pressure drop
+$\Delta p_{\text{extra}}$ across the fitting is measured, with straight-pipe
+losses subtracted out. Converting the extra drop to head,
+\[
+h_m = \frac{\Delta p_{\text{extra}}}{\rho g},
+\]
+the loss coefficient is
+\[
+K = \frac{2g\,h_m}{v^2},
+\qquad
+v = \frac{Q}{A},
+\]
+where $Q$ is the volumetric flow rate and $A$ the pipe cross-sectional area.
+
+\subsection{Total Head Loss and Force}
+
+In the slug-flow model, over a wetted length $L$ we take the total head loss as
+\begin{equation}
+h_{\text{loss}}(v,L)
+= f\,\frac{L}{D}\,\frac{v^2}{2g}
+  + \left(\sum_i K_i\right)\frac{v^2}{2g}.
+\end{equation}
+The corresponding resistive force (always opposing motion) is
+\begin{equation}
+F_{\text{loss}} = \rho g A\,h_{\text{loss}}(v,L)\,\operatorname{sgn}(v),
+\end{equation}
+where $\operatorname{sgn}(v)$ is the sign of the velocity. Since
+$v\,\operatorname{sgn}(v) = \lvert v\rvert$, we can equivalently write the
+combination $|v|v$.
+
+\subsection{Extended Equation of Motion: Filling Phase}
+
+The momentum balance with pressure/gravity driving and losses for the
+\emph{filling phase} is
+\[
+\rho A L\,\ddot L
+= \rho g A\bigl(h_c(t) - h(L)\bigr)
+  - \rho g A\,h_{\text{loss}}(\dot L,L)\,\operatorname{sgn}(\dot L).
+\]
+Substituting
+\[
+h_{\text{loss}}(\dot L,L)
+= \left(
+    f\,\frac{L}{D}
+    + \sum_i K_i
+  \right)\frac{\dot L^2}{2g},
+\]
+and cancelling $\rho A$ gives
+\[
+L\,\ddot L
+= g\bigl(h_c(t) - h(L)\bigr)
+  - \left(
+      f\,\frac{L}{D}
+      + \sum_i K_i
+    \right)\frac{|\dot L|\dot L}{2}.
+\]
+Thus the extended filling-phase ODE is
+\begin{equation}
+\ddot L
+= \frac{g}{L}\bigl(h_c(t) - h(L)\bigr)
+  - \frac{1}{2L}
+    \left(
+      f\,\frac{L}{D}
+      + \sum_i K_i
+    \right)|\dot L|\dot L,
+\qquad L(t_0) < L(t) < L_{\max}.
+\label{eq:extended-filling}
+\end{equation}
+Here:
+\begin{itemize}
+  \item $h(L)$ is the geometric height along the pipe,
+  \item $h_c(t)$ is given by eq.~\eqref{eq:hc-general},
+  \item $f$ is the Darcy friction factor,
+  \item $K_i$ are the local loss coefficients.
+\end{itemize}
+When $f=0$ and all $K_i=0$, eq.~\eqref{eq:extended-filling} reduces to the
+lossless form \eqref{eq:lossless-filling}.  Physically,
+eq.~\eqref{eq:extended-filling} balances the driving head $h_c(t)-h(L)$ against
+a resistive term that grows like $\lvert\dot L\rvert\dot L$, i.e.\ quadratically
+with the mean velocity.
+
+\subsection{Extended Equation of Motion: Draining Phase}
+
+For the \emph{draining phase} ($t \ge t_\ast$) the water occupies the entire
+pipe, so $L(t) = L_{\max}$ is constant and the velocity $v(t)$ is the dynamical
+variable. The outlet height is $h_{\text{out}} = h(L_{\max})$.
+
+The momentum balance for the full slug of length $L_{\max}$ is
+\[
+\rho A L_{\max}\,\dot v
+= \rho g A\bigl(h_c(t) - h_{\text{out}}\bigr)
+  - \rho g A\,h_{\text{loss}}(v,L_{\max})\,\operatorname{sgn}(v),
+\]
+with
+\[
+h_{\text{loss}}(v,L_{\max})
+= \left(
+    f\,\frac{L_{\max}}{D}
+    + \sum_i K_i
+  \right)\frac{v^2}{2g}.
+\]
+Cancelling $\rho A$ gives
+\[
+L_{\max}\,\dot v
+= g\bigl(h_c(t) - h_{\text{out}}\bigr)
+  - \left(
+      f\,\frac{L_{\max}}{D}
+      + \sum_i K_i
+    \right)\frac{|v|v}{2}.
+\]
+Together with eq.~\eqref{eq:hc-draining}, the draining-phase dynamics are
+\begin{equation}
+\boxed{
+\begin{aligned}
+\dot v
+&= \frac{g}{L_{\max}}\bigl(h_c(t) - h_{\text{out}}\bigr)
+   - \frac{1}{2L_{\max}}
+     \left(
+       f\,\frac{L_{\max}}{D}
+       + \sum_i K_i
+     \right)|v|v,
+   \\[0.5em]
+\dot h_c(t)
+&= -\,\frac{A}{A_0}\,v(t),
+\end{aligned}
+}
+\label{eq:draining-system}
+\end{equation}
+for $t \ge t_\ast$, where $t_\ast$ is the time at which $L(t_\ast)=L_{\max}$.
+Physically, the first line of eq.~\eqref{eq:draining-system} balances the
+driving head $h_c(t)-h_{\text{out}}$ against a quadratic friction and minor-loss
+term, while the second line expresses mass conservation for the container: the
+free-surface level drops at a rate proportional to the pipe flow rate.
+
+The initial conditions at the start of the draining phase are
+\[
+v(t_\ast) = \dot L(t_\ast), \qquad
+h_c(t_\ast) \text{ given by eq.~\eqref{eq:hc-general} evaluated at } t_\ast.
+\]
+In practice, one integrates the filling-phase ODE \eqref{eq:extended-filling}
+from $t_0$ until $L(t)=L_{\max}$, then switches to the draining system
+\eqref{eq:draining-system} with these initial values. The flow eventually ceases
+as $h_c(t)$ approaches $h_{\text{out}}$ and friction damps $v(t)$ to zero.  For
+numerical work, these ODEs can be integrated with standard explicit
+time-stepping schemes (for example, a classical fourth-order Runge--Kutta
+method) \cite{hairer_ode}.
+
+\subsection*{Nondimensionalisation and Key Parameters}
+
+It is often useful to rewrite the draining-phase system in dimensionless form
+to highlight the combinations of parameters that control the dynamics.  Let
+the reference length be the total pipe length $L_{\max}$ and define a
+gravitational time scale
+\[
+T_0 = \sqrt{\frac{L_{\max}}{g}}, \qquad
+V_0 = \frac{L_{\max}}{T_0} = \sqrt{gL_{\max}}.
+\]
+We also introduce a characteristic head difference, for example the initial
+driving head at the start of the draining phase,
+\[
+H_0 = h_c(t_\ast) - h_{\text{out}},
+\]
+and dimensionless variables
+\[
+\hat t = \frac{t}{T_0}, \qquad
+\hat v = \frac{v}{V_0}, \qquad
+\hat h(\hat t) = \frac{h_c(t)-h_{\text{out}}}{H_0}.
+\]
+In terms of these variables, eqs.~\eqref{eq:draining-system} become
+\begin{align}
+\frac{\mathrm{d}\hat v}{\mathrm{d}\hat t}
+&= \frac{H_0}{L_{\max}}\hat h
+   - \frac{1}{2}\left(
+       f\,\frac{L_{\max}}{D}
+       + \sum_i K_i
+     \right)\lvert\hat v\rvert\hat v,
+\\[0.5em]
+\frac{\mathrm{d}\hat h}{\mathrm{d}\hat t}
+&= -\,\frac{A}{A_0}\,\frac{L_{\max}}{H_0}\,\hat v.
+\end{align}
+Thus the behaviour in the draining phase is governed mainly by the dimensionless
+groups
+\[
+\frac{A}{A_0}, \qquad
+f\,\frac{L_{\max}}{D}, \qquad
+\sum_i K_i, \qquad
+\frac{H_0}{L_{\max}},
+\]
+so experiments that share these combinations (even if the individual dimensional
+parameters differ) will exhibit dynamically similar siphon-draining behaviour.
+
+\subsection*{Summary of Variables and Parameters}
+
+\begin{itemize}
+  \item State variables:
+    \begin{itemize}
+      \item Filling phase: $L(t)$, $\dot L(t)$, $h_c(t)$.
+      \item Draining phase: $v(t)$, $h_c(t)$.
+    \end{itemize}
+  \item Geometry:
+    \begin{itemize}
+      \item Node coordinates: $(0,h_0)$, $(x_1,h_1)$, \dots, $(x_4,h_4)$.
+      \item Segment lengths: $L_1,\dots,L_4$, total $L_{\max}$.
+      \item Height profile: $h(L)$ via segment maps $h_i$.
+      \item Outlet height: $h_{\text{out}} = h(L_{\max})$.
+    \end{itemize}
+  \item Areas and diameter:
+    \begin{itemize}
+      \item Pipe area: $A$; container free-surface area: $A_0$; pipe diameter: $D$.
+    \end{itemize}
+  \item Loss parameters:
+    \begin{itemize}
+      \item Darcy friction factor: $f$; minor-loss coefficients: $K_i$.
+    \end{itemize}
+  \item Fluid properties and constants:
+\begin{itemize}
+      \item Density: $\rho$; dynamic viscosity: $\mu$; gravity: $g$.
+    \end{itemize}
+\end{itemize}
+
+\section*{References}
+
+\begin{thebibliography}{99}
+
+\bibitem{white_fm}
+F.~M.~White, \emph{Fluid Mechanics}. McGraw--Hill.
+
+\bibitem{colebrook}
+C.~F.~Colebrook, ``Turbulent flow in pipes, with particular reference to the
+transition region between smooth and rough pipe laws,'' \emph{Journal of the
+Institution of Civil Engineers}, 1939.
+
+\bibitem{moody}
+L.~F.~Moody, ``Friction factors for pipe flow,'' \emph{Transactions of the
+ASME}, 1944.
+
+\bibitem{crane}
+Crane Co., \emph{Flow of Fluids Through Valves, Fittings, and Pipe (Technical
+Paper 410)}. Crane Co.
+
+\bibitem{potter_siphon}
+A.~Potter and F.~H.~Barnes, ``The siphon,'' \emph{Physics Education} \textbf{6},
+362--366 (1971).
+
+\bibitem{jumper_siphon}
+W.~D.~Jumper and B.~Stanchev, ``Towards explaining the water siphon,'' \emph{The
+Physics Teacher} \textbf{52}, 474--478 (2014).
+
+\bibitem{zheng_siphon}
+J.~Zheng, J.~Guo, J.~Wang, Y.~Zhang, Q.~Lu, and H.~Sun, ``Calculation of the flow
+velocity of a siphon,'' \emph{Physics of Fluids} \textbf{33}, 017105 (2021).
+
+\bibitem{ortloff_aspendos}
+C.~R.~Ortloff and A.~Kassinos, ``Computational fluid dynamics investigation of
+the hydraulic behaviour of the Roman inverted siphon system at Aspendos,
+Turkey,'' \emph{Journal of Archaeological Science} \textbf{30}(4), 417--428
+(2003).
+
+\bibitem{sedlar_siphon}
+M.~Sedlar, P.~Prochazka, M.~Komarek, V.~Uruba, and V.~Skala, ``Experimental
+research and numerical analysis of flow phenomena in discharge object with
+siphon,'' \emph{Water} \textbf{12}, 3330 (2020).
+
+\bibitem{hairer_ode}
+E.~Hairer, S.~P.~Norsett, and G.~Wanner, \emph{Solving Ordinary Differential
+Equations I: Nonstiff Problems}, 2nd~ed. (Springer, Berlin, 1993).
+
+\end{thebibliography}
+
+\end{document}

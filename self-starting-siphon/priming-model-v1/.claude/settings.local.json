@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xelatex:*)",
+      "Bash(lualatex:*)",
+      "Bash(pdflatex:*)",
+      "Bash(where pdflatex:*)",
+      "Bash(nul)",
+      "Bash(\"/c/Users/user/AppData/Local/Programs/MiKTeX/miktex/bin/x64/pdflatex.exe\" math_1.tex)",
+      "Bash(\"/c/Users/user/AppData/Local/Programs/MiKTeX/miktex/bin/x64/pdflatex.exe\" math_1_v2.tex)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
