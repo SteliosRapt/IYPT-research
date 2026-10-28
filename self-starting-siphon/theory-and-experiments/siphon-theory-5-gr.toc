@@ -1,0 +1,105 @@
+\babel@toc {english}{}\relax 
+\contentsline {section}{\numberline {1}Εισαγωγή}{4}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Προσέγγιση}{4}{subsection.1.1}%
+\contentsline {section}{\numberline {2}Η Φυσική Διάταξη}{4}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Σύστημα συντεταγμένων}{4}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Η γεωμετρία των πέντε κόμβων}{4}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Το παράδειγμα αναφοράς}{5}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Συνάρτηση υψομέτρου κεντρογραμμής}{7}{subsection.2.4}%
+\contentsline {subsection}{\numberline {2.5}Σημείο $W$: η τελευταία τομή με τη στάθμη}{7}{subsection.2.5}%
+\contentsline {subsection}{\numberline {2.6}Μεταβλητές κατάστασης και αρχικές συνθήκες}{7}{subsection.2.6}%
+\contentsline {section}{\numberline {3}Το Μοντέλο χωρίς Τριβές: Επιδράσεις Γεωμετρίας}{9}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Η κινητήρια δύναμη}{9}{subsection.3.1}%
+\contentsline {paragraph}{Πίεση στην είσοδο.}{9}{section*.2}%
+\contentsline {paragraph}{Πίεση στο μέτωπο.}{9}{section*.3}%
+\contentsline {paragraph}{Βαρύτητα κατά μήκος του βύσματος.}{10}{section*.4}%
+\contentsline {paragraph}{Πρόσημο της κινητήριας δύναμης.}{10}{section*.5}%
+\contentsline {paragraph}{Επιτάχυνση.}{10}{section*.6}%
+\contentsline {subsection}{\numberline {3.2}Το ενεργειακό ολοκλήρωμα}{10}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Κριτήριο προπλήρωσης}{11}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Υπολογισμός για κατά τμήματα γραμμική γεωμετρία}{11}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}Παράδειγμα αναφοράς}{11}{subsection.3.5}%
+\contentsline {paragraph}{Τμήμα 2 ($B \to C$), διάστημα $[12.50, 20.99]$\,cm:}{11}{section*.7}%
+\contentsline {paragraph}{Τμήμα 3 ($C \to D$), διάστημα $[20.99, 32.23]$\,cm:}{11}{section*.8}%
+\contentsline {paragraph}{Τμήμα 4 ($D \to W$), διάστημα $[32.23, 32.81]$\,cm:}{11}{section*.9}%
+\contentsline {paragraph}{Σύνολο:}{11}{section*.10}%
+\contentsline {subsection}{\numberline {3.6}Σχεδιαστικά συμπεράσματα}{12}{subsection.3.6}%
+\contentsline {section}{\numberline {4}Προσθήκη Πτώσης Στάθμης Δοχείου: Επιδράσεις Μεγέθους Συστήματος}{13}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Η σχέση πτώσης στάθμης}{13}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Τροποποιημένο ενεργειακό ολοκλήρωμα}{13}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Παράδειγμα αναφοράς}{14}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Πότε έχει σημασία η πτώση στάθμης}{14}{subsection.4.4}%
+\contentsline {paragraph}{Κύρια παράμετρος: $A/A_0$.}{14}{section*.11}%
+\contentsline {section}{\numberline {5}Προσθήκη Τριβών: Επιδράσεις Σωλήνα}{15}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Απώλειες φορτίου λόγω τριβών}{15}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Η προσέγγιση σταθερού συντελεστή τριβής}{15}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Ενεργειακό ολοκλήρωμα με διόρθωση τριβών}{16}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Φυσική ερμηνεία}{16}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}Παράδειγμα αναφοράς}{17}{subsection.5.5}%
+\contentsline {subsection}{\numberline {5.6}Πότε έχουν σημασία οι τριβές}{17}{subsection.5.6}%
+\contentsline {section}{\numberline {6}Σύγκριση των Τριών Μοντέλων}{18}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Σύνοψη τιμών στο $S_W$}{18}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Φυσική ερμηνεία}{18}{subsection.6.2}%
+\contentsline {paragraph}{Ολοκλήρωμα χωρίς τριβές $I(L)$:}{18}{section*.12}%
+\contentsline {paragraph}{Ολοκλήρωμα με πτώση στάθμης $I_{\text {dd}}(L)$:}{18}{section*.13}%
+\contentsline {paragraph}{Ολοκλήρωμα με τριβές $I_f(L)$:}{19}{section*.14}%
+\contentsline {subsection}{\numberline {6.3}Συνέπειες για τον γεωμετρικό προέλεγχο}{19}{subsection.6.3}%
+\contentsline {section}{\numberline {7}Η Πλήρης Δυναμική}{19}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Τριβή που εξαρτάται από την ταχύτητα: η συσχέτιση Churchill}{20}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Φάση πλήρωσης: εξίσωση κίνησης}{20}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Σύστημα πρώτης τάξης για αριθμητική ολοκλήρωση}{20}{subsection.7.3}%
+\contentsline {subsection}{\numberline {7.4}Σύγκριση με τα αναλυτικά όρια}{21}{subsection.7.4}%
+\contentsline {subsection}{\numberline {7.5}Φάση εκκένωσης}{21}{subsection.7.5}%
+\contentsline {subsubsection}{\numberline {7.5.1}Εξίσωση κίνησης για πλήρη σωλήνα}{21}{subsubsection.7.5.1}%
+\contentsline {subsubsection}{\numberline {7.5.2}Εξέλιξη στάθμης δοχείου}{21}{subsubsection.7.5.2}%
+\contentsline {subsubsection}{\numberline {7.5.3}Σχεδόν-μόνιμη προσέγγιση}{21}{subsubsection.7.5.3}%
+\contentsline {subsubsection}{\numberline {7.5.4}Εκτίμηση χρόνου εκκένωσης}{21}{subsubsection.7.5.4}%
+\contentsline {subsubsection}{\numberline {7.5.5}Τερματισμός εκκένωσης}{22}{subsubsection.7.5.5}%
+\contentsline {section}{\numberline {8}Θεμελίωση: Παραγωγή από τις Navier--Stokes}{23}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Οι πλήρεις εξισώσεις}{23}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}Βήμα-βήμα απλοποίηση}{24}{subsection.8.2}%
+\contentsline {paragraph}{Παραδοχή 1: Αξονοσυμμετρική ροή σε κυκλικό σωλήνα.}{24}{section*.15}%
+\contentsline {paragraph}{Παραδοχή 2: Σχεδόν-μόνιμο, πλήρως ανεπτυγμένο προφίλ ταχύτητας.}{24}{section*.16}%
+\contentsline {paragraph}{Παραδοχή 3: Μέσος όρος στη διατομή.}{24}{section*.17}%
+\contentsline {paragraph}{Παραδοχή 4: Άκαμπτο βύσμα με ομοιόμορφη ταχύτητα.}{24}{section*.18}%
+\contentsline {paragraph}{Παραδοχή 5: Υδροστατικές πιέσεις στα όρια.}{24}{section*.19}%
+\contentsline {paragraph}{Παραδοχή 6: Ασυμπίεστο ρευστό, άκαμπτα τοιχώματα σωλήνα.}{24}{section*.20}%
+\contentsline {subsection}{\numberline {8.3}Ολοκλήρωση κατά μήκος του βύσματος}{24}{subsection.8.3}%
+\contentsline {paragraph}{Αδράνεια:}{24}{section*.21}%
+\contentsline {paragraph}{Πίεση:}{24}{section*.22}%
+\contentsline {paragraph}{Βαρύτητα:}{25}{section*.23}%
+\contentsline {paragraph}{Τριβές:}{25}{section*.24}%
+\contentsline {subsection}{\numberline {8.4}Σύνοψη παραδοχών}{25}{subsection.8.4}%
+\contentsline {section}{\numberline {9}Όρια Εγκυρότητας}{25}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Επισκόπηση}{25}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Σπηλαίωση}{25}{subsection.9.2}%
+\contentsline {subsubsection}{\numberline {9.2.1}Φυσικός μηχανισμός}{25}{subsubsection.9.2.1}%
+\contentsline {subsubsection}{\numberline {9.2.2}Ποσοτικό κριτήριο}{26}{subsubsection.9.2.2}%
+\contentsline {subsubsection}{\numberline {9.2.3}Αξιολόγηση παραδείγματος αναφοράς}{26}{subsubsection.9.2.3}%
+\contentsline {subsection}{\numberline {9.3}Τριχοειδότητα}{26}{subsection.9.3}%
+\contentsline {subsubsection}{\numberline {9.3.1}Φυσικός μηχανισμός}{26}{subsubsection.9.3.1}%
+\contentsline {subsubsection}{\numberline {9.3.2}Ποσοτικά κριτήρια}{26}{subsubsection.9.3.2}%
+\contentsline {subsubsection}{\numberline {9.3.3}Αξιολόγηση παραδείγματος αναφοράς}{27}{subsubsection.9.3.3}%
+\contentsline {paragraph}{Σύσταση:}{27}{section*.25}%
+\contentsline {subsection}{\numberline {9.4}Φαινόμενα εισόδου και μη μόνιμη τριβή}{27}{subsection.9.4}%
+\contentsline {subsubsection}{\numberline {9.4.1}Φυσικός μηχανισμός}{27}{subsubsection.9.4.1}%
+\contentsline {subsubsection}{\numberline {9.4.2}Ποσοτικά κριτήρια}{27}{subsubsection.9.4.2}%
+\contentsline {subsubsection}{\numberline {9.4.3}Αξιολόγηση παραδείγματος αναφοράς}{28}{subsubsection.9.4.3}%
+\contentsline {subsection}{\numberline {9.5}Τρισδιάστατα φαινόμενα στις καμπές}{28}{subsection.9.5}%
+\contentsline {subsubsection}{\numberline {9.5.1}Φυσικός μηχανισμός}{28}{subsubsection.9.5.1}%
+\contentsline {subsubsection}{\numberline {9.5.2}Ποσοτικό κριτήριο}{28}{subsubsection.9.5.2}%
+\contentsline {subsubsection}{\numberline {9.5.3}Αξιολόγηση παραδείγματος αναφοράς}{28}{subsubsection.9.5.3}%
+\contentsline {subsection}{\numberline {9.6}Διαγράμματα περιοχών εγκυρότητας}{28}{subsection.9.6}%
+\contentsline {subsubsection}{\numberline {9.6.1}Διάγραμμα (a): $D$ ως συνάρτηση του $h_3 - h_c$}{29}{subsubsection.9.6.1}%
+\contentsline {subsubsection}{\numberline {9.6.2}Διάγραμμα (b): Re ως συνάρτηση του Ca}{29}{subsubsection.9.6.2}%
+\contentsline {subsubsection}{\numberline {9.6.3}Διάγραμμα (c): $L/D$ ως συνάρτηση του Re}{29}{subsubsection.9.6.3}%
+\contentsline {subsubsection}{\numberline {9.6.4}Σύνοψη}{29}{subsubsection.9.6.4}%
+\contentsline {section}{\numberline {10}Συμπεράσματα}{30}{section.10}%
+\contentsline {section}{\numberline {A}Συσχετίσεις Τριβών}{31}{appendix.A}%
+\contentsline {subsection}{\numberline {A.1}Η συσχέτιση Churchill}{31}{subsection.A.1}%
+\contentsline {subsection}{\numberline {A.2}Οριακή συμπεριφορά}{31}{subsection.A.2}%
+\contentsline {paragraph}{Στρωτό όριο ($\text {Re} \to 0$):}{31}{section*.26}%
+\contentsline {paragraph}{Τυρβώδες όριο ($\text {Re} \to \infty $):}{31}{section*.27}%
+\contentsline {paragraph}{Μεταβατική περιοχή:}{31}{section*.28}%
+\contentsline {subsection}{\numberline {A.3}Σύγκριση με Colebrook--White}{31}{subsection.A.3}%
+\contentsline {subsection}{\numberline {A.4}Ζητήματα ακρίβειας}{31}{subsection.A.4}%
