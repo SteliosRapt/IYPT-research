@@ -1,0 +1,115 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[a4paper, top=2.5cm, bottom=2.5cm, left=3cm, right=3cm]{geometry}
+\usepackage{fontspec}
+\setmainfont{Calibri}
+\usepackage{parskip}
+\usepackage{xcolor}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\pagestyle{plain}
+
+\newcommand{\qtitle}[1]{{\small\textbf{QUESTION #1}}\par\smallskip}
+\newcommand{\qdivider}{\vspace{0.7em}\noindent\rule{\textwidth}{0.4pt}\vspace{0.7em}}
+
+\begin{document}
+
+\begin{center}
+  {\large\textbf{Opponent Discussion Notes}}\\[0.3em]
+  {\normalsize IYPT 2026 --- Problem \#3: Ring Fountain}
+\end{center}
+
+\vspace{1em}
+\noindent\rule{\textwidth}{0.8pt}
+\vspace{0.5em}
+
+\noindent\textit{Thank you for the clear presentation. I particularly appreciated the systematic three-phase categorisation of the phenomenon and the breadth of experimental coverage across five different washers.}
+
+\qdivider
+
+\qtitle{1}
+On slide~6, you cite Archimedes' principle to justify your choice of added water mass. To confirm: Archimedes' principle describes the static buoyant force on a body at rest, arising from hydrostatic pressure differences --- is that correct?
+
+\medskip
+\noindent\hspace{1.5em}If yes: How is it then applicable here? The ring is in motion and undergoing a collision with the water surface --- a dynamic impact, not a static equilibrium.
+
+\medskip
+\noindent\hspace{1.5em}If that is accepted: Furthermore, added mass is shape-dependent and generally not equal to the displaced volume. For a sphere, for example, it is only half the displaced volume. Was the assumption that the added mass equals the ring's volume verified against literature on ring-shaped impactors?
+
+\medskip
+\noindent\textcolor{gray}{\small\itshape [Note: Strongest conceptual error. If added mass is wrong, the post-collision velocities on slide~6 are systematically off, which propagates to the jet velocity and height predictions.]}
+
+\qdivider
+
+\qtitle{2}
+You describe three phases of motion: the ring falls, hits the surface forming a toroidal cavity, and the cavity collapses inward, driving the jet upward. Is the cavity collapse the mechanism responsible for the jet?
+
+\medskip
+\noindent\hspace{1.5em}If yes: So the energy that propels the jet comes from the water rushing in to fill that cavity --- correct?
+
+\medskip
+\noindent\hspace{1.5em}If that is accepted: Looking at slides~6 and~7 --- you use momentum conservation at impact to find the ring-water velocity, then apply a continuity argument to obtain the jet speed. Could you point to where the energy contributed by the cavity collapse appears in this derivation?
+
+\medskip
+\noindent\textcolor{gray}{\small\itshape [Note: The qualitative explanation (cavity drives jet) and the theoretical model (jet from impact momentum + area ratio) are inconsistent. The cavity collapse is the stated mechanism but is absent from the model.]}
+
+\qdivider
+
+\qtitle{3}
+When the jet breaks up at the top, individual droplets are launched upward --- were these visible in your recordings?
+
+\medskip
+\noindent\hspace{1.5em}If yes: Some of those droplets will reach heights above the coherent jet. So when you report the ``maximum height'' in your data tables, what exactly was measured --- the highest point of the coherent jet before breakup, or the maximum height of any individual droplet?
+
+\medskip
+\noindent\textcolor{gray}{\small\itshape [Note: The theoretical model gives jet height from initial jet speed, which corresponds to the coherent jet. Droplets can exceed it due to momentum redistribution within the jet. The choice of definition materially affects how experimental values compare to theory.]}
+
+\qdivider
+
+\qtitle{4}
+On slide~8, you introduce an efficiency factor $k$ for energy losses to splash, turbulence, and waves, described as ``typically less than one.'' Is $k$ modeled or derived from first principles anywhere in your work?
+
+\medskip
+\noindent\hspace{1.5em}If no: What specific value of $k$ was used to generate the theoretical predictions in your comparison tables?
+
+\medskip
+\noindent\hspace{1.5em}Following up: Was that value independently determined, or fitted to match the experimental data?
+
+\medskip
+\noindent\textcolor{gray}{\small\itshape [Note: If $k$ was fitted, the agreement between theory and experiment is partly circular. Key for evaluating the predictive quality of the model.]}
+
+\qdivider
+
+\qtitle{5}
+You attribute the growing discrepancy between theory and experiment at higher drop heights mainly to errors during the ring's fall. However, losses such as air drag and water wave generation generally scale with velocity, so they would be expected to become increasingly significant at higher impact speeds. Do you think these systematic, velocity-dependent losses could be a more substantial contributor to the deviation than random measurement errors?
+
+\medskip
+\noindent\textcolor{gray}{\small\itshape [Note: Random errors have no systematic trend; physical losses that scale with velocity do. The observed increasing deviation is more consistent with the latter.]}
+
+\qdivider
+
+\qtitle{6}
+You introduce the Froude number as the parameter that directly controls cavity depth and jet strength, but it does not appear in your theoretical derivation or experimental analysis --- the drop height $h$ enters directly instead. What role does the Froude number play beyond its definition in this presentation?
+
+\medskip
+\noindent\textcolor{gray}{\small\itshape [Note: The Reynolds and Weber numbers are actually used to justify neglecting viscosity and surface tension. The Froude number is introduced but its role is less clear. Weaker question; ask if time allows.]}
+
+\qdivider
+
+\qtitle{7}
+Your graphs compare experimental and theoretical heights without error bars, and measurement uncertainty is not discussed anywhere in the presentation. Could you estimate the typical uncertainty in your Tracker-based height measurements, and comment on whether it is small enough to support the level of agreement you claim between theory and experiment?
+
+\medskip
+\noindent\textcolor{gray}{\small\itshape [Note: Tracker uncertainty is typically around 1 pixel per frame; depending on video scale this can be several centimetres. Matters most at low drop heights where the jet itself is short.]}
+
+\qdivider
+
+\qtitle{8}
+Your first two conclusions --- that jet height increases with drop height, and that a larger outer-to-inner radius ratio produces higher jets --- both follow directly from the proportionality in your theoretical formula. Did your experiments reveal any unexpected behaviour, or was the primary goal to validate these model predictions experimentally?
+
+\medskip
+\noindent\textcolor{gray}{\small\itshape [Note: Weakest point; ask only if time permits. Reframed as a genuine question about the value-add of the experiments beyond confirming theory.]}
+
+\qdivider
+
+\end{document}
