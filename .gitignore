@@ -1,0 +1,18 @@
+# LaTeX build output
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# Python
+__pycache__/
+*.pyc
+
+# Editor / OS / local agent settings
+.claude/settings.local.json
+.DS_Store
+~$*
+.env
