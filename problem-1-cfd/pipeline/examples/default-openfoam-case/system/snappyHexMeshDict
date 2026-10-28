@@ -1,0 +1,56 @@
+FoamFile
+{
+    version 2.0;
+    format ascii;
+    class dictionary;
+    object snappyHexMeshDict;
+}
+
+castellatedMesh true;
+snap true;
+addLayers false;
+
+geometry
+{
+    // Fluid domain boundaries: container interior + tube interior
+    fluid_geometry.json
+    {
+        type triSurfaceMesh;
+        name fluidWalls;
+    }
+    // Solid obstacles inside the fluid domain: holders and structural columns.
+    // snappyHexMesh carves these out of the fluid mesh so flow is not blocked.
+    fixed_geometry.json
+    {
+        type triSurfaceMesh;
+        name solidObstructions;
+    }
+}
+
+castellatedMeshControls
+{
+    maxLocalCells 100000;
+    maxGlobalCells 200000;
+    minRefinementCells 0;
+    nCellsBetweenLevels 3;
+    resolveFeatureAngle 30;
+    locationInMesh (-0.001867 0.15 0);
+}
+
+snapControls
+{
+    nSmoothPatch 3;
+    tolerance 2.0;
+    nSolveIter 30;
+    nRelaxIter 5;
+}
+
+meshQualityControls {}
+
+refinementRegions
+{
+    openingBox { mode inside; levels ((1E15 2)); }
+    bendBoxes  { mode inside; levels ((1E15 2)); }
+    outletBox  { mode inside; levels ((1E15 2)); }
+    freeSurfaceBox { mode inside; levels ((1E15 2)); }
+}

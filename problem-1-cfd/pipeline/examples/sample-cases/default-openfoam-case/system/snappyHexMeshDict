@@ -1,0 +1,122 @@
+FoamFile
+{
+    version 2.0;
+    format ascii;
+    class dictionary;
+    object snappyHexMeshDict;
+}
+
+castellatedMesh true;
+snap true;
+addLayers false;
+
+geometry
+{
+    walls.stl
+    {
+        type triSurfaceMesh;
+        name walls;
+    }
+    topAtmosphere.stl
+    {
+        type triSurfaceMesh;
+        name topAtmosphere;
+    }
+    topInflow.stl
+    {
+        type triSurfaceMesh;
+        name topInflow;
+    }
+    tubeOutlet.stl
+    {
+        type triSurfaceMesh;
+        name tubeOutlet;
+    }
+    solidObstructions.stl
+    {
+        type triSurfaceMesh;
+        name solidObstructions;
+    }
+    openingBox
+    {
+        type searchableBox;
+        min (0.169132896932 0.27542538527039995 -0.0095746147296);
+        max (0.17713289693200002 0.2945746147296 0.0095746147296);
+    }
+    bendBoxP2
+    {
+        type searchableBox;
+        min (0.14313289693200001 0.255 -0.03);
+        max (0.203132896932 0.31499999999999995 0.03);
+    }
+    bendBoxP3
+    {
+        type searchableBox;
+        min (0.215070369781 0.09 -0.03);
+        max (0.27507036978099997 0.15 0.03);
+    }
+    bendBoxP4
+    {
+        type searchableBox;
+        min (0.33254377102599997 0.30500000000000005 -0.03);
+        max (0.392543771026 0.365 0.03);
+    }
+    outletBox
+    {
+        type searchableBox;
+        min (0.5370612196906 0.0554253852704 -0.0095746147296);
+        max (0.5530189109065999 0.0745746147296 0.0095746147296);
+    }
+    freeSurfaceBox
+    {
+        type searchableBox;
+        min (-0.176867103068 0.2184253852704 -0.15);
+        max (0.173132896932 0.2375746147296 0.15);
+    }
+}
+
+castellatedMeshControls
+{
+    maxLocalCells 100000;
+    maxGlobalCells 200000;
+    minRefinementCells 0;
+    nCellsBetweenLevels 3;
+    resolveFeatureAngle 30;
+    features
+    (
+        { file "walls.eMesh"; level 1; }
+        { file "topAtmosphere.eMesh"; level 1; }
+        { file "topInflow.eMesh"; level 1; }
+        { file "tubeOutlet.eMesh"; level 1; }
+        { file "solidObstructions.eMesh"; level 1; }
+    );
+    refinementSurfaces
+    {
+        walls { level (1 1); patchInfo { type wall; } }
+        topAtmosphere { level (1 1); patchInfo { type patch; } }
+        topInflow { level (1 1); patchInfo { type patch; } }
+        tubeOutlet { level (1 1); patchInfo { type patch; } }
+        solidObstructions { level (1 1); patchInfo { type wall; } }
+    }
+    locationInMesh (-0.001867 0.15 0);
+}
+
+snapControls
+{
+    nSmoothPatch 3;
+    tolerance 2.0;
+    nSolveIter 30;
+    nRelaxIter 5;
+}
+
+meshQualityControls {}
+
+refinementRegions
+{
+    openingBox { mode inside; levels ((1E15 2)); }
+    bendBoxP2 { mode inside; levels ((1E15 2)); }
+    bendBoxP3 { mode inside; levels ((1E15 2)); }
+    bendBoxP4 { mode inside; levels ((1E15 2)); }
+    outletBox { mode inside; levels ((1E15 2)); }
+    freeSurfaceBox { mode inside; levels ((1E15 2)); }
+}

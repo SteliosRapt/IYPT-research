@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fixed-geometry-cfd-pipeline"
+version = "0.1.0"
+description = "Fixed-geometry CFD and visualization pipeline for the experimental setup source files."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "numpy>=2.2",
+  "jsonschema>=4.23"
+]
+
+[project.optional-dependencies]
+geometry = [
+  "meshio>=5.3",
+  "trimesh>=4.6"
+]
+boolean = [
+  "shapely>=2.0",
+  "manifold3d>=2.5"
+]
+dev = [
+  "pytest>=8.3"
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests/python"]
+
+[tool.setuptools.packages.find]
+include = ["services*"]
+

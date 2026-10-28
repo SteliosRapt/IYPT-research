@@ -1,0 +1,34 @@
+walls.stl
+{
+    extractionMethod extractFromSurface;
+    includedAngle 150;
+    writeObj yes;
+}
+
+topAtmosphere.stl
+{
+    extractionMethod extractFromSurface;
+    includedAngle 150;
+    writeObj yes;
+}
+
+topInflow.stl
+{
+    extractionMethod extractFromSurface;
+    includedAngle 150;
+    writeObj yes;
+}
+
+tubeOutlet.stl
+{
+    extractionMethod extractFromSurface;
+    includedAngle 150;
+    writeObj yes;
+}
+
+solidObstructions.stl
+{
+    extractionMethod extractFromSurface;
+    includedAngle 150;
+    writeObj yes;
+}

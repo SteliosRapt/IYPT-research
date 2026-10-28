@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+        set -euo pipefail
+        blockMesh
+        surfaceFeatureExtract || true
+        snappyHexMesh -overwrite
+        topoSet
+        interFoam
+        foamToVTK || true

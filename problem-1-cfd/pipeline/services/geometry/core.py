@@ -1,0 +1,91 @@
+"""Compatibility re-exports for geometry modules."""
+
+from __future__ import annotations
+
+from .case_file import (
+    DEFAULT_DISPLAY_NAME,
+    build_case_identity_payload,
+    compute_case_id,
+    compute_parameter_hash,
+    create_case_file,
+    default_event_thresholds,
+    default_forcing_config,
+    default_meshing_config,
+    default_run_status,
+    default_solver_config,
+    default_transport_config,
+)
+from .derive import (
+    build_tube_path,
+    check_constraints,
+    compute_derived,
+    create_geometry_snapshot,
+    normalize_parameters,
+    round_value,
+)
+from .descriptors import (
+    build_fixed_geometry_descriptors,
+    build_fluid_geometry_descriptors,
+    build_refinement_regions,
+    inner_tube_radius,
+    top_patch_bounds,
+)
+from .parameters import (
+    CASE_RUN_STATUS_STATES,
+    CONSTRAINT_LABELS,
+    DEFAULT_PARAMETERS,
+    HTML_TO_CANONICAL_PARAMETER_MAP,
+    PARAMETER_DEFINITIONS,
+    ROOT_DIR,
+    SCHEMA_DIR,
+    SOURCE_FILES,
+    TUBE_WALL_THICKNESS_RATIO,
+    ParameterDefinition,
+)
+from .surfaces import (
+    Mesh,
+    build_solver_surface_stls,
+    combine_meshes,
+    descriptor_to_mesh,
+    mesh_to_ascii_stl,
+)
+
+__all__ = [
+    "CASE_RUN_STATUS_STATES",
+    "CONSTRAINT_LABELS",
+    "DEFAULT_PARAMETERS",
+    "DEFAULT_DISPLAY_NAME",
+    "HTML_TO_CANONICAL_PARAMETER_MAP",
+    "PARAMETER_DEFINITIONS",
+    "ROOT_DIR",
+    "SCHEMA_DIR",
+    "SOURCE_FILES",
+    "TUBE_WALL_THICKNESS_RATIO",
+    "ParameterDefinition",
+    "build_case_identity_payload",
+    "build_fixed_geometry_descriptors",
+    "build_fluid_geometry_descriptors",
+    "build_refinement_regions",
+    "build_solver_surface_stls",
+    "build_tube_path",
+    "check_constraints",
+    "combine_meshes",
+    "compute_case_id",
+    "compute_derived",
+    "compute_parameter_hash",
+    "create_case_file",
+    "create_geometry_snapshot",
+    "default_event_thresholds",
+    "default_forcing_config",
+    "default_meshing_config",
+    "default_run_status",
+    "default_solver_config",
+    "default_transport_config",
+    "descriptor_to_mesh",
+    "inner_tube_radius",
+    "Mesh",
+    "mesh_to_ascii_stl",
+    "normalize_parameters",
+    "round_value",
+    "top_patch_bounds",
+]
