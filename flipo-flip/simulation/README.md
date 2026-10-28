@@ -1,6 +1,6 @@
 # Flipo Flips
 
-Interactive web-based simulation and visualization tool for studying the physics of the "Flipo flip" toy — a rectangular prism with Steinmetz bicylinder spherical caps. Built for **IYPT 2026, Problem #6**.
+Interactive 3D visualization tool for studying the physics of the "Flipo flip" toy — a rectangular prism with Steinmetz bicylinder spherical caps. Built for **IYPT 2026, Problem #6**.
 
 ## What Is It?
 
@@ -10,7 +10,7 @@ The toy consists of a rectangular prism (width `w`, height `h`) with two spheric
 
 - **4 synchronized viewports**: 3D toy geometry, Steinmetz intersection, 2D phase canvas, and animated 3D rolling on a ground plane
 - **Adjustable parameters**: Radius (R), Width (w), Height (h), mesh detail
-- **6-phase rolling cycle simulation** with play/pause, speed control (0.1–4x), manual phase slider, and loop mode
+- **6-phase rolling cycle animation** (kinematic: poses are interpolated, not integrated from the equations of motion) with play/pause, speed control (0.1–4x), manual phase slider, and loop mode
 - **STL export** for 3D printing
 - **Research figure generation** via Python (matplotlib + Playwright)
 - **LaTeX paper** with full theoretical treatment
@@ -45,7 +45,7 @@ Opens at `http://localhost:8000/`. Navigate to `flipo_flip_simulation.html`.
 
 Optional flags: `--host 0.0.0.0 --port 8080 --dir .`
 
-Alternatively, open `flipo_flip_simulation.html` directly in a modern browser (requires ES6 modules and import maps support).
+Use the local server: the app loads ES modules, which most browsers block when the HTML file is opened directly from disk (`file://`).
 
 ### Figure Generation
 

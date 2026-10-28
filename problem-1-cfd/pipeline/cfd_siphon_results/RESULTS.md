@@ -40,13 +40,17 @@ through the low point C, over the *above-waterline* crest D, and discharges at E
 then the whole tube runs as an established siphon (~0.5 m/s).
 
 **CFD vs experiment (priming front L(t)):**
-- Both self-prime and traverse A→E in ≈1 s.
+- Both self-prime. The CFD front traverses A→E in ≈1 s. The experimental front was
+  tracked only from L = 19.3 cm (t = 0.4 s) to L = 43.6 cm (t = 1.8 s), so the
+  experiment's full A→E time is not measured; the curves are aligned in time at L = 22 cm.
 - The CFD front **pauses at crests B and D** then accelerates — the energy-barrier
   behaviour the theory paper analyses via the priming integral I(L).
-- The CFD front is **~1.6× faster** than the experiment. This is expected: a 2D slot
-  has less wall drag than a round 5 mm straw (smaller wetted perimeter / larger
-  hydraulic diameter), so 2D under-predicts friction. The priming *physics* matches;
-  the absolute front *speed* does not.
+- The CFD front is **~1.6× faster** than the experiment. A likely cause is that a 2D
+  slot has less wall drag than a round 5 mm straw (smaller wetted perimeter / larger
+  hydraulic diameter), so 2D under-predicts friction. This is a hypothesis: mesh
+  resolution, geometry, front detection, surface tension and the time alignment have
+  not been ruled out (no mesh-convergence or 3D comparison yet). The qualitative
+  priming behaviour agrees; the absolute front speed does not.
 
 ## Limitations / next steps
 
@@ -59,9 +63,10 @@ then the whole tube runs as an established siphon (~0.5 m/s).
 ## Reproduce
 
 ```bash
-python tmp/siphon_exp/build_case.py            # writes tmp/siphon_exp/case
+# from cfd_siphon_results/
+python scripts/build_case.py                   # writes scripts/case (incl. checkpoints.json)
 # in WSL with OpenFOAM 2406 sourced:
-#   cp -r case /root/sx && cd /root/sx && blockMesh && snappyHexMesh -overwrite && setFields && interFoam
+#   cp -r scripts/case /root/sx && cd /root/sx && blockMesh && snappyHexMesh -overwrite && setFields && interFoam
 xvfb-run -a python3 scripts/analyze.py /root/sx out      # animation + out_frontL.json
-python scripts/compare.py out_frontL.json comparison.png # comparison
+python scripts/compare.py out_frontL.json comparison.png scripts/case/checkpoints.json
 ```

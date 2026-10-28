@@ -53,7 +53,7 @@ A self-starting siphon primes spontaneously when partially immersed, requiring n
 
 Starting from the Navier-Stokes equations, we derive the governing ordinary differential equation through explicit simplifications: incompressibility, axisymmetry, quasi-steady velocity profiles, and rigid-slug dynamics. The frictionless limit yields the energy integral $I(L)$, computable analytically for piecewise-linear geometries. Container drawdown introduces the area ratio $A/A_0$, while friction adds pipe roughness $\varepsilon/D$ and bend losses $K$. Comparing these three analytical integrals reveals the energy cost of each effect.
 
-Experimental validation using video tracking demonstrates that the full numerical model captures the essential dynamics, while the analytical bounds provide physical insight unavailable from simulation alone. Validity limits---cavitation, capillarity, entrance effects, and secondary flows---are quantified through dimensionless parameters (Bond, capillary, Dean, and Womersley numbers) and visualized in regime diagrams.
+Comparison with video-tracked measurements shows that the full numerical model, with its minor-loss coefficient fitted to those measurements, reproduces the essential dynamics, while the analytical bounds provide physical insight unavailable from simulation alone. Validity limits---cavitation, capillarity, entrance effects, and secondary flows---are quantified through dimensionless parameters (Bond, capillary, Dean, and Womersley numbers) and visualized in regime diagrams.
 \end{abstract}
 
 \tableofcontents
@@ -90,7 +90,7 @@ This paper develops a theoretical framework through layered analysis:
   \item \textbf{Friction effects} (\cref{sec:friction}): Pipe roughness and bend losses are incorporated using the Darcy-Weisbach equation \citep{brown2002history}.
   \item \textbf{Model comparison} (\cref{sec:comparison}): Three analytical integrals visualize the hierarchy of effects.
   \item \textbf{Numerical dynamics} (\cref{sec:dynamics}): Velocity-dependent friction requires numerical integration.
-  \item \textbf{Experimental validation} (\cref{sec:experiments}): Video tracking provides velocity measurements.
+  \item \textbf{Comparison with experiment} (\cref{sec:experiments}): Video tracking provides velocity measurements.
   \item \textbf{Validity limits} (\cref{sec:validity}): Dimensionless parameters quantify when assumptions fail.
 \end{enumerate}
 
@@ -754,7 +754,7 @@ For our experiment: $t_{\text{drain}} \approx 23$\,min---much longer than fillin
 % ══════════════════════════════════════════════════════════════════════════════
 %  SECTION 9: EXPERIMENTS
 % ══════════════════════════════════════════════════════════════════════════════
-\section{Experimental Validation}
+\section{Comparison with Experiment}
 \label{sec:experiments}
 
 \subsection{Setup}

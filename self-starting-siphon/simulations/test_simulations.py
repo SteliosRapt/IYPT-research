@@ -680,6 +680,62 @@ class TestVariableLossesSimulation(unittest.TestCase):
         self.assertEqual(result.termination_status, self.TerminationStatus.MAX_TIME_REACHED)
         self.assertGreater(result.velocity[-1], 0.0)
 
+    def test_rejects_non_positive_time_step(self):
+        """A zero, negative or non-finite time step must fail instead of hanging."""
+
+        config = self.get_example_config()
+        for bad in (0.0, -0.1, float("nan"), float("inf")):
+            with self.subTest(time_step=bad):
+                with self.assertRaises(ValueError):
+                    self.variable_losses.simulate(config, time_step=bad)
+
+
+@unittest.skipUnless(NUMPY_AVAILABLE, "requires numpy")
+class TestMultiSegmentPhysics(unittest.TestCase):
+    """Test the multi-segment primed-siphon solver."""
+
+    def setUp(self):
+        from simulations.multi_segment_physics import (
+            SegmentedTube,
+            TubeSegment,
+            solve_velocity,
+        )
+        from simulations.common import FluidProperties
+        self.SegmentedTube = SegmentedTube
+        self.TubeSegment = TubeSegment
+        self.solve_velocity = solve_velocity
+        self.fluid = FluidProperties()
+
+    def make_tube(self, diameters=(0.01, 0.01), exit_losses=()):
+        segments = [
+            self.TubeSegment(length=0.3, diameter=diameters[0], angle_deg=30.0),
+            self.TubeSegment(length=0.6, diameter=diameters[1], angle_deg=-45.0),
+        ]
+        rise = sum(seg.elevation_change for seg in segments)
+        return self.SegmentedTube(
+            entry_height=0.0,
+            outlet_height=rise,
+            segments=segments,
+            exit_minor_losses=exit_losses,
+        )
+
+    def test_rejects_small_tubes_with_different_diameters(self):
+        """1.0 mm and 1.5 mm tubes differ by under 1e-6 m^2 but must be rejected."""
+
+        with self.assertRaises(ValueError):
+            self.make_tube(diameters=(0.0010, 0.0015))
+
+    def test_outlet_pressure_includes_exit_loss(self):
+        """The node before the exit fittings sits above atmospheric by rho*K*v^2/2."""
+
+        k_exit = 1.0
+        tube = self.make_tube(exit_losses=(k_exit,))
+        velocity, breakdown = self.solve_velocity(0.2, 0.0, tube, self.fluid)
+        _, pressures, _ = tube.pressure_profile(velocity, self.fluid, breakdown)
+
+        expected = self.fluid.atmospheric_pressure + 0.5 * self.fluid.density * k_exit * velocity**2
+        self.assertAlmostEqual(pressures[-1], expected, places=6)
+
 
 @unittest.skipUnless(NUMPY_AVAILABLE and MATPLOTLIB_AVAILABLE, "requires numpy and matplotlib")
 class TestPlotGeneration(unittest.TestCase):

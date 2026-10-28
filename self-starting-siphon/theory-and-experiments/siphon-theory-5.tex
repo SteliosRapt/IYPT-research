@@ -37,7 +37,7 @@
 %  ABSTRACT
 % ══════════════════════════════════════════════════════════════════════════════
 \begin{abstract}
-A self-starting siphon primes spontaneously when partially immersed, without external suction. This paper develops a one-dimensional slug-flow model through layered analysis, progressively adding physical effects to identify how parameters control priming success and filling time. The theoretical framework is validated against a laboratory experiment using a siphon constructed from drinking straws; the experimental geometry and measurements serve as the worked example throughout.
+A self-starting siphon primes spontaneously when partially immersed, without external suction. This paper develops a one-dimensional slug-flow model through layered analysis, progressively adding physical effects to identify how parameters control priming success and filling time. The theoretical framework is compared with a laboratory experiment using a siphon constructed from drinking straws; the experimental geometry and measurements serve as the worked example throughout. The loss parameters of the full model are calibrated to these same measurements, so the comparison demonstrates consistency rather than independent validation.
 
 The analysis begins with the frictionless case, where geometry alone determines the outcome. The driving force $F = \rho g A [h_c - h(L)]$ depends only on the elevation difference between the container surface and the advancing front. This yields an energy integral $I(L)$ computable in closed form for piecewise-linear geometries. The priming criterion $I(S_W) > 0$ provides a geometric screening tool.
 
@@ -296,6 +296,7 @@ The inlet elevation cancels. The result depends only on the elevation difference
   \item $h(L) > h_c$: $F < 0$, slug decelerates, loses kinetic energy.
   \item $h(L) = h_c$: $F = 0$, slug coasts.
 \end{itemize}
+These statements hold for the frictionless model with the slug moving forward. Once friction is included, the net force is the driving force minus the resistance, so a positive driving force can still decelerate the slug.
 
 \paragraph{Acceleration.} Newton's second law with variable mass $m = \rho A L$:
 \begin{equation}
@@ -303,7 +304,7 @@ The inlet elevation cancels. The result depends only on the elevation difference
   \label{eq:acceleration}
 \end{equation}
 
-Even when the force is large (e.g., at low point $C$ where $h_c - h(L) = 15$\,cm), the acceleration is suppressed by the growing slug length $L$.
+Even when the force is large (e.g., at low point $C$ where $h_c - h(C) = 12.5 - 5.0 = 7.5$\,cm), the acceleration is suppressed by the growing slug length $L$.
 
 \subsection{The energy integral}
 
@@ -755,7 +756,7 @@ Numerical integration for the experimental geometry yields:
 \begin{itemize}[nosep,leftmargin=2em]
   \item Velocity at crest $D$: $\approx 0.08$\,m/s (vs.\ 0.87\,m/s frictionless)
   \item Velocity at $W$: $\approx 0.05$--$0.07$\,m/s (vs.\ 0.87\,m/s frictionless)
-  \item Filling time to outlet: $\approx 2.2$\,s (experiment: $\sim 1.8$\,s of tracked filling)
+  \item Filling time to outlet: $\approx 2.2$\,s (experiment: the front was tracked from $t = 0.4$\,s to $t = 1.8$\,s, a 1.4\,s interval starting partway along the tube, so the full filling time is not directly measured)
 \end{itemize}
 
 The analytical bounds bracket reality:
@@ -1127,7 +1128,7 @@ Adding drawdown introduces the area ratio $A/A_0$. The modified integral $I_{\te
 
 Adding friction introduces $\varepsilon/D$ and the bend loss coefficients $K$. The constant-friction integral $I_f(L)$ reveals how dissipation discounts early-stored energy through an exponential factor. This intermediate model provides conservative velocity estimates.
 
-Comparing the three integrals on a single graph visualises the energy cost of each effect. For the experimental geometry with effective $\sum K \approx 14.4$, the constant-friction model predicts that friction dominates, reducing energy by $\sim 99.5\%$; drawdown accounts for only $\sim 0.1\%$. Experimental velocity measurements confirm the hierarchy: the frictionless model overestimates, the constant-friction model is conservative, and the full ODE provides the closest match. This sensitivity to minor losses highlights the importance of bend geometry: larger $\sum K$ would reduce the available energy much more severely.
+Comparing the three integrals on a single graph visualises the energy cost of each effect. For the experimental geometry with effective $\sum K \approx 14.4$, the constant-friction model predicts that friction dominates, reducing energy by $\sim 99.5\%$; drawdown accounts for only $\sim 0.1\%$. Against the experimental velocity measurements, the frictionless model overestimates, the constant-friction model underestimates, and the full ODE gives the closest match; since its $\sum K$ and $\varepsilon/D$ were fitted to these same measurements, that closeness reflects the calibration rather than an independent test. This sensitivity to minor losses highlights the importance of bend geometry: larger $\sum K$ would reduce the available energy much more severely.
 
 The full dynamics require numerical integration due to velocity-dependent friction, but the analytical integrals bracket the solution. The draining phase, which dominates the total siphoning time, is governed by a simpler ODE where the slug length is constant.
 

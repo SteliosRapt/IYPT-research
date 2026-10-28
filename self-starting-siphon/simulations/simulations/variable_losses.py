@@ -84,6 +84,11 @@ def simulate(
 ) -> Tuple[SimulationResult, np.ndarray]:
     """Numerically integrate the siphon with velocity-dependent losses."""
 
+    if not np.isfinite(time_step) or time_step <= 0:
+        raise ValueError("time_step must be a positive, finite number.")
+    if not np.isfinite(max_time) or max_time <= 0:
+        raise ValueError("max_time must be a positive, finite number.")
+
     k = config.area_ratio
     _validate_area_ratio(k)
 
@@ -120,6 +125,11 @@ def simulate(
             outlet_height,
             height - k * velocity * dt,
         )
+        if time + dt == time:
+            raise RuntimeError(
+                f"Time step {dt!r} no longer advances time at t={time!r}; "
+                "the integration has stalled."
+            )
         time += dt
 
         times.append(time)

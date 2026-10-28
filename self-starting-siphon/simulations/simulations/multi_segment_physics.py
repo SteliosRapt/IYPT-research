@@ -113,7 +113,7 @@ class SegmentedTube:
                 "Segment heights do not terminate at the declared outlet height."
             )
         areas = [seg.area for seg in self.segments]
-        if max(areas) - min(areas) > 1e-6:
+        if not np.allclose(areas, areas[0], rtol=1e-6, atol=0.0):
             raise ValueError(
                 "All segments must currently share the same cross-sectional area."
             )
@@ -210,9 +210,12 @@ class SegmentedTube:
         energy_heads = np.empty(num_nodes, dtype=float)
         pressures = np.empty(num_nodes, dtype=float)
 
-        # Outlet conditions (just inside the tube before the exit loss)
-        energy_heads[-1] = self.outlet_height + dyn_head
-        pressures[-1] = fluid.atmospheric_pressure
+        # Outlet node sits just upstream of the exit fittings. The jet leaves at
+        # atmospheric pressure, so the energy head here also carries the exit
+        # minor losses (matching the energy balance used in solve_velocity).
+        exit_head_loss = breakdown.exit_lambda * dyn_head
+        energy_heads[-1] = self.outlet_height + dyn_head + exit_head_loss
+        pressures[-1] = fluid.atmospheric_pressure + fluid.density * g * exit_head_loss
 
         segment_losses = breakdown.segments
         for idx in range(len(self.segments) - 1, -1, -1):

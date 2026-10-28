@@ -453,7 +453,7 @@ Energy is lost through four mechanisms:
     \item \textbf{Additional impact dissipation} via the restitution factor~$e$ (\eqn{eq:restitution}), accounting for vibrations and sound.
 \end{enumerate}
 
-\fig{figures/fig_com_height.pdf}{Centre-of-mass height vs.\ cumulative rotation angle through one half-revolution with zero friction. Vertical dashed lines mark phase transitions. The geometric energy loss at each trailing$\to$leading transfer arises purely from angular momentum conservation.}{com-height}
+\fig{figures/fig_com_height.pdf}{Centre-of-mass height vs.\ cumulative rotation angle through one half-revolution with zero friction. Vertical dashed lines mark phase transitions. The plot shows height only; the geometric energy loss at each trailing$\to$leading transfer follows from angular momentum conservation (\secref{impact}) and is not visible in this figure.}{com-height}
 
 
 % ============================================
@@ -461,16 +461,18 @@ Energy is lost through four mechanisms:
 \label{sec:noslip}
 % ============================================
 
-Throughout all phases, we assume rolling/pivoting without slipping.  At each time step, the simulation computes the tangential friction force~$f$ required to maintain the no-slip constraint and compares it to the maximum available static friction:
+Throughout all phases, we assume rolling/pivoting without slipping.  A dynamical simulation would check, at each time step, that the tangential friction force~$f$ required to maintain the no-slip constraint does not exceed the maximum available static friction:
 \begin{equation}
     f \leq \mu_s\, N
     \label{eq:noslip}
 \end{equation}
 
 \begin{itemize}
-    \item If satisfied: integration continues normally.
-    \item If violated: \textbf{slip is detected}.  The physical simulation halts because the rolling model cannot describe post-slip dynamics.  A visual-only fall animation plays for display purposes but makes no physical predictions.
+    \item If satisfied: the rolling model remains valid.
+    \item If violated: the toy slips, and the rolling model can no longer describe the motion.
 \end{itemize}
+
+The accompanying web application does not yet do this.  It is a kinematic visualization: it interpolates the toy's poses through the six-phase cycle and plays them back at a user-chosen speed, without integrating the equations of motion or checking for slip.
 
 
 % ============================================
@@ -512,7 +514,7 @@ $e$        & Restitution factor at trailing$\to$leading impact & Dissipation \\
 \label{sec:initial}
 % ============================================
 
-The simulation begins with the toy balanced at the end of the pure rolling phase
+The model starts with the toy balanced at the end of the pure rolling phase
 on one cap---specifically at $\varphi = \varphi_{\max}$, where the trailing-edge
 corner rests on the ground and the circular arc has just ended. An initial angular
 velocity~$\omega_0$ is prescribed, tipping the toy into the trailing-edge pivot

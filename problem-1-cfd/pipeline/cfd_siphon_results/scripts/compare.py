@@ -1,7 +1,11 @@
 """Compare CFD priming front L(t) with the experimental measurement.
-Usage: compare.py <cfd_frontL.json> <out.png>"""
+Usage: compare.py <cfd_frontL.json> <out.png> [checkpoints.json]
+
+checkpoints.json defaults to the copy next to this script; pass the one that
+build_case.py wrote (case/checkpoints.json) if you regenerated the geometry."""
 import json
 import sys
+from pathlib import Path
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
@@ -9,8 +13,10 @@ import matplotlib.pyplot as plt
 
 cfd = json.load(open(sys.argv[1]))           # [[t, L_m], ...]
 out = sys.argv[2]
-exp = json.load(open("tmp/siphon_exp/exp_front.json"))   # [{t, V, L_cm}]
-cp = json.load(open("tmp/siphon_exp/case/checkpoints.json"))
+here = Path(__file__).resolve().parent
+exp = json.load(open(here / "exp_front.json"))           # [{t, V, L}], L in cm
+cp_path = Path(sys.argv[3]) if len(sys.argv) > 3 else here / "checkpoints.json"
+cp = json.load(open(cp_path))
 node_s = {k: v * 100 for k, v in cp["arclength"].items()}  # cm
 
 ct = np.array([r[0] for r in cfd])

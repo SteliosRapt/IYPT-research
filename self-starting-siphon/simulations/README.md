@@ -77,12 +77,13 @@ Additional derivations and learning resources for both introductory and advanced
 
 ## Testing
 
-A comprehensive test suite is available in `test_simulations.py` with 53 unit tests covering:
+A comprehensive test suite is available in `test_simulations.py` with 59 unit tests covering:
 
 * **Data structures and validation:** Tests for `FluidProperties`, `TubeGeometry`, `ReservoirSetup`, and `SimulationConfig` classes
 * **Ideal simulation:** Tests for analytical solution correctness, boundary conditions, and edge cases
 * **Constant losses:** Tests for loss coefficient handling and comparison with ideal case
 * **Variable losses:** Tests for Reynolds-number-dependent friction factors and time-marching integration
+* **Multi-segment solver:** Tests for the constant-area check and outlet pressure with exit losses
 * **Plot generation:** Tests for output file creation and metadata generation
 
 ### Running the tests
@@ -106,9 +107,7 @@ The test suite requires `numpy` for numerical tests and `matplotlib` for plottin
 * If `numpy` is not installed, core simulation tests will be skipped
 * If `matplotlib` is not installed, plot generation tests will be skipped
 
-### Current test status
-
-In the current execution environment, `numpy` and `matplotlib` cannot be installed due to network restrictions. All 53 tests are skipped but the framework is validated. Once dependencies are installed locally, all tests should pass.
+A run that skips tests says nothing about correctness, so install the dependencies (`pip install -r requirements.txt`) before relying on the result.
 
 ### Manual verification
 

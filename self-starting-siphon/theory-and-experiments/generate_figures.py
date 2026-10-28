@@ -84,7 +84,8 @@ def load_setup_from_excel(excel_path: Path = EXCEL_PATH) -> dict:
             h = _parse_first_float(row.get(v2_col, None))
             if x is not None and h is not None:
                 nodes[key_s] = (x, h)
-            continue
+                continue
+            # A key such as "D" with no height is a pipe parameter, not a node.
 
         key_norm = key_s.lower().replace(" ", "")
 
@@ -108,21 +109,28 @@ def load_setup_from_excel(excel_path: Path = EXCEL_PATH) -> dict:
             A0_cm2 = _parse_first_float(row.get(v1_col, None))
             continue
 
-    # Sensible fallbacks (keep script runnable if sheet format changes)
-    if not nodes:
-        nodes = {
-            "A": (0.0, 1.0),
-            "B": (7.5, 11.0),
-            "C": (13.5, 5.0),
-            "D": (21.4, 13.0),
-            "E": (30.3, -1.7),
-        }
+    # Measured setup values must come from the workbook; silently substituting
+    # defaults would let the figures drift away from the experiment.
+    missing = [
+        name
+        for name, value in (
+            ("geometry nodes A-E", nodes),
+            ("initial water level", h_c0_val),
+            ("tube diameter D", D_mm),
+            ("reservoir area A_0", A0_cm2),
+        )
+        if not value
+    ]
+    if missing:
+        raise ValueError(
+            f"Could not read {', '.join(missing)} from {excel_path.name} (second sheet)."
+        )
 
     return {
         "nodes": nodes,
-        "h_c0_cm": float(h_c0_val) if h_c0_val is not None else 12.5,
-        "D_cm": (float(D_mm) / 10.0) if D_mm is not None else 0.5,  # mm -> cm
-        "A0_cm2": float(A0_cm2) if A0_cm2 is not None else 340.0,
+        "h_c0_cm": float(h_c0_val),
+        "D_cm": float(D_mm) / 10.0,  # mm -> cm
+        "A0_cm2": float(A0_cm2),
         "epsilon_D_guess": float(eps_D) if eps_D is not None else 0.00035,
         "K_total_guess": float(K_total) if K_total is not None else 4.0,
     }
